@@ -1,0 +1,130 @@
+"use client";
+
+import { useState, useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Play } from "lucide-react";
+import Link from "next/link";
+import { videos } from "@/data/videos";
+
+export function VideoSection() {
+  const [activeVideo, setActiveVideo] = useState(videos[0]);
+  const [playing, setPlaying] = useState(false);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+
+  const featuredVid = playing
+    ? activeVideo
+    : videos.find((v) => v.is_featured) || videos[0];
+  const activeVid = featuredVid;
+
+  return (
+    <section
+      id="video"
+      aria-label="Video proyek BEKON"
+      className="bg-bekon-off-white py-20 md:py-28"
+    >
+      <div className="max-w-container mx-auto px-6 lg:px-20">
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <span className="section-label">Video</span>
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3">
+            Lihat Hasil Nyata Proyek Kami
+          </h2>
+        </motion.div>
+
+        {/* Featured Video */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="aspect-video rounded-xl overflow-hidden bg-bekon-near-black mb-6 relative"
+        >
+          {playing && activeVideo ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${activeVideo.youtube_id}?autoplay=1`}
+              title={activeVideo.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          ) : (
+            <div
+              className="w-full h-full bg-cover bg-center cursor-pointer flex items-center justify-center group"
+              style={{
+                backgroundImage: `url(https://img.youtube.com/vi/${activeVid.youtube_id}/maxresdefault.jpg)`,
+              }}
+              onClick={() => {
+                setActiveVideo(activeVid);
+                setPlaying(true);
+              }}
+            >
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-bekon-gold/90 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                <Play size={28} className="text-white ml-1" />
+              </div>
+            </div>
+          )}
+          {!playing && (
+            <div className="absolute bottom-4 left-4 right-4">
+                <h3 className="text-white text-lg font-semibold">
+                {activeVid.title}
+              </h3>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Thumbnails */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8"
+        >
+          {videos
+            .filter((v) => v.id !== activeVideo?.id || !playing)
+            .slice(0, 3)
+            .map((video) => (
+              <button
+                key={video.id}
+                onClick={() => {
+                  setActiveVideo(video);
+                  setPlaying(true);
+                }}
+                className="group relative aspect-video rounded-lg overflow-hidden bg-bekon-near-black"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://img.youtube.com/vi/${video.youtube_id}/mqdefault.jpg`}
+                  alt={video.title}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-bekon-near-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-10 h-10 rounded-full bg-bekon-gold/90 flex items-center justify-center">
+                    <Play size="16" className="text-white ml-0.5" />
+                  </div>
+                </div>
+                <div className="absolute bottom-2 left-2 right-2">
+                  <p className="text-white text-xs font-medium truncate">
+                    {video.title}
+                  </p>
+                </div>
+              </button>
+            ))}
+        </motion.div>
+
+        <div className="text-center">
+          <Link
+            href="/video"
+            className="text-bekon-gold text-sm font-medium hover:text-bekon-gold-dark transition-colors inline-flex items-center gap-1"
+          >
+            Lihat Semua Video &rarr;
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}

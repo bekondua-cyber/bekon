@@ -1,0 +1,51 @@
+export const siteConfig = {
+  name: "BEKON",
+  fullName: "Bangun Eka Konstruksi",
+  tagline: "Wujudkan Hunian Impian Anda",
+  since: 2009,
+  description:
+    "Mitra terpercaya untuk hunian dan bangunan berkualitas sejak 2009.",
+  location: "Serang, Cilegon, Banten & sekitarnya",
+  address: "Jl. Raya Serang No. 123, Kota Serang, Provinsi Banten, 42111",
+  phone1: "+62 812-3456-7890",
+  phone2: "+62 819-8765-4321",
+  whatsapp1: "6281234567890",
+  whatsapp1_name: "Admin 1",
+  whatsapp2: "6281987654321",
+  whatsapp2_name: "Admin 2",
+  email: "info@bekon.co.id",
+  social: {
+    instagram: "https://instagram.com/bekon_id",
+    youtube: "https://youtube.com/@bekon",
+    tiktok: "https://tiktok.com/@bekon_id",
+  },
+  maps_url: "https://maps.google.com/?q=Serang+Banten",
+  copyright: `© ${new Date().getFullYear()} Bangun Eka Konstruksi. All rights reserved.`,
+};
+
+export const navLinks = [
+  { href: "/", label: "Beranda" },
+  { href: "/tentang-kami", label: "Tentang" },
+  { href: "/layanan", label: "Layanan" },
+  { href: "/portfolio", label: "Portfolio" },
+  { href: "/video", label: "Video" },
+  { href: "/informasi/blog", label: "Blog" },
+  { href: "/kontak", label: "Kontak" },
+];
+
+export const footerQuickLinks = [
+  { href: "/", label: "Beranda" },
+  { href: "/tentang-kami", label: "Tentang Kami" },
+  { href: "/portfolio", label: "Portfolio" },
+  { href: "/video", label: "Video" },
+  { href: "/informasi/blog", label: "Blog" },
+  { href: "/kontak", label: "Kontak" },
+];
+
+export const footerServices = [
+  { href: "/layanan/desain-eksterior", label: "Desain Eksterior" },
+  { href: "/layanan/desain-interior", label: "Desain Interior" },
+  { href: "/layanan/bangun-rumah-renovasi", label: "Bangun Rumah" },
+  { href: "/layanan/interior-rumah", label: "Interior Rumah" },
+  { href: "/layanan/bangun-kost-ruko", label: "Bangun Kost & Ruko" },
+];

@@ -3,25 +3,36 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F8F5F0;
+  --foreground: #1A1A1A;
+  --font-cormorant: 'Cormorant Garamond', serif;
+  --font-inter: 'Inter', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-[#E0D9CE];
+  }
+
+  body {
+    @apply bg-bekon-off-white text-bekon-near-black font-body;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
+@layer components {
+  .section-label {
+    @apply font-body text-xs font-semibold uppercase tracking-[0.15em] text-bekon-gold;
+  }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .section-title {
+    @apply font-display text-display-m md:text-[42px] text-bekon-near-black;
+  }
+
+  .container-bekon {
+    @apply max-w-container mx-auto px-6 lg:px-20;
   }
 }
