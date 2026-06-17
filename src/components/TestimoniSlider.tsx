@@ -127,10 +127,6 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-function getAvatarColor(index: number): string {
-  return AVATAR_COLORS[index % AVATAR_COLORS.length];
-}
-
 interface TestimoniSliderProps {
   items?: TestimonialSliderItem[];
 }
