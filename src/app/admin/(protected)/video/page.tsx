@@ -22,6 +22,7 @@ export default function AdminVideoPage() {
     youtubeUrl: "",
     category: "",
     isFeatured: false,
+    isPublished: true,
     sortOrder: 0,
   })
   const [saving, setSaving] = useState(false)
@@ -77,7 +78,7 @@ export default function AdminVideoPage() {
       if (res.ok) {
         toast.success("Video berhasil ditambahkan")
         setShowForm(false)
-        setForm({ title: "", youtubeUrl: "", category: "", isFeatured: false, sortOrder: 0 })
+        setForm({ title: "", youtubeUrl: "", category: "", isFeatured: false, isPublished: true, sortOrder: 0 })
         fetchItems()
       } else {
         const err = await res.json()
