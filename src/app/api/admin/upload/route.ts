@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 import { uploadImage, deleteImage } from "@/lib/cloudinary"
-import sharp from "sharp"
 
 export async function POST(request: NextRequest) {
   const unauthorized = await requireAdmin()
@@ -11,30 +10,32 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const file = formData.get("file") as File | null
-
     if (!file) {
-      return NextResponse.json(
-        { error: "File tidak ditemukan" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 })
     }
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const resized = await sharp(buffer)
-      .resize(1920, 1080, { fit: "inside", withoutEnlargement: true })
-      .webp({ quality: 85 })
-      .toBuffer()
+    let processedBuffer = buffer
+    try {
+      const sharp = (await import("sharp")).default
+      processedBuffer = await sharp(buffer)
+        .resize(1920, 1080, { fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 85 })
+        .toBuffer()
+    } catch (sharpError) {
+      console.warn("Sharp not available, uploading original:", sharpError)
+    }
 
-    const result = await uploadImage(resized, "bekon")
+    const result = await uploadImage(processedBuffer, "bekon")
 
     const media = await prisma.media.create({
       data: {
         filename: file.name,
         url: result.url,
         publicId: result.public_id,
-        sizeBytes: resized.length,
+        sizeBytes: processedBuffer.length,
         width: result.width,
         height: result.height,
       },
@@ -43,10 +44,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ data: media })
   } catch (error) {
     console.error("POST /api/admin/upload error:", error)
-    return NextResponse.json(
-      { error: "Gagal mengupload file" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Gagal mengupload file" }, { status: 500 })
   }
 }
 
