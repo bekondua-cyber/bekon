@@ -6,8 +6,8 @@ import { PortfolioSection } from "@/components/PortfolioSection";
 import type { PortfolioItem } from "@/components/PortfolioSection";
 import { WhyBekonSection } from "@/components/WhyBekonSection";
 import { ProcessSection } from "@/components/ProcessSection";
-import { TestimonialsSection } from "@/components/TestimonialsSection";
-import type { TestimonialItem } from "@/components/TestimonialsSection";
+import { TestimoniSlider } from "@/components/TestimoniSlider";
+import type { TestimonialSliderItem } from "@/components/TestimoniSlider";
 import { VideoSection } from "@/components/VideoSection";
 import type { VideoItem } from "@/components/VideoSection";
 import { BlogSection } from "@/components/BlogSection";
@@ -82,7 +82,7 @@ export default async function HomePage() {
         <PortfolioSection items={portfolioData as PortfolioItem[]} />
         <WhyBekonSection />
         <ProcessSection />
-        <TestimonialsSection items={testimonialsData as TestimonialItem[]} />
+        <TestimoniSlider items={testimonialsData as TestimonialSliderItem[]} />
         <VideoSection items={videosData as VideoItem[]} />
         <BlogSection items={articlesData as ArticleItem[]} />
         <CTASection />
