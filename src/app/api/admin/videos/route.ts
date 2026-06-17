@@ -2,6 +2,26 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 
+export const dynamic = "force-dynamic"
+
+export async function GET() {
+  const unauthorized = await requireAdmin()
+  if (unauthorized) return unauthorized
+
+  try {
+    const items = await prisma.video.findMany({
+      orderBy: { sortOrder: "asc" },
+    })
+    return NextResponse.json({ data: items })
+  } catch (error) {
+    console.error("GET /api/admin/videos error:", error)
+    return NextResponse.json(
+      { error: "Gagal mengambil data video" },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   const unauthorized = await requireAdmin()
   if (unauthorized) return unauthorized
