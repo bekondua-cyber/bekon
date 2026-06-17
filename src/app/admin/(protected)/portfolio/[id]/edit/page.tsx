@@ -86,7 +86,14 @@ export default function AdminPortfolioEditPage() {
       credentials: "include",
     })
     const json = await res.json()
-    if (!res.ok) throw new Error(json.error || "Upload gagal")
+    if (!res.ok) {
+      console.error("Upload error:", json)
+      throw new Error(json.detail || json.error || "Upload gagal")
+    }
+    if (!json.data?.url) {
+      console.error("Upload response missing URL:", json)
+      throw new Error("Response tidak mengandung URL gambar")
+    }
     return json.data.url
   }
 
