@@ -4,7 +4,7 @@ import { siteConfig } from "@/data/site-config";
 
 export function ContactForm() {
   return (
-    <div className="bg-white rounded-xl p-6 md:p-8 border border-bekon-border h-fit">
+    <div className="bg-white border border-[#E0D9CE] rounded-xl p-8">
       <h2 className="text-lg font-semibold text-bekon-near-black mb-6">
         Kirim Pesan
       </h2>
@@ -77,7 +77,7 @@ export function ContactForm() {
         </div>
         <button
           type="submit"
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-bekon-whatsapp text-white rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#25D366] text-white rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
         >
           Kirim via WhatsApp
         </button>
