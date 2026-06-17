@@ -47,12 +47,8 @@
     "react-dom": "^18",
     "react-hook-form": "^7.79.0",
     "recharts": "^3.8.1",
-    "sharp": "^0.35.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0"
-  },
-  "optionalDependencies": {
-    "@img/sharp-linux-x64": "*"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

@@ -17,25 +17,15 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    let processedBuffer = buffer
-    try {
-      const sharp = (await import("sharp")).default
-      processedBuffer = await sharp(buffer)
-        .resize(1920, 1080, { fit: "inside", withoutEnlargement: true })
-        .webp({ quality: 85 })
-        .toBuffer()
-    } catch (sharpError) {
-      console.warn("Sharp not available, uploading original:", sharpError)
-    }
-
-    const result = await uploadImage(processedBuffer, "bekon")
+    // Cloudinary menangani resize & konversi webp
+    const result = await uploadImage(buffer, "bekon")
 
     const media = await prisma.media.create({
       data: {
         filename: file.name,
         url: result.url,
         publicId: result.public_id,
-        sizeBytes: processedBuffer.length,
+        sizeBytes: buffer.length,
         width: result.width,
         height: result.height,
       },
