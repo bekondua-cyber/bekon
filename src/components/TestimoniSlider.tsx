@@ -312,7 +312,10 @@ function TestimonialCard({
       <div className="flex items-center gap-4 relative z-10">
         <div
           className="w-14 h-14 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0"
-          style={{ backgroundColor: '#1A1A1A' }}
+          style={{
+            backgroundColor:
+              AVATAR_COLORS[avatarColorIndex % AVATAR_COLORS.length] || '#1A1A1A',
+          }}
         >
           {getInitials(testimonial.clientName)}
         </div>
