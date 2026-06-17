@@ -15,6 +15,16 @@ export async function GET(request: NextRequest) {
     const items = await prisma.video.findMany({
       where,
       orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        title: true,
+        youtubeUrl: true,
+        youtubeId: true,
+        thumbnail: true,
+        category: true,
+        isFeatured: true,
+        sortOrder: true,
+      },
     })
 
     return NextResponse.json({ data: items })

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { videos } from "@/data/videos";
+import { VideoPageClient } from "./VideoPageClient";
 import { siteConfig } from "@/data/site-config";
 
 export const metadata: Metadata = {
@@ -9,8 +9,33 @@ export const metadata: Metadata = {
     "Tonton video home tour, desain 3D, dan proses pembangunan proyek BEKON.",
 };
 
-export default function VideoPage() {
-  const featured = videos.find((v) => v.is_featured) || videos[0];
+const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+
+export interface VideoItem {
+  id: string;
+  title: string;
+  youtubeUrl?: string;
+  youtubeId: string;
+  thumbnail?: string;
+  category?: string;
+  isFeatured?: boolean;
+  sortOrder?: number;
+}
+
+async function fetchVideos(): Promise<VideoItem[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/videos`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const json = await res.json();
+    if (json && Array.isArray(json.data)) return json.data as VideoItem[];
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function VideoPage() {
+  const items = await fetchVideos();
 
   return (
     <div className="min-h-screen bg-bekon-off-white">
@@ -24,45 +49,15 @@ export default function VideoPage() {
           </p>
         </div>
 
-        <div className="aspect-video rounded-xl overflow-hidden mb-8">
-          <iframe
-            src={`https://www.youtube.com/embed/${featured.youtube_id}`}
-            title={featured.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="w-full h-full"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {videos.slice(1).map((video) => (
-            <a
-              key={video.id}
-              href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group relative aspect-video rounded-lg overflow-hidden bg-bekon-near-black"
-            >
-              <Image
-                src={`https://img.youtube.com/vi/${video.youtube_id}/mqdefault.jpg`}
-                alt={video.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-bekon-near-black/40 flex items-center justify-center">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="white" className="opacity-80 group-hover:opacity-100 transition-opacity">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-              <div className="absolute bottom-2 left-2 right-2">
-                <p className="text-white text-xs font-medium truncate">
-                  {video.title}
-                </p>
-              </div>
-            </a>
-          ))}
-        </div>
+        {items.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-bekon-text-muted text-sm">
+              Belum ada video yang tersedia. Silakan kembali lagi nanti.
+            </p>
+          </div>
+        ) : (
+          <VideoPageClient items={items} />
+        )}
 
         <div className="text-center mt-8">
           <a

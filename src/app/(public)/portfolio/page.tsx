@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-import { portfolioItems } from "@/data/portfolio";
+import { PortfolioGrid } from "./PortfolioGrid";
 
 export const metadata: Metadata = {
   title: "Portfolio Proyek | BEKON - Jasa Bangun Rumah Serang",
@@ -9,7 +7,25 @@ export const metadata: Metadata = {
     "Lihat karya terbaik BEKON dalam desain dan konstruksi rumah, interior, renovasi, dan bangunan komersial.",
 };
 
-export default function PortfolioPage() {
+const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+
+async function fetchPortfolio() {
+  try {
+    const res = await fetch(`${API_BASE}/api/portfolio?all=true`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    if (json && Array.isArray(json.data)) return json.data;
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function PortfolioPage() {
+  const items = await fetchPortfolio();
+
   return (
     <div className="min-h-screen bg-bekon-cream">
       <div className="max-w-container mx-auto px-6 lg:px-20 pt-32 pb-20">
@@ -18,36 +34,11 @@ export default function PortfolioPage() {
             Portfolio
           </h1>
           <p className="text-bekon-text-muted mt-2">
-            {portfolioItems.length} proyek terselesaikan
+            {items.length} proyek terselesaikan
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {portfolioItems.map((item) => (
-            <Link
-              key={item.id}
-              href={`/portfolio/${item.slug}`}
-              className="group relative overflow-hidden rounded-xl aspect-[4/3]"
-            >
-              <Image
-                src={item.cover_image}
-                alt={item.title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-bekon-near-black/80 via-bekon-near-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-0 left-0 right-0 p-5 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                <h2 className="text-white text-base font-bold">
-                  {item.title}
-                </h2>
-                <p className="text-white/70 text-xs mt-1">
-                  {item.category} &middot; {item.location} &middot; {item.year}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <PortfolioGrid items={items} />
       </div>
     </div>
   );

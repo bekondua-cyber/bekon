@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const featured = searchParams.get("featured")
     const category = searchParams.get("category")
+    const all = searchParams.get("all")
 
     const where: Record<string, unknown> = { isPublished: true }
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     const items = await prisma.portfolio.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      take: 6,
+      ...(all !== "true" ? { take: 6 } : {}),
       select: {
         id: true,
         title: true,

@@ -63,15 +63,16 @@ model Article {
 }
 
 model Video {
-  id         String   @id @default(cuid())
-  title      String
-  youtubeUrl String
-  youtubeId  String
-  thumbnail  String?
-  category   String?
-  isFeatured Boolean  @default(false)
-  sortOrder  Int      @default(0)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  title       String
+  youtubeUrl  String
+  youtubeId   String
+  thumbnail   String?
+  category    String?
+  isFeatured  Boolean  @default(false)
+  isPublished Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
 
   @@index([category])
   @@map("video")

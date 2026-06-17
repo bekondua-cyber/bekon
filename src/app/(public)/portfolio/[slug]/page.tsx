@@ -2,19 +2,47 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { portfolioItems } from "@/data/portfolio";
 import { siteConfig } from "@/data/site-config";
+
+const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
 
 interface Props {
   params: { slug: string };
 }
 
-export function generateStaticParams() {
-  return portfolioItems.map((p) => ({ slug: p.slug }));
+interface PortfolioDetail {
+  id: string;
+  title: string;
+  slug: string;
+  category?: string;
+  location?: string;
+  areaSqm?: number;
+  year?: number;
+  description?: string;
+  coverImage?: string;
+  images: string[];
+  beforeImage?: string;
+  afterImage?: string;
 }
 
-export function generateMetadata({ params }: Props): Metadata {
-  const item = portfolioItems.find((p) => p.slug === params.slug);
+async function fetchPortfolio(slug: string): Promise<PortfolioDetail | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/portfolio/${slug}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json && typeof json.data === "object" && !Array.isArray(json.data)) {
+      return json.data as PortfolioDetail;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const item = await fetchPortfolio(params.slug);
   if (!item) return { title: "Proyek Tidak Ditemukan" };
   return {
     title: item.title,
@@ -22,22 +50,24 @@ export function generateMetadata({ params }: Props): Metadata {
   };
 }
 
-export default function PortfolioDetailPage({ params }: Props) {
-  const item = portfolioItems.find((p) => p.slug === params.slug);
+export default async function PortfolioDetailPage({ params }: Props) {
+  const item = await fetchPortfolio(params.slug);
   if (!item) notFound();
 
   return (
     <div className="min-h-screen bg-bekon-off-white">
       {/* Hero Image */}
       <section className="relative h-[50vh] min-h-[400px]">
-        <Image
-          src={item.cover_image}
-          alt={item.title}
-          fill
-          sizes="100vw"
-          className="object-cover"
-          priority
-        />
+        {item.coverImage && (
+          <Image
+            src={item.coverImage}
+            alt={item.title}
+            fill
+            sizes="100vw"
+            className="object-cover"
+            priority
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-bekon-near-black/70 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-20 max-w-container mx-auto">
           <Link
@@ -56,60 +86,68 @@ export default function PortfolioDetailPage({ params }: Props) {
       <section className="border-b border-bekon-border bg-white">
         <div className="max-w-container mx-auto px-6 lg:px-20 py-6">
           <div className="flex flex-wrap gap-8">
-            <div>
-              <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
-                Kategori
-              </p>
-              <p className="text-bekon-near-black font-medium text-sm capitalize mt-1">
-                {item.category.replace("-", " & ")}
-              </p>
-            </div>
-            <div>
-              <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
-                Lokasi
-              </p>
-              <p className="text-bekon-near-black font-medium text-sm mt-1">
-                {item.location}
-              </p>
-            </div>
-            {item.area_sqm && (
+            {item.category && (
+              <div>
+                <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
+                  Kategori
+                </p>
+                <p className="text-bekon-near-black font-medium text-sm capitalize mt-1">
+                  {item.category.replace("-", " & ")}
+                </p>
+              </div>
+            )}
+            {item.location && (
+              <div>
+                <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
+                  Lokasi
+                </p>
+                <p className="text-bekon-near-black font-medium text-sm mt-1">
+                  {item.location}
+                </p>
+              </div>
+            )}
+            {item.areaSqm && (
               <div>
                 <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
                   Luas
                 </p>
                 <p className="text-bekon-near-black font-medium text-sm mt-1">
-                  {item.area_sqm} m&sup2;
+                  {item.areaSqm} m&sup2;
                 </p>
               </div>
             )}
-            <div>
-              <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
-                Tahun
-              </p>
-              <p className="text-bekon-near-black font-medium text-sm mt-1">
-                {item.year}
-              </p>
-            </div>
+            {item.year && (
+              <div>
+                <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
+                  Tahun
+                </p>
+                <p className="text-bekon-near-black font-medium text-sm mt-1">
+                  {item.year}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
       {/* Description */}
-      <section className="py-12 md:py-16">
-        <div className="max-w-container mx-auto px-6 lg:px-20">
-          <div className="max-w-2xl">
-            <h2 className="text-xl font-bold text-bekon-near-black mb-4">
-              Tentang Proyek
-            </h2>
-            <p className="text-bekon-text-muted leading-relaxed">
-              {item.description}
-            </p>
+      {item.description && (
+        <section className="py-12 md:py-16">
+          <div className="max-w-container mx-auto px-6 lg:px-20">
+            <div className="max-w-2xl">
+              <h2 className="text-xl font-bold text-bekon-near-black mb-4">
+                Tentang Proyek
+              </h2>
+              <p className="text-bekon-text-muted leading-relaxed">
+                {item.description}
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Gallery */}
-      {item.images.length > 1 && (
+      {item.images && item.images.length > 1 && (
         <section className="pb-16">
           <div className="max-w-container mx-auto px-6 lg:px-20">
             <h2 className="text-xl font-bold text-bekon-near-black mb-6">
