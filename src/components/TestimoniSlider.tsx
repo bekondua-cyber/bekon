@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface TestimonialSliderItem {
@@ -146,12 +146,12 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
 
   const totalSlides = Math.ceil(displayItems.length / itemsPerView);
 
-  const startAutoPlay = () => {
+  const startAutoPlay = useCallback(() => {
     if (autoPlayRef.current) clearInterval(autoPlayRef.current);
     autoPlayRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % totalSlides);
     }, 4000);
-  };
+  }, [totalSlides]);
 
   useEffect(() => {
     if (!isHovering) {
@@ -160,7 +160,7 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
     return () => {
       if (autoPlayRef.current) clearInterval(autoPlayRef.current);
     };
-  }, [isHovering, totalSlides]);
+  }, [isHovering, startAutoPlay]);
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
@@ -169,11 +169,6 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % totalSlides);
   };
-
-  const visibleItems = displayItems.slice(
-    currentIndex * itemsPerView,
-    (currentIndex + 1) * itemsPerView
-  );
 
   return (
     <section
