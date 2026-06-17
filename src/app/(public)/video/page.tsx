@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { VideoPageClient } from "./VideoPageClient";
 import { siteConfig } from "@/data/site-config";
 
