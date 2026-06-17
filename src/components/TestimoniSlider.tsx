@@ -141,17 +141,14 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
   const [isHovering, setIsHovering] = useState(false);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Responsive: 3 items on desktop, 1 on mobile
-  const itemsPerView = typeof window !== "undefined" && window.innerWidth >= 1024 ? 3 : 1;
-
-  const totalSlides = Math.ceil(displayItems.length / itemsPerView);
+  const totalItems = displayItems.length;
 
   const startAutoPlay = useCallback(() => {
     if (autoPlayRef.current) clearInterval(autoPlayRef.current);
     autoPlayRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % totalSlides);
+      setCurrentIndex((prev) => (prev + 1) % totalItems);
     }, 4000);
-  }, [totalSlides]);
+  }, [totalItems]);
 
   useEffect(() => {
     if (!isHovering) {
@@ -163,68 +160,74 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
   }, [isHovering, startAutoPlay]);
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
+    setCurrentIndex((prev) => (prev - 1 + totalItems) % totalItems);
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % totalSlides);
+    setCurrentIndex((prev) => (prev + 1) % totalItems);
   };
+
+  const getItemIndex = (offset: number) => (currentIndex + offset + totalItems) % totalItems;
 
   return (
     <section
       aria-label="Testimoni klien BEKON"
-      className="bg-[#EDE8DF] py-24"
+      className="bg-[#1A1A1A] py-24 px-4"
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Header */}
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
         <div className="text-center mb-16">
-          <span className="inline-block text-sm font-medium tracking-widest text-[#B8963E] uppercase mb-3">
+          <span className="inline-block text-[12px] font-medium tracking-widest text-[#B8963E] uppercase mb-6">
             Testimoni Klien
           </span>
-          <h2 className="font-[Cormorant_Garamond] text-4xl md:text-[42px] font-normal text-[#1A1A1A] leading-tight">
+          <h2 className="font-[Cormorant_Garamond] text-3xl md:text-6xl font-light text-[#F8F5F0] mb-6">
             Apa Kata Klien Kami
           </h2>
+          {/* Decorative Line */}
+          <div className="flex justify-center">
+            <div className="w-16 h-px bg-[#B8963E]"></div>
+          </div>
         </div>
 
         {/* Carousel Container */}
         <div
-          className="relative"
+          className="relative py-12"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
-          {/* Cards Wrapper */}
+          {/* Carousel Wrapper */}
           <div className="overflow-hidden">
-            <div
-              className="transition-transform duration-500 ease-in-out flex gap-6 lg:gap-8"
-              style={{
-                transform: `translateX(-${currentIndex * 100}%)`,
-              }}
-            >
-              {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-                <div
-                  key={slideIndex}
-                  className="w-full flex-shrink-0 lg:w-1/3"
-                >
-                  <div className="flex gap-6">
-                    {displayItems
-                      .slice(slideIndex * itemsPerView, (slideIndex + 1) * itemsPerView)
-                      .map((testimonial, itemIndex) => {
-                        const absoluteIndex = slideIndex * itemsPerView + itemIndex;
-                        return (
-                          <div
-                            key={testimonial.id}
-                            className="w-full flex-shrink-0 lg:flex-1"
-                          >
-                            <TestimonialCard
-                              testimonial={testimonial}
-                              avatarColorIndex={absoluteIndex}
-                            />
-                          </div>
-                        );
-                      })}
-                  </div>
+            <div className="flex items-center justify-center gap-6 lg:gap-8">
+              {/* Left Preview Card (Desktop Only) */}
+              <div className="hidden lg:block flex-shrink-0 w-1/4">
+                <div className="opacity-40 scale-90 transition-all duration-500 ease-in-out">
+                  <TestimonialCard
+                    testimonial={displayItems[getItemIndex(-1)]}
+                    avatarColorIndex={getItemIndex(-1)}
+                  />
                 </div>
-              ))}
+              </div>
+
+              {/* Main Card (Center) */}
+              <div className="w-full lg:w-1/2 flex-shrink-0">
+                <div className="transition-all duration-500 ease-in-out">
+                  <TestimonialCard
+                    testimonial={displayItems[currentIndex]}
+                    avatarColorIndex={currentIndex}
+                    isMain
+                  />
+                </div>
+              </div>
+
+              {/* Right Preview Card (Desktop Only) */}
+              <div className="hidden lg:block flex-shrink-0 w-1/4">
+                <div className="opacity-40 scale-90 transition-all duration-500 ease-in-out">
+                  <TestimonialCard
+                    testimonial={displayItems[getItemIndex(1)]}
+                    avatarColorIndex={getItemIndex(1)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -232,31 +235,31 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
           <button
             onClick={handlePrev}
             aria-label="Testimoni sebelumnya"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-20 lg:-translate-x-16 w-12 h-12 rounded-full border-2 border-[#B8963E] flex items-center justify-center text-[#B8963E] hover:bg-[#B8963E] hover:text-white transition-all duration-300"
+            className="absolute left-0 top-1/2 -translate-y-1/2 text-[#F8F5F0] hover:text-[#B8963E] transition-colors duration-300 -ml-12 lg:-ml-16"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft size={32} />
           </button>
 
           <button
             onClick={handleNext}
             aria-label="Testimoni berikutnya"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-20 lg:translate-x-16 w-12 h-12 rounded-full border-2 border-[#B8963E] flex items-center justify-center text-[#B8963E] hover:bg-[#B8963E] hover:text-white transition-all duration-300"
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-[#F8F5F0] hover:text-[#B8963E] transition-colors duration-300 -mr-12 lg:-mr-16"
           >
-            <ChevronRight size={24} />
+            <ChevronRight size={32} />
           </button>
         </div>
 
         {/* Dot Indicators */}
         <div className="flex justify-center gap-2 mt-12">
-          {Array.from({ length: totalSlides }).map((_, index) => (
+          {displayItems.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
               aria-label={`Slide ${index + 1}`}
               className={`transition-all duration-300 rounded-full ${
                 index === currentIndex
-                  ? "bg-[#B8963E] w-3 h-3"
-                  : "bg-[#D4C4B0] w-2 h-2"
+                  ? "bg-[#B8963E] w-6 h-2"
+                  : "bg-white/30 w-2 h-2"
               }`}
             />
           ))}
@@ -269,82 +272,70 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
 interface TestimonialCardProps {
   testimonial: TestimonialSliderItem;
   avatarColorIndex: number;
+  isMain?: boolean;
 }
 
 function TestimonialCard({
   testimonial,
   avatarColorIndex,
+  isMain = false,
 }: TestimonialCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-8 h-full flex flex-col relative">
-      {/* Google Review Badge */}
-      <div className="absolute top-4 right-4 flex items-center gap-1 bg-[#F2F2F2] px-3 py-1.5 rounded-full text-xs font-medium text-[#1A1A1A]">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <text
-            x="0"
-            y="16"
-            fontSize="14"
-            fill="url(#grad)"
-            fontWeight="bold"
-            fontFamily="Arial"
-          >
-            G
-          </text>
-          <defs>
-            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#4285F4" />
-              <stop offset="25%" stopColor="#EA4335" />
-              <stop offset="50%" stopColor="#FBBC05" />
-              <stop offset="75%" stopColor="#34A853" />
-              <stop offset="100%" stopColor="#4285F4" />
-            </linearGradient>
-          </defs>
-        </svg>
-        <span>Review</span>
-      </div>
-
-      {/* Quote Mark */}
-      <div className="text-[80px] leading-none font-light text-[#B8963E] opacity-20 mb-2">
+    <div
+      className={`bg-[#F8F5F0] rounded-2xl relative transition-all duration-500 ease-in-out ${
+        isMain ? "px-12 py-10 shadow-2xl" : "p-8 shadow-lg"
+      }`}
+    >
+      {/* Quote Mark Decoration */}
+      <div className="absolute top-4 left-6 text-[120px] leading-none font-light text-[#B8963E] opacity-20">
         &ldquo;
       </div>
 
-      {/* Content */}
-      <p className="font-[Cormorant_Garamond] text-[18px] italic text-[#1A1A1A] mb-6 flex-grow leading-relaxed">
-        {testimonial.content}
-      </p>
-
-      {/* Rating */}
-      <div className="flex gap-1 mb-6">
+      {/* Stars Rating */}
+      <div className="flex gap-1 mb-6 relative z-10">
         {Array.from({ length: testimonial.rating }).map((_, i) => (
-          <span key={i} className="text-[#B8963E] text-lg">
+          <span key={i} className="text-[#B8963E] text-xl">
             ★
           </span>
         ))}
       </div>
 
+      {/* Review Text */}
+      <p
+        className={`font-[Cormorant_Garamond] italic text-[#1A1A1A] leading-relaxed mb-6 relative z-10 ${
+          isMain ? "text-2xl" : "text-lg"
+        }`}
+      >
+        {testimonial.content}
+      </p>
+
+      {/* Divider Line */}
+      <div className="w-12 h-px bg-[#B8963E] mb-6"></div>
+
       {/* Client Info */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 relative z-10">
         <div
           className="w-14 h-14 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0"
           style={{ backgroundColor: getAvatarColor(avatarColorIndex) }}
         >
           {getInitials(testimonial.clientName)}
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold text-[#1A1A1A] text-sm">
+
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-[#1A1A1A] text-base">
             {testimonial.clientName}
           </p>
-          <p className="text-[#6B6560] text-[12px]">
+          <p className="text-[#6B6560] text-sm">
             {testimonial.projectType}
             {testimonial.projectType && testimonial.location ? " • " : ""}
             {testimonial.location}
           </p>
+        </div>
+
+        {/* Google Review Badge */}
+        <div className="flex-shrink-0 flex items-center gap-1 bg-[#F1F3F4] border border-[#E0D9CE] px-3 py-1.5 rounded-full whitespace-nowrap">
+          <span className="text-xs font-medium">★</span>
+          <span className="text-xs font-medium text-[#1A1A1A]">Review</span>
         </div>
       </div>
     </div>
