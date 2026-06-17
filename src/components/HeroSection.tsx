@@ -70,10 +70,10 @@ export function HeroSection() {
                 key={i}
                 onClick={() => setCurrent(i)}
                 aria-label={`Slide ${i + 1}`}
-                className={`rounded-full transition-all duration-300 ${
+                className={`rounded-full p-2 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-bekon-gold ${
                   i === current
                     ? "bg-bekon-gold w-6 h-2"
-                    : "bg-white/60 w-2 h-2"
+                    : "bg-white/50 w-3 h-3"
                 }`}
               />
             ))}
@@ -96,6 +96,8 @@ export function HeroSection() {
             fill
             sizes="100vw"
             priority={i === 0}
+            loading={i === 0 ? "eager" : undefined}
+            quality={i === 0 ? 60 : undefined}
             className="object-cover"
             animate={{ opacity: i === current ? 1 : 0 }}
             transition={{ duration: 0.8 }}
@@ -112,10 +114,10 @@ export function HeroSection() {
                 key={i}
                 onClick={() => setCurrent(i)}
                 aria-label={`Slide ${i + 1}`}
-                className={`rounded-full transition-all duration-300 ${
+                className={`rounded-full p-2 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-bekon-gold ${
                   i === current
                     ? "bg-bekon-gold w-6 h-2"
-                    : "bg-white/50 w-2 h-2"
+                    : "bg-white/50 w-3 h-3"
                 }`}
               />
             ))}

@@ -16,6 +16,23 @@ const nextConfig = {
       },
     ],
   },
+  // Add headers to control indexing and admin routes
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [{ key: 'X-Robots-Tag', value: 'index, follow' }],
+      },
+      {
+        source: '/admin/(.*)',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+    ];
+  },
+  // Optimize package imports to reduce unused JS
+  experimental: {
+    optimizePackageImports: ['framer-motion', 'lucide-react'],
+  },
   webpack: (config) => {
     config.watchOptions = {
       ignored: ['**/node_modules', '**/.git', 'C:/Users/**'],

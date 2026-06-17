@@ -7,10 +7,10 @@ export function CTASection() {
       className="bg-bekon-gold py-16 md:py-20"
     >
       <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
-        <h2 className="font-display text-[clamp(32px,4vw,48px)] text-white font-light leading-tight mb-4">
+        <h2 className="font-display text-[clamp(32px,4vw,48px)] text-[#1A1A1A] font-light leading-tight mb-4">
           Siap Membangun Rumah Impian Anda?
         </h2>
-        <p className="text-white/80 text-base md:text-lg max-w-lg mx-auto mb-8">
+        <p className="text-[#1A1A1A] text-base md:text-lg max-w-lg mx-auto mb-8">
           Konsultasikan proyek Anda bersama tim BEKON hari ini.
           <br />
           Gratis, tanpa komitmen, tanpa biaya awal.

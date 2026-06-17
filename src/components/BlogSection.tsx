@@ -42,7 +42,7 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
         className="bg-bekon-cream py-20 md:py-28"
       >
         <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
-          <span className="section-label">Blog</span>
+          <span className="section-label text-[#7A6228]">Blog</span>
           <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3 mb-6">
             Tips & Inspirasi Rumah
           </h2>
@@ -76,7 +76,7 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
           </div>
           <Link
             href="/informasi/blog"
-            className="text-bekon-gold text-sm font-medium hover:text-bekon-gold-dark transition-colors hidden md:inline-flex items-center gap-1"
+            className="text-[#7A6228] text-sm font-medium hover:text-bekon-gold-dark transition-colors hidden md:inline-flex items-center gap-1"
           >
             Semua Artikel &rarr;
           </Link>
@@ -127,7 +127,7 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
         <div className="mt-8 text-center md:hidden">
           <Link
             href="/informasi/blog"
-            className="text-bekon-gold text-sm font-medium hover:text-bekon-gold-dark transition-colors inline-flex items-center gap-1"
+            className="text-[#7A6228] text-sm font-medium hover:text-bekon-gold-dark transition-colors inline-flex items-center gap-1"
           >
             Semua Artikel &rarr;
           </Link>

@@ -256,10 +256,10 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
               key={index}
               onClick={() => setCurrentIndex(index)}
               aria-label={`Slide ${index + 1}`}
-              className={`transition-all duration-300 rounded-full ${
+              className={`transition-all duration-300 rounded-full p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B8963E] ${
                 index === currentIndex
                   ? "bg-[#B8963E] w-6 h-2"
-                  : "bg-white/30 w-2 h-2"
+                  : "bg-white/30 w-3 h-3"
               }`}
             />
           ))}
@@ -316,7 +316,7 @@ function TestimonialCard({
       <div className="flex items-center gap-4 relative z-10">
         <div
           className="w-14 h-14 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0"
-          style={{ backgroundColor: getAvatarColor(avatarColorIndex) }}
+          style={{ backgroundColor: '#1A1A1A' }}
         >
           {getInitials(testimonial.clientName)}
         </div>

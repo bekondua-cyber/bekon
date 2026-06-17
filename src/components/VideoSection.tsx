@@ -85,7 +85,7 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
             <div
               className="w-full h-full bg-cover bg-center cursor-pointer flex items-center justify-center group"
               style={{
-                backgroundImage: `url(https://img.youtube.com/vi/${activeVid.youtubeId}/maxresdefault.jpg)`,
+                backgroundImage: `url(https://img.youtube.com/vi/${activeVid.youtubeId}/hqdefault.jpg)`,
               }}
               onClick={() => {
                 setActiveVideo(activeVid);
@@ -149,7 +149,7 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
         <div className="text-center">
           <Link
             href="/video"
-            className="text-bekon-gold text-sm font-medium hover:text-bekon-gold-dark transition-colors inline-flex items-center gap-1"
+            className="text-[#7A6228] text-sm font-medium hover:text-bekon-gold-dark transition-colors inline-flex items-center gap-1"
           >
             Lihat Semua Video &rarr;
           </Link>
