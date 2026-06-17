@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
 
-    const where: Record<string, unknown> = {}
+    const where: Record<string, unknown> = { isPublished: true }
 
     if (category) {
       where.category = category

@@ -37,6 +37,8 @@ model Portfolio {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  @@index([isPublished, isFeatured])
+  @@index([isPublished, category])
   @@map("portfolio")
 }
 
@@ -56,6 +58,7 @@ model Article {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  @@index([isPublished, category])
   @@map("article")
 }
 
@@ -70,6 +73,7 @@ model Video {
   sortOrder  Int      @default(0)
   createdAt  DateTime @default(now())
 
+  @@index([category])
   @@map("video")
 }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { articles } from "@/data/articles";
@@ -51,11 +52,14 @@ export default function BlogDetailPage({ params }: Props) {
             <span>{article.read_time}</span>
           </div>
 
-          <div className="aspect-[16/9] rounded-xl overflow-hidden mb-10">
-            <img
+          <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-10">
+            <Image
               src={article.thumbnail}
               alt={article.title}
-              className="w-full h-full object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover"
+              priority
             />
           </div>
 

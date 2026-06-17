@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { siteConfig } from "@/data/site-config";
+
+const MotionImage = motion(Image);
 
 const slides = [
   {
@@ -44,12 +47,14 @@ export function HeroSection() {
       <div className="hidden lg:flex min-h-screen">
         <div className="relative w-[55%] overflow-hidden">
           {slides.map((s, i) => (
-            <motion.img
+            <MotionImage
               key={i}
               src={s.image}
               alt={s.alt}
-              loading={i === 0 ? "eager" : "lazy"}
-              className="absolute inset-0 w-full h-full object-cover"
+              fill
+              sizes="55vw"
+              priority={i === 0}
+              className="object-cover"
               animate={{
                 opacity: i === current ? 1 : 0,
                 scale: i === current ? 1 : 1.05,
@@ -84,12 +89,14 @@ export function HeroSection() {
 
       <div className="lg:hidden relative min-h-screen">
         {slides.map((s, i) => (
-          <motion.img
+          <MotionImage
             key={i}
             src={s.image}
             alt={s.alt}
-            loading={i === 0 ? "eager" : "lazy"}
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            sizes="100vw"
+            priority={i === 0}
+            className="object-cover"
             animate={{ opacity: i === current ? 1 : 0 }}
             transition={{ duration: 0.8 }}
           />

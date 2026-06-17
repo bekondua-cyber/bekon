@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import Image from "next/image";
 import { Play } from "lucide-react";
 import Link from "next/link";
 
@@ -124,11 +125,12 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
                 }}
                 className="group relative aspect-video rounded-lg overflow-hidden bg-bekon-near-black"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
                   alt={video.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  fill
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-bekon-near-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="w-10 h-10 rounded-full bg-bekon-gold/90 flex items-center justify-center">

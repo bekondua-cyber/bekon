@@ -31,7 +31,12 @@ export function Navbar() {
       <nav
         role="navigation"
         aria-label="Navigasi utama"
-        className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-md border-b border-white/40 shadow-sm transition-all duration-300"
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+          scrolled
+            ? "bg-white/90 backdrop-blur-md border-b border-white/40 shadow-md"
+            : "bg-white/50 backdrop-blur-sm border-b border-transparent shadow-none"
+        )}
       >
         <div className="max-w-container mx-auto px-6 lg:px-20">
           <div className="flex items-center justify-between h-16 md:h-20">

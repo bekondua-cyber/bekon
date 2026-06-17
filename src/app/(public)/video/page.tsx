@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { videos } from "@/data/videos";
 import { siteConfig } from "@/data/site-config";
 
@@ -42,11 +43,12 @@ export default function VideoPage() {
               rel="noopener noreferrer"
               className="group relative aspect-video rounded-lg overflow-hidden bg-bekon-near-black"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={`https://img.youtube.com/vi/${video.youtube_id}/mqdefault.jpg`}
                 alt={video.title}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-bekon-near-black/40 flex items-center justify-center">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="white" className="opacity-80 group-hover:opacity-100 transition-opacity">

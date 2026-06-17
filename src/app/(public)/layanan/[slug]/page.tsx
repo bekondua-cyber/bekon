@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { services } from "@/data/services";
@@ -93,11 +94,13 @@ export default function LayananDetailPage({ params }: Props) {
                 Konsultasi Gratis
               </a>
             </div>
-            <div className="aspect-[4/3] rounded-xl overflow-hidden">
-              <img
+            <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
+              <Image
                 src={service.image}
                 alt={service.title}
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
               />
             </div>
           </div>

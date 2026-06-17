@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { siteConfig } from "@/data/site-config";
 import { teamMembers } from "@/data/team";
 import { whyBekon } from "@/data/why-bekon";
@@ -60,11 +61,13 @@ export default function TentangKamiPage() {
             </div>
           </div>
           <div className="order-1 lg:order-2">
-            <div className="aspect-[4/5] rounded-xl overflow-hidden">
-              <img
+            <div className="relative aspect-[4/5] rounded-xl overflow-hidden">
+              <Image
                 src="https://images.unsplash.com/photo-1608387371413-f2566ac510e0?w=800&q=80"
                 alt="Tim BEKON"
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
               />
             </div>
           </div>

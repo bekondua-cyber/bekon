@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { portfolioItems } from "@/data/portfolio";
@@ -29,10 +30,13 @@ export default function PortfolioDetailPage({ params }: Props) {
     <div className="min-h-screen bg-bekon-off-white">
       {/* Hero Image */}
       <section className="relative h-[50vh] min-h-[400px]">
-        <img
+        <Image
           src={item.cover_image}
           alt={item.title}
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
+          sizes="100vw"
+          className="object-cover"
+          priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-bekon-near-black/70 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-20 max-w-container mx-auto">
@@ -115,12 +119,14 @@ export default function PortfolioDetailPage({ params }: Props) {
               {item.images.map((img, i) => (
                 <div
                   key={i}
-                  className="aspect-[4/3] rounded-xl overflow-hidden"
+                  className="relative aspect-[4/3] rounded-xl overflow-hidden"
                 >
-                  <img
+                  <Image
                     src={img}
                     alt={`${item.title} - ${i + 1}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover"
                   />
                 </div>
               ))}

@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import Image from "next/image";
 import { whyBekon } from "@/data/why-bekon";
 import { siteConfig } from "@/data/site-config";
 
@@ -24,11 +25,13 @@ export function WhyBekonSection() {
             transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
             className="relative"
           >
-            <div className="aspect-[4/5] rounded-xl overflow-hidden">
-              <img
+            <div className="relative aspect-[4/5] rounded-xl overflow-hidden">
+              <Image
                 src="https://images.unsplash.com/photo-1608387371413-f2566ac510e0?w=800&q=80"
                 alt="Tim profesional BEKON"
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
               />
             </div>
             <div className="absolute -bottom-4 -right-4 bg-bekon-gold text-white px-6 py-4 rounded-xl shadow-lg">

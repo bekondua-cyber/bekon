@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 
 function formatDate(dateStr: string | null | undefined): string {
@@ -93,11 +94,13 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
                 href={`/informasi/blog/${article.slug}`}
                 className="block bg-white rounded-xl overflow-hidden border border-bekon-border group hover:shadow-md transition-shadow"
               >
-                <div className="aspect-[16/10] overflow-hidden">
-                  <img
-                    src={article.thumbnail}
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <Image
+                    src={article.thumbnail ?? ""}
                     alt={article.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
                 <div className="p-5">
