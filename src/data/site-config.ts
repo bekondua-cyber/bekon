@@ -9,7 +9,7 @@ export const siteConfig = {
   address: "Jl. Raya Serang No. 123, Kota Serang, Provinsi Banten, 42111",
   phone1: "+62 877-7731-0780",
   phone2: "+62 877-8059-7492",
-  whatsapp1: "628777310780",
+  whatsapp1: "6287777310780",
   whatsapp1_name: "Admin 1",
   whatsapp2: "6287780597492",
   whatsapp2_name: "Admin 2",
