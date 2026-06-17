@@ -1,195 +1,161 @@
-"use client";
+"use client"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
-import { useState, useEffect } from "react";
-import { siteConfig } from "@/data/site-config";
-import { getCurrentUser, updateCredentials } from "@/lib/auth";
+type SettingsData = Record<string, string>
+
+const tabs = ["Perusahaan", "WhatsApp & Kontak", "SEO Global"]
 
 export default function AdminSettingsPage() {
-  const [currentUser, setCurrentUser] = useState({ username: "", password: "" });
-  const [oldUsername, setOldUsername] = useState("");
-  const [oldPassword, setOldPassword] = useState("");
-  const [newUsername, setNewUsername] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [settings, setSettings] = useState<SettingsData>({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState("Perusahaan")
 
   useEffect(() => {
-    const user = getCurrentUser();
-    setCurrentUser(user);
-  }, []);
+    fetchSettings()
+  }, [])
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setMsg(null);
-    const result = updateCredentials(oldUsername, oldPassword, newUsername, newPassword);
-    if (result.success) {
-      setMsg({ type: "success", text: "Username & password berhasil diubah!" });
-      const updated = getCurrentUser();
-      setCurrentUser(updated);
-      setOldUsername("");
-      setOldPassword("");
-      setNewUsername("");
-      setNewPassword("");
-    } else {
-      setMsg({ type: "error", text: result.error ?? "" });
+  async function fetchSettings() {
+    try {
+      const res = await fetch("/api/settings", { credentials: "include" })
+      const json = await res.json()
+      setSettings(json.data || {})
+    } catch {
+      toast.error("Gagal memuat settings")
+    } finally {
+      setLoading(false)
     }
+  }
+
+  function updateSetting(key: string, value: string) {
+    setSettings((prev) => ({ ...prev, [key]: value }))
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+        credentials: "include",
+      })
+      if (res.ok) {
+        toast.success("Settings berhasil disimpan")
+      } else {
+        toast.error("Gagal menyimpan settings")
+      }
+    } catch {
+      toast.error("Gagal menyimpan settings")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Memuat...</p>
+      </div>
+    )
   }
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
 
-      <div className="space-y-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Akun Admin</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Username saat ini: <span className="font-medium text-gray-700">{currentUser.username}</span>
-          </p>
-          <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Username Lama
-              </label>
-              <input
-                type="text"
-                value={oldUsername}
-                onChange={(e) => setOldUsername(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Password Lama
-              </label>
-              <input
-                type="password"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none"
-                required
-              />
-            </div>
-            <hr className="border-gray-100" />
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Username Baru
-              </label>
-              <input
-                type="text"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Password Baru
-              </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none"
-                required
-              />
-            </div>
-            {msg && (
-              <p
-                className={`text-sm ${
-                  msg.type === "success" ? "text-green-600" : "text-red-500"
-                }`}
-              >
-                {msg.text}
-              </p>
-            )}
-            <button
-              type="submit"
-              className="bg-bekon-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
-            >
-              Simpan Perubahan
-            </button>
-          </form>
-        </div>
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === tab
+                ? "bg-bekon-gold text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Perusahaan</h2>
-          <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        {activeTab === "Perusahaan" && (
+          <>
+            <h2 className="font-semibold text-gray-900">Informasi Perusahaan</h2>
+            <Field label="Nama Perusahaan" value={settings.nama_perusahaan || ""} onChange={(v) => updateSetting("nama_perusahaan", v)} />
+            <Field label="Alamat" value={settings.alamat || ""} onChange={(v) => updateSetting("alamat", v)} />
+            <Field label="Telepon" value={settings.telepon || ""} onChange={(v) => updateSetting("telepon", v)} />
+            <Field label="Email" value={settings.email || ""} onChange={(v) => updateSetting("email", v)} />
+            <Field label="Tahun Berdiri" value={settings.tahun_berdiri || ""} onChange={(v) => updateSetting("tahun_berdiri", v)} />
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Nama Perusahaan
-              </label>
-              <input
-                type="text"
-                defaultValue={siteConfig.fullName}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                readOnly
+              <label className="block text-sm font-medium text-gray-600 mb-1">Deskripsi Perusahaan</label>
+              <textarea
+                value={settings.deskripsi || ""}
+                onChange={(e) => updateSetting("deskripsi", e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none resize-y"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Alamat
-              </label>
-              <input
-                type="text"
-                defaultValue={siteConfig.address}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Telepon
-              </label>
-              <input
-                type="text"
-                defaultValue={siteConfig.phone1}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Email
-              </label>
-              <input
-                type="text"
-                defaultValue={siteConfig.email}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                readOnly
-              />
-            </div>
-          </div>
-        </div>
+          </>
+        )}
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">WhatsApp & Kontak</h2>
-          <div className="space-y-4">
+        {activeTab === "WhatsApp & Kontak" && (
+          <>
+            <h2 className="font-semibold text-gray-900">WhatsApp & Kontak</h2>
+            <Field label="WA Admin 1 (nomor)" value={settings.wa_admin_1 || ""} onChange={(v) => updateSetting("wa_admin_1", v)} />
+            <Field label="WA Admin 1 (nama)" value={settings.wa_admin_1_name || ""} onChange={(v) => updateSetting("wa_admin_1_name", v)} />
+            <Field label="WA Admin 2 (nomor)" value={settings.wa_admin_2 || ""} onChange={(v) => updateSetting("wa_admin_2", v)} />
+            <Field label="WA Admin 2 (nama)" value={settings.wa_admin_2_name || ""} onChange={(v) => updateSetting("wa_admin_2_name", v)} />
+            <Field label="Instagram" value={settings.instagram || ""} onChange={(v) => updateSetting("instagram", v)} />
+            <Field label="YouTube" value={settings.youtube || ""} onChange={(v) => updateSetting("youtube", v)} />
+            <Field label="TikTok" value={settings.tiktok || ""} onChange={(v) => updateSetting("tiktok", v)} />
+          </>
+        )}
+
+        {activeTab === "SEO Global" && (
+          <>
+            <h2 className="font-semibold text-gray-900">SEO Global</h2>
+            <Field label="Default Meta Title" value={settings.meta_title_default || ""} onChange={(v) => updateSetting("meta_title_default", v)} />
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                WA Admin 1
-              </label>
-              <input
-                type="text"
-                defaultValue={siteConfig.whatsapp1}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                readOnly
+              <label className="block text-sm font-medium text-gray-600 mb-1">Default Meta Description</label>
+              <textarea
+                value={settings.meta_desc_default || ""}
+                onChange={(e) => updateSetting("meta_desc_default", e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none resize-y"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                WA Admin 2
-              </label>
-              <input
-                type="text"
-                defaultValue={siteConfig.whatsapp2}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                readOnly
-              />
-            </div>
-          </div>
+            <Field label="Google Analytics ID" value={settings.google_analytics_id || ""} onChange={(v) => updateSetting("google_analytics_id", v)} />
+          </>
+        )}
+
+        <div className="pt-4 border-t border-gray-100">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-6 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors disabled:opacity-50"
+          >
+            {saving ? "Menyimpan..." : "Simpan Semua"}
+          </button>
         </div>
       </div>
     </div>
-  );
+  )
+}
+
+function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none"
+      />
+    </div>
+  )
 }

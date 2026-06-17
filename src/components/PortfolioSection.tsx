@@ -3,26 +3,65 @@
 import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { portfolioItems, portfolioCategories } from "@/data/portfolio";
 
-export function PortfolioSection() {
+const CATEGORIES = [
+  { value: "semua", label: "Semua" },
+  { value: "eksterior", label: "Eksterior" },
+  { value: "interior", label: "Interior" },
+  { value: "bangun", label: "Bangun" },
+  { value: "renovasi", label: "Renovasi" },
+  { value: "kost-ruko", label: "Kost & Ruko" },
+];
+
+export interface PortfolioItem {
+  id: string;
+  title: string;
+  slug: string;
+  category?: string;
+  location?: string;
+  year?: number;
+  coverImage?: string;
+  isFeatured?: boolean;
+}
+
+export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
   const [activeFilter, setActiveFilter] = useState("semua");
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
   const filtered =
     activeFilter === "semua"
-      ? portfolioItems
-      : portfolioItems.filter((p) => p.category === activeFilter);
+      ? items
+      : items.filter((p) => p.category === activeFilter);
 
-  const featured = filtered.find((p) => p.is_featured);
-  const others = filtered.filter((p) => !p.is_featured);
+  const featured = filtered.find((p) => p.isFeatured);
+  const others = filtered.filter((p) => !p.isFeatured);
+
+  if (items.length === 0) {
+    return (
+      <section
+        id="portfolio"
+        aria-label="Portfolio BEKON"
+        className="bg-black/80 py-20 md:py-28"
+      >
+        <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
+          <span className="section-label text-[#CBA84A]">Portfolio</span>
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-[#F8F5F0] mt-3 mb-6">
+            Karya Terbaik Kami
+          </h2>
+          <p className="text-[#F8F5F0]/60 text-sm">
+            Belum ada portfolio yang tersedia. Silakan kembali lagi nanti.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
       id="portfolio"
       aria-label="Portfolio BEKON"
-      className="bg-bekon-cream py-20 md:py-28"
+      className="bg-black/80 py-20 md:py-28"
     >
       <div className="max-w-container mx-auto px-6 lg:px-20">
         <motion.div
@@ -33,14 +72,14 @@ export function PortfolioSection() {
           className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4"
         >
           <div>
-            <span className="section-label">Portfolio</span>
-            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3">
+            <span className="section-label text-[#CBA84A]">Portfolio</span>
+            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-[#F8F5F0] mt-3">
               Karya Terbaik Kami
             </h2>
           </div>
           <Link
             href="/portfolio"
-            className="text-bekon-gold text-sm font-medium hover:text-bekon-gold-dark transition-colors hidden md:inline-flex items-center gap-1"
+            className="text-[#CBA84A] text-sm font-medium hover:text-[#B8963E] transition-colors hidden md:inline-flex items-center gap-1"
           >
             Lihat Semua Portfolio &rarr;
           </Link>
@@ -53,14 +92,14 @@ export function PortfolioSection() {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="flex flex-wrap gap-2 mb-10"
         >
-          {portfolioCategories.map((cat) => (
+          {CATEGORIES.map((cat) => (
             <button
               key={cat.value}
               onClick={() => setActiveFilter(cat.value)}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 activeFilter === cat.value
-                  ? "bg-bekon-gold text-white"
-                  : "bg-white text-bekon-text-secondary border border-bekon-border hover:border-bekon-gold"
+                  ? "bg-[#B8963E] text-white border-transparent"
+                  : "bg-white/10 text-[#F8F5F0] border border-white/30 hover:bg-white/20"
               }`}
             >
               {cat.label}
@@ -84,7 +123,7 @@ export function PortfolioSection() {
                 className="relative group overflow-hidden rounded-xl md:col-span-2 md:row-span-2 min-h-[300px] md:min-h-[400px]"
               >
                 <img
-                  src={featured.cover_image}
+                  src={featured.coverImage}
                   alt={featured.title}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
@@ -107,7 +146,7 @@ export function PortfolioSection() {
                 className="relative group overflow-hidden rounded-xl min-h-[220px]"
               >
                 <img
-                  src={item.cover_image}
+                  src={item.coverImage}
                   alt={item.title}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
@@ -128,7 +167,7 @@ export function PortfolioSection() {
         <div className="mt-8 text-center md:hidden">
           <Link
             href="/portfolio"
-            className="text-bekon-gold text-sm font-medium hover:text-bekon-gold-dark transition-colors inline-flex items-center gap-1"
+            className="text-[#CBA84A] text-sm font-medium hover:text-[#B8963E] transition-colors inline-flex items-center gap-1"
           >
             Lihat Semua Portfolio &rarr;
           </Link>

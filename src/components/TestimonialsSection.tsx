@@ -3,21 +3,43 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { testimonials } from "@/data/testimonials";
 
-export function TestimonialsSection() {
+const AVATAR_COLORS = ["#B8963E", "#4A7C3F", "#8B5E3C", "#2C6E49", "#A07A50"];
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((s) => s[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+export interface TestimonialItem {
+  id: string;
+  clientName: string;
+  projectType?: string;
+  location?: string;
+  content: string;
+  rating?: number;
+}
+
+export function TestimonialsSection({ items }: { items: TestimonialItem[] }) {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
 
+  const data = items.length > 0 ? items : [];
+
   useEffect(() => {
+    if (data.length === 0) return;
     const timer = setInterval(() => {
       setDirection(1);
-      setCurrent((p) => (p + 1) % testimonials.length);
+      setCurrent((p) => (p + 1) % data.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [data.length]);
 
   const goTo = (i: number) => {
     setDirection(i > current ? 1 : -1);
@@ -26,15 +48,34 @@ export function TestimonialsSection() {
 
   const goPrev = () => {
     setDirection(-1);
-    setCurrent((p) => (p - 1 + testimonials.length) % testimonials.length);
+    setCurrent((p) => (p - 1 + data.length) % data.length);
   };
 
   const goNext = () => {
     setDirection(1);
-    setCurrent((p) => (p + 1) % testimonials.length);
+    setCurrent((p) => (p + 1) % data.length);
   };
 
-  const t = testimonials[current];
+  if (data.length === 0) {
+    return (
+      <section
+        aria-label="Testimoni klien BEKON"
+        className="bg-bekon-cream py-20 md:py-28"
+      >
+        <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
+          <span className="section-label">Testimoni</span>
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3 mb-6">
+            Apa Kata Klien Kami
+          </h2>
+          <p className="text-bekon-text-muted text-sm">
+            Belum ada testimoni. Jadilah yang pertama!
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const t = data[current];
 
   return (
     <section
@@ -76,7 +117,7 @@ export function TestimonialsSection() {
               </blockquote>
 
               <div className="flex justify-center gap-1 mb-5">
-                {Array.from({ length: t.rating }).map((_, i) => (
+                {Array.from({ length: t.rating || 5 }).map((_, i) => (
                   <Star
                     key={i}
                     size={18}
@@ -88,16 +129,21 @@ export function TestimonialsSection() {
               <div className="flex items-center justify-center gap-3">
                 <div
                   className="w-14 h-14 rounded-full flex items-center justify-center text-white font-semibold text-base"
-                  style={{ backgroundColor: t.avatar_color }}
+                  style={{
+                    backgroundColor:
+                      AVATAR_COLORS[current % AVATAR_COLORS.length],
+                  }}
                 >
-                  {t.initials}
+                  {getInitials(t.clientName)}
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-bekon-near-black text-sm">
-                    {t.client_name}
+                    {t.clientName}
                   </p>
                   <p className="text-bekon-text-muted text-xs">
-                    {t.project_type} &middot; {t.location}
+                    {t.projectType}
+                    {t.projectType && t.location ? " \u00b7 " : ""}
+                    {t.location}
                   </p>
                 </div>
               </div>
@@ -115,7 +161,7 @@ export function TestimonialsSection() {
             </button>
 
             <div className="flex gap-2">
-              {testimonials.map((_, i) => (
+              {data.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => goTo(i)}

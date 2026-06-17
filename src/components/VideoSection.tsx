@@ -4,18 +4,46 @@ import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Play } from "lucide-react";
 import Link from "next/link";
-import { videos } from "@/data/videos";
 
-export function VideoSection() {
-  const [activeVideo, setActiveVideo] = useState(videos[0]);
+export interface VideoItem {
+  id: string;
+  title: string;
+  youtubeUrl?: string;
+  youtubeId: string;
+  category?: string;
+  isFeatured?: boolean;
+  thumbnail?: string;
+}
+
+export function VideoSection({ items }: { items: VideoItem[] }) {
+  const [activeVideo, setActiveVideo] = useState<VideoItem | null>(null);
   const [playing, setPlaying] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
-  const featuredVid = playing
-    ? activeVideo
-    : videos.find((v) => v.is_featured) || videos[0];
-  const activeVid = featuredVid;
+  const data = items.length > 0 ? items : [];
+
+  if (data.length === 0) {
+    return (
+      <section
+        id="video"
+        aria-label="Video proyek BEKON"
+        className="bg-bekon-off-white py-20 md:py-28"
+      >
+        <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
+          <span className="section-label">Video</span>
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3 mb-6">
+            Lihat Hasil Nyata Proyek Kami
+          </h2>
+          <p className="text-bekon-text-muted text-sm">
+            Belum ada video yang tersedia.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const activeVid = playing && activeVideo ? activeVideo : (data.find((v) => v.isFeatured) || data[0]);
 
   return (
     <section
@@ -46,7 +74,7 @@ export function VideoSection() {
         >
           {playing && activeVideo ? (
             <iframe
-              src={`https://www.youtube.com/embed/${activeVideo.youtube_id}?autoplay=1`}
+              src={`https://www.youtube.com/embed/${activeVideo.youtubeId}?autoplay=1`}
               title={activeVideo.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -56,7 +84,7 @@ export function VideoSection() {
             <div
               className="w-full h-full bg-cover bg-center cursor-pointer flex items-center justify-center group"
               style={{
-                backgroundImage: `url(https://img.youtube.com/vi/${activeVid.youtube_id}/maxresdefault.jpg)`,
+                backgroundImage: `url(https://img.youtube.com/vi/${activeVid.youtubeId}/maxresdefault.jpg)`,
               }}
               onClick={() => {
                 setActiveVideo(activeVid);
@@ -70,7 +98,7 @@ export function VideoSection() {
           )}
           {!playing && (
             <div className="absolute bottom-4 left-4 right-4">
-                <h3 className="text-white text-lg font-semibold">
+              <h3 className="text-white text-lg font-semibold">
                 {activeVid.title}
               </h3>
             </div>
@@ -84,7 +112,7 @@ export function VideoSection() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8"
         >
-          {videos
+          {data
             .filter((v) => v.id !== activeVideo?.id || !playing)
             .slice(0, 3)
             .map((video) => (
@@ -98,7 +126,7 @@ export function VideoSection() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`https://img.youtube.com/vi/${video.youtube_id}/mqdefault.jpg`}
+                  src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
                   alt={video.title}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />

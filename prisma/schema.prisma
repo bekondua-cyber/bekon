@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+}
+
+model Portfolio {
+  id           String   @id @default(cuid())
+  title        String
+  slug         String   @unique
+  category     String?
+  location     String?
+  areaSqm      Float?
+  year         Int?
+  description  String?
+  isFeatured   Boolean  @default(false)
+  isPublished  Boolean  @default(false)
+  coverImage   String?
+  images       String[]
+  beforeImage  String?
+  afterImage   String?
+  metaTitle    String?
+  metaDesc     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("portfolio")
+}
+
+model Article {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  category    String?
+  excerpt     String?
+  content     String?
+  thumbnail   String?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  metaTitle   String?
+  metaDesc    String?
+  ogImage     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("article")
+}
+
+model Video {
+  id         String   @id @default(cuid())
+  title      String
+  youtubeUrl String
+  youtubeId  String
+  thumbnail  String?
+  category   String?
+  isFeatured Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@map("video")
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  clientName  String
+  projectType String?
+  location    String?
+  content     String
+  rating      Int?
+  photo       String?
+  portfolioId String?
+  isPublished Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("testimonial")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  bio       String?
+  photo     String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("team_member")
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  service   String?
+  budget    String?
+  location  String?
+  message   String?
+  status    String   @default("new")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("lead")
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  publicId  String
+  sizeBytes Int?
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+
+  @@map("media")
+}
+
+model Setting {
+  key       String   @id
+  value     String?
+  updatedAt DateTime @updatedAt
+
+  @@map("setting")
+}

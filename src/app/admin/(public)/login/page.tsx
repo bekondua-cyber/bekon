@@ -1,29 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { login, isAuthenticated } from "@/lib/auth";
 
 export default function AdminLoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (isAuthenticated()) {
-      router.push("/admin/dashboard");
-    }
-  }, [router]);
-
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const result = login(username, password);
-    if (result.success) {
-      router.push("/admin/dashboard");
+    setLoading(true);
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    setLoading(false);
+
+    if (result?.error) {
+      setError(result.error);
     } else {
-      setError(result.error ?? "");
+      router.push("/admin/dashboard");
     }
   }
 
@@ -39,14 +43,14 @@ export default function AdminLoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Username
+                Email
               </label>
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none text-sm"
-                placeholder="admin"
+                placeholder="admin@bekon.com"
                 required
               />
             </div>
@@ -60,7 +64,6 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none text-sm"
-                placeholder="bekon123"
                 required
               />
             </div>
@@ -71,9 +74,10 @@ export default function AdminLoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-bekon-gold text-white py-2.5 rounded-lg font-medium hover:bg-bekon-gold/90 transition-colors text-sm"
+              disabled={loading}
+              className="w-full bg-bekon-gold text-white py-2.5 rounded-lg font-medium hover:bg-bekon-gold/90 transition-colors text-sm disabled:opacity-50"
             >
-              Masuk
+              {loading ? "Memproses..." : "Masuk"}
             </button>
           </form>
         </div>

@@ -1,0 +1,40 @@
+import { v2 as cloudinary } from "cloudinary"
+
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
+
+export async function uploadImage(
+  buffer: Buffer,
+  folder: string
+): Promise<{ url: string; public_id: string; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        format: "webp",
+        quality: "85",
+        transformation: [{ width: 1920, crop: "limit" }],
+      },
+      (error, result) => {
+        if (error || !result) {
+          reject(error ?? new Error("Upload failed"))
+          return
+        }
+        resolve({
+          url: result.secure_url,
+          public_id: result.public_id,
+          width: result.width,
+          height: result.height,
+        })
+      }
+    )
+    uploadStream.end(buffer)
+  })
+}
+
+export async function deleteImage(public_id: string): Promise<void> {
+  await cloudinary.uploader.destroy(public_id)
+}

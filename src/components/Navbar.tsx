@@ -12,10 +12,9 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const isHome = pathname === "/";
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 60);
+    const handler = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
@@ -32,14 +31,7 @@ export function Navbar() {
       <nav
         role="navigation"
         aria-label="Navigasi utama"
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          scrolled
-            ? "bg-bekon-off-white/95 backdrop-blur-md shadow-sm border-b border-bekon-border"
-            : isHome
-              ? "bg-transparent"
-              : "bg-bekon-off-white/95 backdrop-blur-md border-b border-bekon-border"
-        )}
+        className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-md border-b border-white/40 shadow-sm transition-all duration-300"
       >
         <div className="max-w-container mx-auto px-6 lg:px-20">
           <div className="flex items-center justify-between h-16 md:h-20">
@@ -49,24 +41,10 @@ export function Navbar() {
               className="flex items-center gap-3"
             >
               <div className="flex flex-col leading-none">
-                <span
-                  className={cn(
-                    "font-bold tracking-[0.18em] text-xl transition-colors",
-                    scrolled || !isHome
-                      ? "text-bekon-near-black"
-                      : "text-white"
-                  )}
-                >
+                <span className="font-bold tracking-[0.18em] text-xl text-[#1A1A1A]">
                   BEKON
                 </span>
-                <span
-                  className={cn(
-                    "uppercase tracking-[0.06em] text-[9px] transition-colors",
-                    scrolled || !isHome
-                      ? "text-bekon-text-muted"
-                      : "text-white/60"
-                  )}
-                >
+                <span className="uppercase tracking-[0.06em] text-[9px] text-[#1A1A1A]">
                   Bangun Eka Konstruksi
                 </span>
               </div>
@@ -80,20 +58,11 @@ export function Navbar() {
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      "relative text-sm transition-colors group",
-                      scrolled || !isHome
-                        ? "text-bekon-text-secondary hover:text-bekon-gold"
-                        : "text-white/90 hover:text-white",
+                      "text-sm transition-colors text-[#1A1A1A] hover:text-bekon-gold px-2 py-1",
                       isActive && "text-bekon-gold"
                     )}
                   >
                     {link.label}
-                    <span
-                      className={cn(
-                        "absolute -bottom-0.5 left-0 w-0 h-px bg-bekon-gold transition-all duration-300 group-hover:w-full",
-                        isActive && "w-full"
-                      )}
-                    />
                   </Link>
                 );
               })}
@@ -102,12 +71,7 @@ export function Navbar() {
             <div className="hidden lg:block">
               <Link
                 href="/kontak"
-                className={cn(
-                  "px-5 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                  scrolled || !isHome
-                    ? "bg-bekon-gold text-white hover:bg-bekon-gold-dark hover:-translate-y-0.5"
-                    : "border border-white text-white hover:bg-white hover:text-bekon-near-black"
-                )}
+                className="px-5 py-2 rounded-full text-sm font-medium bg-[#1A1A1A] text-[#F8F5F0] hover:bg-[#3D3936] hover:-translate-y-0.5 transition-all duration-200"
               >
                 Konsultasi Gratis
               </Link>
@@ -118,13 +82,7 @@ export function Navbar() {
               className="lg:hidden p-2 -mr-2"
               aria-label="Buka menu navigasi"
             >
-              <Menu
-                className={cn(
-                  "transition-colors",
-                  scrolled || !isHome ? "text-bekon-near-black" : "text-white"
-                )}
-                size={24}
-              />
+              <Menu className="text-bekon-near-black" size={24} />
             </button>
           </div>
         </div>

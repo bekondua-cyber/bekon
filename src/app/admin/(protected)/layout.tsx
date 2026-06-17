@@ -1,8 +1,7 @@
 "use client";
-
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { isAuthenticated } from "@/lib/auth";
+import { useSession } from "next-auth/react";
 import { AdminSidebar } from "./admin-sidebar";
 
 export default function ProtectedLayout({
@@ -10,18 +9,24 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const loggedIn = isAuthenticated();
 
   useEffect(() => {
-    if (!loggedIn) {
+    if (status === "unauthenticated") {
       router.push("/admin/login");
     }
-  }, [loggedIn, router]);
+  }, [status, router]);
 
-  if (!loggedIn) {
-    return null;
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Memuat...</p>
+      </div>
+    );
   }
+
+  if (!session) return null;
 
   return (
     <div className="flex min-h-screen bg-gray-50">

@@ -3,11 +3,55 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
-import { articles } from "@/data/articles";
 
-export function BlogSection() {
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  try {
+    return new Date(dateStr).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+export interface ArticleItem {
+  id: string;
+  title: string;
+  slug: string;
+  category?: string;
+  excerpt?: string;
+  thumbnail?: string;
+  publishedAt?: string;
+}
+
+export function BlogSection({ items }: { items: ArticleItem[] }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
+
+  const data = items.length > 0 ? items.slice(0, 3) : [];
+
+  if (data.length === 0) {
+    return (
+      <section
+        id="blog"
+        aria-label="Blog dan artikel BEKON"
+        className="bg-bekon-cream py-20 md:py-28"
+      >
+        <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
+          <span className="section-label">Blog</span>
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3 mb-6">
+            Tips & Inspirasi Rumah
+          </h2>
+          <p className="text-bekon-text-muted text-sm">
+            Belum ada artikel. Pantau terus untuk tips & inspirasi terbaru!
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -38,7 +82,7 @@ export function BlogSection() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {articles.map((article, i) => (
+          {data.map((article, i) => (
             <motion.article
               key={article.id}
               initial={{ opacity: 0, y: 40 }}
@@ -57,9 +101,11 @@ export function BlogSection() {
                   />
                 </div>
                 <div className="p-5">
-                  <span className="inline-block px-3 py-1 rounded-full bg-bekon-gold/10 text-bekon-gold text-[11px] font-semibold uppercase tracking-wider mb-3">
-                    {article.category.replace(/-/g, " ")}
-                  </span>
+                  {article.category && (
+                    <span className="inline-block px-3 py-1 rounded-full bg-bekon-gold/10 text-bekon-gold text-[11px] font-semibold uppercase tracking-wider mb-3">
+                      {article.category.replace(/-/g, " ")}
+                    </span>
+                  )}
                   <h3 className="text-bekon-near-black font-semibold text-base leading-snug mb-2 line-clamp-2 group-hover:text-bekon-gold transition-colors">
                     {article.title}
                   </h3>
@@ -67,8 +113,7 @@ export function BlogSection() {
                     {article.excerpt}
                   </p>
                   <div className="flex items-center justify-between text-xs text-bekon-text-muted">
-                    <span>{article.date}</span>
-                    <span>{article.read_time}</span>
+                    <span>{formatDate(article.publishedAt)}</span>
                   </div>
                 </div>
               </Link>

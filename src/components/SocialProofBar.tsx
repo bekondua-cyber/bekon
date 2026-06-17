@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { stats } from "@/data/stats";
+
+interface StatItem {
+  value: string;
+  label: string;
+  suffix?: string;
+}
 
 function AnimatedCounter({
   value,
@@ -53,7 +58,7 @@ function AnimatedCounter({
   );
 }
 
-export function SocialProofBar() {
+export function SocialProofBar({ stats }: { stats: StatItem[] }) {
   return (
     <section
       id="stats"
