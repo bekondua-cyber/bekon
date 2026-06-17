@@ -267,7 +267,6 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
 
 interface TestimonialCardProps {
   testimonial: TestimonialSliderItem;
-  avatarColorIndex: number;
   isMain?: boolean;
 }
 
