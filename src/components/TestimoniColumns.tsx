@@ -20,7 +20,7 @@ const TestimonialCard = ({ item }: { item: Testimonial }) => {
     <div className="p-8 rounded-2xl border border-[#E0D9CE] bg-[#F8F5F0] shadow-md max-w-xs w-full">
       <div className="text-[#B8963E] text-lg mb-3">{stars}</div>
       <p className="text-[#1A1A1A] font-[Cormorant_Garamond] italic text-[17px] leading-relaxed mb-5">
-        &ldquo;{item.content}&rdquo;
+        {"\u201C"}{item.content}{"\u201D"}
       </p>
       <div className="flex items-center gap-3">
         {item.photo ? (
@@ -55,6 +55,7 @@ const TestimoniColumn = ({
   return (
     <div className={`overflow-hidden ${className}`}>
       <motion.div
+        initial={{ translateY: "0%" }}
         animate={{ translateY: "-50%" }}
         transition={{ duration, repeat: Infinity, ease: "linear", repeatType: "loop" }}
         className="flex flex-col gap-6 pb-6"
