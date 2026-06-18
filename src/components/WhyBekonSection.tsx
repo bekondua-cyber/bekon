@@ -1,15 +1,11 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { whyBekon } from "@/data/why-bekon";
 import { siteConfig } from "@/data/site-config";
 
 export function WhyBekonSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
-
   return (
     <section
       id="tentang"
@@ -21,7 +17,8 @@ export function WhyBekonSection() {
           {/* Left: Image */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
             className="relative"
           >
@@ -46,9 +43,9 @@ export function WhyBekonSection() {
 
           {/* Right: Content */}
           <motion.div
-            ref={ref}
             initial={{ opacity: 0, x: 40 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.7, ease: [0, 0, 0.2, 1], delay: 0.2 }}
           >
             <span className="section-label">Keunggulan</span>
@@ -61,7 +58,8 @@ export function WhyBekonSection() {
                 <motion.div
                   key={item.id}
                   initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.4, delay: 0.3 + i * 0.08 }}
                   className="flex items-start gap-4"
                 >
@@ -92,7 +90,8 @@ export function WhyBekonSection() {
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.4, delay: 0.8 }}
               className="mt-8"
             >

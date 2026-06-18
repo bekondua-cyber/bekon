@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { MapPin, Phone, Mail } from "lucide-react";
 import { siteConfig } from "@/data/site-config";
 
 export function ContactSection() {
-  const formRef = useRef(null);
-  const isInView = useInView(formRef, { once: true, amount: 0.2 });
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -43,9 +41,9 @@ export function ContactSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Contact Info */}
           <motion.div
-            ref={formRef}
             initial={{ opacity: 0, x: -30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6 }}
           >
             <span className="section-label">Kontak</span>
@@ -170,7 +168,8 @@ export function ContactSection() {
           {/* Form */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <div className="bg-white rounded-xl p-6 md:p-8 border border-bekon-border">

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { Play } from "lucide-react";
 import Link from "next/link";
@@ -19,8 +19,6 @@ export interface VideoItem {
 export function VideoSection({ items }: { items: VideoItem[] }) {
   const [activeVideo, setActiveVideo] = useState<VideoItem | null>(null);
   const [playing, setPlaying] = useState(false);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
   const data = items.length > 0 ? items : [];
 
@@ -54,9 +52,9 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
     >
       <div className="max-w-container mx-auto px-6 lg:px-20">
         <motion.div
-          ref={ref}
           initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
@@ -69,7 +67,8 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
         {/* Featured Video */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="aspect-video rounded-xl overflow-hidden bg-bekon-near-black mb-6 relative"
         >
@@ -109,7 +108,8 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
         {/* Thumbnails */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.5, delay: 0.4 }}
           className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8"
         >

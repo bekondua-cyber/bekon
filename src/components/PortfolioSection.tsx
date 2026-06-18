@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -27,8 +27,6 @@ export interface PortfolioItem {
 
 export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
   const [activeFilter, setActiveFilter] = useState("semua");
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.1 });
 
   const filtered =
     activeFilter === "semua"
@@ -66,9 +64,9 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
     >
       <div className="max-w-container mx-auto px-6 lg:px-20">
         <motion.div
-          ref={ref}
           initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.6 }}
           className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4"
         >
@@ -89,7 +87,8 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
         {/* Filter tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
           className="flex flex-wrap gap-2 mb-10"
         >

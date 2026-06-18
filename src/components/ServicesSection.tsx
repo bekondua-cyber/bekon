@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { services } from "@/data/services";
 
@@ -55,9 +54,6 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export function ServicesSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
-
   return (
     <section
       id="layanan"
@@ -66,9 +62,9 @@ export function ServicesSection() {
     >
       <div className="max-w-container mx-auto px-6 lg:px-20">
         <motion.div
-          ref={ref}
           initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-14"
         >
@@ -86,7 +82,6 @@ export function ServicesSection() {
               key={service.id}
               service={service}
               index={i}
-              isInView={isInView}
             />
           ))}
         </div>
@@ -94,14 +89,14 @@ export function ServicesSection() {
         {services.length > 4 && (
           <motion.div
             initial={{ opacity: 0, y: 40 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mt-6 flex justify-center"
           >
             <ServiceCard
               service={services[4]}
               index={4}
-              isInView={isInView}
               centered
             />
           </motion.div>
@@ -114,18 +109,17 @@ export function ServicesSection() {
 function ServiceCard({
   service,
   index,
-  isInView,
   centered,
 }: {
   service: (typeof services)[0];
   index: number;
-  isInView: boolean;
   centered?: boolean;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className={`bg-white border border-bekon-border rounded-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg hover:border-bekon-gold group ${
         centered ? "md:max-w-sm" : ""

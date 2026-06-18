@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -29,9 +28,6 @@ export interface ArticleItem {
 }
 
 export function BlogSection({ items }: { items: ArticleItem[] }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
-
   const data = items.length > 0 ? items.slice(0, 3) : [];
 
   if (data.length === 0) {
@@ -62,9 +58,9 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
     >
       <div className="max-w-container mx-auto px-6 lg:px-20">
         <motion.div
-          ref={ref}
           initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4"
         >
@@ -87,7 +83,8 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
             <motion.article
               key={article.id}
               initial={{ opacity: 0, y: 40 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
             >
               <Link

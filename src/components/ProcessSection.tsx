@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { processSteps } from "@/data/process";
 import { siteConfig } from "@/data/site-config";
 
@@ -39,9 +38,6 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export function ProcessSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
-
   return (
     <section
       aria-label="Proses Kerja BEKON"
@@ -49,9 +45,9 @@ export function ProcessSection() {
     >
       <div className="max-w-container mx-auto px-6 lg:px-20">
         <motion.div
-          ref={ref}
           initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
@@ -73,7 +69,8 @@ export function ProcessSection() {
             <motion.div
               key={step.id}
               initial={{ opacity: 0, y: 40 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.5, delay: i * 0.15 }}
               className="relative text-center"
             >
@@ -99,7 +96,8 @@ export function ProcessSection() {
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.4, delay: 0.8 }}
           className="text-center mt-12"
         >
