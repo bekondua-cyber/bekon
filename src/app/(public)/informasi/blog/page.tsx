@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { articles } from "@/data/articles";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -9,7 +8,51 @@ export const metadata: Metadata = {
     "Tips, inspirasi desain, dan panduan membangun rumah dari BEKON.",
 };
 
-export default function BlogPage() {
+const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  try {
+    return new Date(dateStr).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+export default async function BlogPage() {
+  let articles: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    category?: string;
+    excerpt?: string;
+    thumbnail?: string | null;
+    publishedAt?: string | null;
+  }> = [];
+
+  try {
+    const res = await fetch(`${API_BASE}/api/articles?category=blog`, {
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (
+        json &&
+        typeof json === "object" &&
+        "data" in json &&
+        Array.isArray(json.data)
+      ) {
+        articles = json.data;
+      }
+    }
+  } catch {
+    articles = [];
+  }
+
   return (
     <div className="min-h-screen bg-bekon-cream">
       <div className="max-w-container mx-auto px-6 lg:px-20 pt-32 pb-20">
@@ -22,40 +65,45 @@ export default function BlogPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {articles.map((article) => (
-            <Link
-              key={article.id}
-              href={`/informasi/blog/${article.slug}`}
-              className="block bg-white rounded-xl overflow-hidden border border-bekon-border group hover:shadow-md transition-shadow"
-            >
-              <div className="relative aspect-[16/10] overflow-hidden">
-                <Image
-                  src={article.thumbnail}
-                  alt={article.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-5">
-                <span className="inline-block px-3 py-1 rounded-full bg-bekon-gold/10 text-bekon-gold text-[11px] font-semibold uppercase tracking-wider mb-3">
-                  {article.category.replace(/-/g, " ")}
-                </span>
-                <h2 className="text-bekon-near-black font-semibold text-base leading-snug mb-2 line-clamp-2 group-hover:text-bekon-gold transition-colors">
-                  {article.title}
-                </h2>
-                <p className="text-bekon-text-muted text-sm line-clamp-2 mb-3">
-                  {article.excerpt}
-                </p>
-                <div className="flex items-center justify-between text-xs text-bekon-text-muted">
-                  <span>{article.date}</span>
-                  <span>{article.read_time}</span>
+        {articles.length === 0 ? (
+          <p className="text-center text-bekon-text-muted">
+            Belum ada artikel. Pantau terus untuk tips & inspirasi rumah.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {articles.map((article) => (
+              <Link
+                key={article.id}
+                href={`/informasi/blog/${article.slug}`}
+                className="block bg-white rounded-xl overflow-hidden border border-bekon-border group hover:shadow-md transition-shadow"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <Image
+                    src={article.thumbnail ?? ""}
+                    alt={article.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+                <div className="p-5">
+                  <span className="inline-block px-3 py-1 rounded-full bg-bekon-gold/10 text-bekon-gold text-[11px] font-semibold uppercase tracking-wider mb-3">
+                    {article.category?.replace(/-/g, " ") ?? ""}
+                  </span>
+                  <h2 className="text-bekon-near-black font-semibold text-base leading-snug mb-2 line-clamp-2 group-hover:text-bekon-gold transition-colors">
+                    {article.title}
+                  </h2>
+                  <p className="text-bekon-text-muted text-sm line-clamp-2 mb-3">
+                    {article.excerpt}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-bekon-text-muted">
+                    <span>{formatDate(article.publishedAt)}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

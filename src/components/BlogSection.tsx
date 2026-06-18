@@ -47,7 +47,7 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
             Tips & Inspirasi Rumah
           </h2>
           <p className="text-bekon-text-muted text-sm">
-            Belum ada artikel. Pantau terus untuk tips & inspirasi terbaru!
+            Belum ada artikel. Pantau terus untuk tips & inspirasi rumah.
           </p>
         </div>
       </section>

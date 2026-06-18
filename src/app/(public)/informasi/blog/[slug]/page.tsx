@@ -2,27 +2,94 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { articles } from "@/data/articles";
 
 interface Props {
   params: { slug: string };
 }
 
-export function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }));
+const API_BASE =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  "http://localhost:3000";
+
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  try {
+    return new Date(dateStr).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
 }
 
-export function generateMetadata({ params }: Props): Metadata {
-  const article = articles.find((a) => a.slug === params.slug);
-  if (!article) return { title: "Artikel Tidak Ditemukan" };
-  return {
-    title: article.title,
-    description: article.excerpt,
-  };
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/articles?slug=${params.slug}`,
+      { cache: "no-store" }
+    );
+    if (res.ok) {
+      const json = await res.json();
+      const data =
+        json &&
+        typeof json === "object" &&
+        "data" in json &&
+        Array.isArray(json.data)
+          ? json.data
+          : [];
+      const article = data.find(
+        (a: { slug: string }) => a.slug === params.slug
+      );
+      if (article) {
+        return {
+          title: article.title,
+          description: article.excerpt,
+        };
+      }
+    }
+  } catch {
+    // fall through
+  }
+  return { title: "Artikel Tidak Ditemukan" };
 }
 
-export default function BlogDetailPage({ params }: Props) {
-  const article = articles.find((a) => a.slug === params.slug);
+export default async function BlogDetailPage({ params }: Props) {
+  let article: {
+    id: string;
+    title: string;
+    slug: string;
+    category?: string;
+    excerpt?: string;
+    content?: string;
+    thumbnail?: string | null;
+    publishedAt?: string | null;
+  } | null = null;
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/articles?slug=${params.slug}`,
+      { cache: "no-store" }
+    );
+    if (res.ok) {
+      const json = await res.json();
+      const data =
+        json &&
+        typeof json === "object" &&
+        "data" in json &&
+        Array.isArray(json.data)
+          ? json.data
+          : [];
+      article =
+        data.find(
+          (a: { slug: string }) => a.slug === params.slug
+        ) ?? null;
+    }
+  } catch {
+    article = null;
+  }
+
   if (!article) notFound();
 
   return (
@@ -37,7 +104,7 @@ export default function BlogDetailPage({ params }: Props) {
 
         <div className="max-w-3xl mx-auto">
           <span className="inline-block px-3 py-1 rounded-full bg-bekon-gold/10 text-bekon-gold text-[11px] font-semibold uppercase tracking-wider mb-4">
-            {article.category.replace(/-/g, " ")}
+            {article.category?.replace(/-/g, " ") ?? ""}
           </span>
 
           <h1 className="font-display text-[clamp(28px,4vw,42px)] text-bekon-near-black mb-4 leading-tight">
@@ -45,16 +112,14 @@ export default function BlogDetailPage({ params }: Props) {
           </h1>
 
           <div className="flex items-center gap-4 text-sm text-bekon-text-muted mb-8">
-            <span>{article.author}</span>
+            <span>Tim BEKON</span>
             <span>&middot;</span>
-            <span>{article.date}</span>
-            <span>&middot;</span>
-            <span>{article.read_time}</span>
+            <span>{formatDate(article.publishedAt)}</span>
           </div>
 
           <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-10">
             <Image
-              src={article.thumbnail}
+              src={article.thumbnail ?? ""}
               alt={article.title}
               fill
               sizes="(max-width: 768px) 100vw, 768px"
@@ -63,15 +128,10 @@ export default function BlogDetailPage({ params }: Props) {
             />
           </div>
 
-          <div className="prose prose-gray max-w-none">
-            <p className="text-bekon-text-secondary text-lg leading-relaxed mb-6">
-              {article.excerpt}
-            </p>
-            <p className="text-bekon-text-muted leading-relaxed">
-              Artikel ini akan segera dilengkapi dengan konten lengkap. Untuk
-              informasi lebih lanjut, silakan hubungi tim BEKON.
-            </p>
-          </div>
+          <div
+            className="prose prose-gray max-w-none"
+            dangerouslySetInnerHTML={{ __html: article.content ?? "" }}
+          />
         </div>
       </article>
     </div>
