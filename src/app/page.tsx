@@ -1,20 +1,66 @@
 import { Navbar } from "@/components/Navbar";
-import { HeroSection } from "@/components/HeroSection";
 import { SocialProofBar } from "@/components/SocialProofBar";
-import { ServicesSection } from "@/components/ServicesSection";
-import { PortfolioSection } from "@/components/PortfolioSection";
 import type { PortfolioItem } from "@/components/PortfolioSection";
-import { WhyBekonSection } from "@/components/WhyBekonSection";
-import { ProcessSection } from "@/components/ProcessSection";
-import TestimoniColumns, { type Testimonial } from "@/components/TestimoniColumns";
-import { VideoSection } from "@/components/VideoSection";
+import type { Testimonial } from "@/components/TestimoniColumns";
 import type { VideoItem } from "@/components/VideoSection";
-import { BlogSection } from "@/components/BlogSection";
 import type { ArticleItem } from "@/components/BlogSection";
-import { CTASection } from "@/components/CTASection";
-import { ContactSection } from "@/components/ContactSection";
 import { Footer } from "@/components/Footer";
-import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
+import dynamic from "next/dynamic";
+
+const HeroSection = dynamic(
+  () => import("@/components/HeroSection").then(m => ({ default: m.HeroSection })),
+  { ssr: false }
+);
+
+const ServicesSection = dynamic(
+  () => import("@/components/ServicesSection").then(m => ({ default: m.ServicesSection })),
+  { ssr: false }
+);
+
+const PortfolioSection = dynamic(
+  () => import("@/components/PortfolioSection").then(m => ({ default: m.PortfolioSection })),
+  { ssr: false }
+);
+
+const WhyBekonSection = dynamic(
+  () => import("@/components/WhyBekonSection").then(m => ({ default: m.WhyBekonSection })),
+  { ssr: false }
+);
+
+const ProcessSection = dynamic(
+  () => import("@/components/ProcessSection").then(m => ({ default: m.ProcessSection })),
+  { ssr: false }
+);
+
+const TestimoniColumns = dynamic(
+  () => import("@/components/TestimoniColumns"),
+  { ssr: false }
+);
+
+const VideoSection = dynamic(
+  () => import("@/components/VideoSection").then(m => ({ default: m.VideoSection })),
+  { ssr: false }
+);
+
+const BlogSection = dynamic(
+  () => import("@/components/BlogSection").then(m => ({ default: m.BlogSection })),
+  { ssr: false }
+);
+
+const CTASection = dynamic(
+  () => import("@/components/CTASection").then(m => ({ default: m.CTASection })),
+  { ssr: false }
+);
+
+const ContactSection = dynamic(
+  () => import("@/components/ContactSection").then(m => ({ default: m.ContactSection })),
+  { ssr: false }
+);
+
+const FloatingWhatsApp = dynamic(
+  () => import("@/components/FloatingWhatsApp").then(m => ({ default: m.FloatingWhatsApp })),
+  { ssr: false }
+);
 
 // Untuk server component, gunakan absolute URL dari env atau construct dari headers
 const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000"
