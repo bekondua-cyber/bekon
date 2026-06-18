@@ -29,10 +29,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const portfolioItems = await prisma.portfolio.findMany({
-    where: { isPublished: true },
-    select: { slug: true, updatedAt: true },
-  });
+  let portfolioItems: { slug: string; updatedAt: Date }[] = [];
+  try {
+    portfolioItems = await prisma.portfolio.findMany({
+      where: { isPublished: true },
+      select: { slug: true, updatedAt: true },
+    });
+  } catch (e) {
+    console.warn("Sitemap: could not fetch portfolios", e);
+  }
 
   const portfolioRoutes: MetadataRoute.Sitemap = portfolioItems.map((item) => ({
     url: `${baseUrl}/portfolio/${item.slug}`,
@@ -41,10 +46,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const articleItems = await prisma.article.findMany({
-    where: { isPublished: true },
-    select: { slug: true, updatedAt: true },
-  });
+  let articleItems: { slug: string; updatedAt: Date }[] = [];
+  try {
+    articleItems = await prisma.article.findMany({
+      where: { isPublished: true },
+      select: { slug: true, updatedAt: true },
+    });
+  } catch (e) {
+    console.warn("Sitemap: could not fetch articles", e);
+  }
 
   const blogRoutes: MetadataRoute.Sitemap = articleItems.map((item) => ({
     url: `${baseUrl}/informasi/blog/${item.slug}`,
