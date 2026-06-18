@@ -78,7 +78,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Link href={`/portfolio/${currentItem.slug}`} className="relative block aspect-[21/9] max-h-[70vh] rounded-xl overflow-hidden">
+            <Link href={`/portfolio/${currentItem.slug}`} className="relative block aspect-[16/9] rounded-2xl overflow-hidden">
               <Image
                 src={currentItem.coverImage ?? ""}
                 alt={currentItem.title}
@@ -105,14 +105,14 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
           </motion.div>
         </AnimatePresence>
 
-        <div className="flex gap-3 overflow-x-auto pb-4 mt-6 scrollbar-thin">
+        <div className="flex gap-3 md:gap-4 mt-4">
           {items.slice(0, 6).map((item) => {
             const isActive = currentItem.id === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveItem(item)}
-                className={`relative flex-shrink-0 aspect-video w-44 md:w-52 rounded-lg overflow-hidden transition-all duration-300 ${
+                className={`relative flex-1 aspect-video rounded-lg overflow-hidden transition-all duration-300 ${
                   isActive
                     ? "ring-2 ring-bekon-gold ring-offset-2 ring-offset-black/80 opacity-100"
                     : "opacity-70 hover:opacity-100 hover:scale-105"
@@ -122,7 +122,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
                   src={item.coverImage ?? ""}
                   alt={item.title}
                   fill
-                  sizes="(max-width: 768px) 176px, 208px"
+                  sizes="(max-width: 768px) 30vw, 200px"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
