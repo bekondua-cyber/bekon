@@ -35,15 +35,18 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
 
   const featured = filtered.find((p) => p.isFeatured);
   const others = filtered.filter((p) => !p.isFeatured);
+  const spanClass = others.length === 0
+    ? "md:col-span-3 min-h-[500px] md:min-h-[700px]"
+    : "md:col-span-2 md:row-span-2 min-h-[500px] md:min-h-[700px]";
 
   if (items.length === 0) {
     return (
       <section
         id="portfolio"
         aria-label="Portfolio BEKON"
-        className="bg-black/80 py-20 md:py-28"
+        className="bg-black/80 pt-20 md:pt-28 pb-0"
       >
-        <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
+        <div className="w-full min-h-[400px] flex flex-col items-center justify-center px-6 lg:px-20 text-center">
           <span className="section-label text-[#CBA84A]">Portfolio</span>
           <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-[#F8F5F0] mt-3 mb-6">
             Karya Terbaik Kami
@@ -60,7 +63,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
     <section
       id="portfolio"
       aria-label="Portfolio BEKON"
-      className="bg-black/80 py-20 md:py-28"
+      className="bg-black/80 pt-20 md:pt-28 pb-0"
     >
       <div className="max-w-container mx-auto px-6 lg:px-20">
         <motion.div
@@ -117,12 +120,12 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0"
+            className="w-screen relative left-1/2 -translate-x-1/2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0"
           >
             {featured && (
               <Link
                 href={`/portfolio/${featured.slug}`}
-                className="relative group overflow-hidden rounded-none md:col-span-2 md:row-span-2 min-h-[400px] md:min-h-[560px]"
+                className={`relative group overflow-hidden rounded-none ${spanClass}`}
               >
                 <Image
                   src={featured.coverImage ?? ""}
@@ -147,7 +150,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
               <Link
                 key={item.id}
                 href={`/portfolio/${item.slug}`}
-                className="relative group overflow-hidden rounded-none min-h-[280px]"
+                className="relative group overflow-hidden rounded-none min-h-[350px]"
               >
                 <Image
                   src={item.coverImage ?? ""}
