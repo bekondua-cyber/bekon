@@ -108,7 +108,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
 
       <div className="w-screen relative left-1/2 -translate-x-1/2 mt-4">
         <div className="max-w-container mx-auto px-6 lg:px-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 lg:gap-4">
             {items.map((item) => {
               const isActive = activeItem.id === item.id;
               return (
@@ -122,18 +122,18 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
                       : "opacity-70 hover:opacity-100"
                   }`}
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden">
+                  <div className="relative aspect-[3/4] overflow-hidden">
                     <Image
                       src={item.coverImage ?? ""}
                       alt={item.title}
                       fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white text-sm font-medium truncate">
+                  <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3">
+                    <p className="text-white text-xs md:text-sm font-medium truncate">
                       {item.title}
                     </p>
                   </div>
