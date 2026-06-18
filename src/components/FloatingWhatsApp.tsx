@@ -6,13 +6,18 @@ import { X } from "lucide-react";
 import { siteConfig } from "@/data/site-config";
 
 export function FloatingWhatsApp() {
+  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 2500);
     return () => clearTimeout(timer);
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <AnimatePresence>

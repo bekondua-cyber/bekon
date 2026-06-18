@@ -7,7 +7,7 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { siteConfig } from "@/data/site-config";
 
-const MotionImage = motion(Image);
+const MotionImage = motion.create(Image);
 
 const slides = [
   {
@@ -89,6 +89,7 @@ export function HeroSection() {
       {/* Scroll indicator */}
       <motion.a
         href="#stats"
+        initial={false}
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         className="absolute bottom-8 right-12 hidden lg:flex flex-col items-center gap-2 cursor-pointer"

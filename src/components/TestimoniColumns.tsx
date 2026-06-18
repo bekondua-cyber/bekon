@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 export type Testimonial = {
@@ -86,6 +86,12 @@ const dummyTestimonials: Testimonial[] = [
 ];
 
 export default function TestimoniColumns({ items }: { items: Testimonial[] }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) return null;
+
   const data = items.length > 0 ? items : dummyTestimonials;
 
   const col1 = data.filter((_, i) => i % 3 === 0);
