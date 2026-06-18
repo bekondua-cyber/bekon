@@ -4,13 +4,13 @@ export function CTASection() {
   return (
     <section
       aria-label="Ajakan konsultasi BEKON"
-      className="bg-bekon-gold py-16 md:py-20"
+      className="bg-black py-16 md:py-20"
     >
       <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
-        <h2 className="font-display text-[clamp(32px,4vw,48px)] text-[#1A1A1A] font-light leading-tight mb-4">
+        <h2 className="font-display text-[clamp(32px,4vw,48px)] text-white font-light leading-tight mb-4">
           Siap Membangun Rumah Impian Anda?
         </h2>
-        <p className="text-[#1A1A1A] text-base md:text-lg max-w-lg mx-auto mb-8">
+        <p className="text-white/70 text-base md:text-lg max-w-lg mx-auto mb-8">
           Konsultasikan proyek Anda bersama tim BEKON hari ini.
           <br />
           Gratis, tanpa komitmen, tanpa biaya awal.
@@ -20,7 +20,7 @@ export function CTASection() {
             href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-bekon-gold rounded-full text-sm font-semibold transition-all duration-200 hover:bg-bekon-near-black hover:text-white"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-bekon-gold text-bekon-near-black rounded-full text-sm font-semibold transition-all duration-200 hover:bg-white hover:text-bekon-near-black"
           >
             <svg
               width="18"
@@ -37,7 +37,7 @@ export function CTASection() {
             href={`https://wa.me/${siteConfig.whatsapp2}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-bekon-gold rounded-full text-sm font-semibold transition-all duration-200 hover:bg-bekon-near-black hover:text-white"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-bekon-gold text-bekon-near-black rounded-full text-sm font-semibold transition-all duration-200 hover:bg-white hover:text-bekon-near-black"
           >
             <svg
               width="18"
