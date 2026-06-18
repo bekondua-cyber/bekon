@@ -5,15 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-const CATEGORIES = [
-  { value: "semua", label: "Semua" },
-  { value: "eksterior", label: "Eksterior" },
-  { value: "interior", label: "Interior" },
-  { value: "bangun", label: "Bangun" },
-  { value: "renovasi", label: "Renovasi" },
-  { value: "kost-ruko", label: "Kost & Ruko" },
-];
-
 export interface PortfolioItem {
   id: string;
   title: string;
@@ -26,18 +17,8 @@ export interface PortfolioItem {
 }
 
 export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
-  const [activeFilter, setActiveFilter] = useState("semua");
-
-  const filtered =
-    activeFilter === "semua"
-      ? items
-      : items.filter((p) => p.category === activeFilter);
-
-  const featured = filtered.find((p) => p.isFeatured);
-  const others = filtered.filter((p) => !p.isFeatured);
-  const spanClass = others.length === 0
-    ? "md:col-span-3 min-h-[500px] md:min-h-[700px]"
-    : "md:col-span-2 md:row-span-2 min-h-[500px] md:min-h-[700px]";
+  const [activeItem, setActiveItem] = useState<PortfolioItem | null>(null);
+  const currentItem = activeItem || items.find((p) => p.isFeatured) || items[0];
 
   if (items.length === 0) {
     return (
@@ -46,7 +27,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
         aria-label="Portfolio BEKON"
         className="bg-black/80 pt-20 md:pt-28 pb-0"
       >
-        <div className="w-full min-h-[400px] flex flex-col items-center justify-center px-6 lg:px-20 text-center">
+        <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
           <span className="section-label text-[#CBA84A]">Portfolio</span>
           <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-[#F8F5F0] mt-3 mb-6">
             Karya Terbaik Kami
@@ -86,96 +67,74 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
             Lihat Semua Portfolio &rarr;
           </Link>
         </motion.div>
-
-        {/* Filter tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="flex flex-wrap gap-2 mb-10"
-        >
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => setActiveFilter(cat.value)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                activeFilter === cat.value
-                  ? "bg-[#B8963E] text-white border-transparent"
-                  : "bg-white/10 text-[#F8F5F0] border border-white/30 hover:bg-white/20"
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </motion.div>
       </div>
 
-      <div className="w-full px-0">
-        {/* Grid */}
+      <div className="max-w-container mx-auto px-6 lg:px-20">
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeFilter}
+            key={currentItem.id}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="w-screen relative left-1/2 -translate-x-1/2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0"
           >
-            {featured && (
-              <Link
-                href={`/portfolio/${featured.slug}`}
-                className={`relative group overflow-hidden rounded-none ${spanClass}`}
-              >
-                <Image
-                  src={featured.coverImage ?? ""}
-                  alt={featured.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 66vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-bekon-near-black/80 via-bekon-near-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                  <h3 className="text-white text-lg font-bold">
-                    {featured.title}
-                  </h3>
-                  <p className="text-white/70 text-sm mt-1">
-                    {featured.location} &middot; {featured.year}
-                  </p>
-                </div>
-              </Link>
-            )}
+            <Link href={`/portfolio/${currentItem.slug}`} className="relative block aspect-[21/9] max-h-[70vh] rounded-xl overflow-hidden">
+              <Image
+                src={currentItem.coverImage ?? ""}
+                alt={currentItem.title}
+                fill
+                sizes="100vw"
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                {currentItem.category && (
+                  <span className="inline-block bg-bekon-gold text-bekon-near-black text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full mb-3">
+                    {currentItem.category}
+                  </span>
+                )}
+                <h3 className="font-display text-2xl md:text-3xl text-white font-light leading-tight">
+                  {currentItem.title}
+                </h3>
+                <span className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-bekon-gold text-bekon-near-black rounded-full text-sm font-medium transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5">
+                  Lihat Detail &rarr;
+                </span>
+              </div>
+            </Link>
+          </motion.div>
+        </AnimatePresence>
 
-            {others.slice(0, 4).map((item) => (
-              <Link
+        <div className="flex gap-3 overflow-x-auto pb-4 mt-6 scrollbar-thin">
+          {items.slice(0, 6).map((item) => {
+            const isActive = currentItem.id === item.id;
+            return (
+              <button
                 key={item.id}
-                href={`/portfolio/${item.slug}`}
-                className="relative group overflow-hidden rounded-none min-h-[350px]"
+                onClick={() => setActiveItem(item)}
+                className={`relative flex-shrink-0 aspect-video w-44 md:w-52 rounded-lg overflow-hidden transition-all duration-300 ${
+                  isActive
+                    ? "ring-2 ring-bekon-gold ring-offset-2 ring-offset-black/80 opacity-100"
+                    : "opacity-70 hover:opacity-100 hover:scale-105"
+                }`}
               >
                 <Image
                   src={item.coverImage ?? ""}
                   alt={item.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 768px) 176px, 208px"
+                  className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-bekon-near-black/80 via-bekon-near-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-0 left-0 right-0 p-5 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                  <h3 className="text-white text-base font-bold">
-                    {item.title}
-                  </h3>
-                  <p className="text-white/70 text-xs mt-1">
-                    {item.location} &middot; {item.year}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <p className="absolute bottom-2 left-2 right-2 text-white text-xs font-medium truncate text-left">
+                  {item.title}
+                </p>
+              </button>
+            );
+          })}
+        </div>
 
-      <div className="max-w-container mx-auto px-6 lg:px-20">
-        <div className="mt-8 text-center md:hidden">
+        <div className="mt-6 text-center md:hidden">
           <Link
             href="/portfolio"
             className="text-[#CBA84A] text-sm font-medium hover:text-[#B8963E] transition-colors inline-flex items-center gap-1"
