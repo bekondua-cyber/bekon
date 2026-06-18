@@ -99,19 +99,19 @@ export default function TestimoniColumns({ items }: { items: Testimonial[] }) {
   const col3 = data.filter((_, i) => i % 3 === 2);
 
   return (
-    <section className="bg-[#1A1A1A] py-24 px-4">
+    <section className="bg-[#F8F5F0] py-24 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
           <span className="text-[#B8963E] text-xs uppercase tracking-widest font-medium">Testimoni Klien</span>
-          <h2 className="font-[Cormorant_Garamond] text-[42px] md:text-[56px] font-light text-[#F8F5F0] mt-3 leading-tight">
+          <h2 className="font-[Cormorant_Garamond] text-[42px] md:text-[56px] font-light text-bekon-near-black mt-3 leading-tight">
             Apa Kata Klien Kami
           </h2>
           <div className="w-16 h-px bg-[#B8963E] mx-auto mt-4"></div>
         </div>
 
         {/* Columns */}
-        <div className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_15%,black_85%,transparent)] max-h-[700px] overflow-hidden">
+        <div className="bg-[#1A1A1A] rounded-2xl p-6 flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_15%,black_85%,transparent)] max-h-[700px] overflow-hidden">
           {col1.length > 0 && <TestimoniColumn items={col1} duration={15} />}
           {col2.length > 0 && <TestimoniColumn items={col2} duration={19} className="hidden md:block" />}
           {col3.length > 0 && <TestimoniColumn items={col3} duration={17} className="hidden lg:block" />}
