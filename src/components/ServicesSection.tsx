@@ -121,22 +121,22 @@ function ServiceCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className={`bg-white border border-bekon-border rounded-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg hover:border-bekon-gold group ${
+      className={`bg-[#1A1A1A] border border-white/10 rounded-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(184,150,62,0.15)] hover:border-bekon-gold group ${
         centered ? "md:max-w-sm" : ""
       }`}
     >
-      <div className="w-12 h-12 rounded-lg bg-bekon-gold/10 flex items-center justify-center text-bekon-gold mb-5 group-hover:bg-bekon-gold group-hover:text-white transition-colors duration-300">
+      <div className="w-12 h-12 rounded-lg bg-bekon-gold/20 flex items-center justify-center text-bekon-gold mb-5 group-hover:bg-bekon-gold group-hover:text-white transition-colors duration-300">
         {iconMap[service.icon]}
       </div>
-      <h3 className="text-lg font-semibold text-bekon-near-black mb-2">
+      <h3 className="text-lg font-semibold text-white mb-2">
         {service.title}
       </h3>
-      <p className="text-bekon-text-muted text-sm leading-relaxed mb-4">
+      <p className="text-white/60 text-sm leading-relaxed mb-4">
         {service.short_desc}
       </p>
       <Link
         href={`/layanan/${service.slug}`}
-        className="text-bekon-gold text-sm font-medium hover:text-bekon-gold-dark transition-colors inline-flex items-center gap-1"
+        className="text-bekon-gold text-sm font-medium hover:text-bekon-gold-light transition-colors inline-flex items-center gap-1"
       >
         Selengkapnya &rarr;
       </Link>

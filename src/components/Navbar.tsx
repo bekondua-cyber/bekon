@@ -34,8 +34,8 @@ export function Navbar() {
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           scrolled
-            ? "bg-white/90 backdrop-blur-md border-b border-white/40 shadow-md"
-            : "bg-white/50 backdrop-blur-sm border-b border-transparent shadow-none"
+            ? "bg-black/85 backdrop-blur-md border-b border-white/10 shadow-lg"
+            : "bg-black/40 backdrop-blur-sm border-b border-transparent shadow-none"
         )}
       >
         <div className="max-w-container mx-auto px-6 lg:px-20">
@@ -46,10 +46,10 @@ export function Navbar() {
               className="flex items-center gap-3"
             >
               <div className="flex flex-col leading-none">
-                <span className="font-bold tracking-[0.18em] text-xl text-[#1A1A1A]">
+                <span className="font-bold tracking-[0.18em] text-xl text-white">
                   BEKON
                 </span>
-                <span className="uppercase tracking-[0.06em] text-[9px] text-[#1A1A1A]">
+                <span className="uppercase tracking-[0.06em] text-[9px] text-white">
                   Bangun Eka Konstruksi
                 </span>
               </div>
@@ -63,7 +63,7 @@ export function Navbar() {
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      "text-sm transition-colors text-[#1A1A1A] hover:text-bekon-gold px-2 py-1",
+                      "text-sm transition-colors text-white/90 hover:text-bekon-gold px-2 py-1",
                       isActive && "text-bekon-gold"
                     )}
                   >
@@ -76,7 +76,7 @@ export function Navbar() {
             <div className="hidden lg:block">
               <Link
                 href="/kontak"
-                className="px-5 py-2 rounded-full text-sm font-medium bg-[#1A1A1A] text-[#F8F5F0] hover:bg-[#3D3936] hover:-translate-y-0.5 transition-all duration-200"
+                className="px-5 py-2 rounded-full text-sm font-medium bg-bekon-gold text-white hover:bg-bekon-gold-dark hover:-translate-y-0.5 transition-all duration-200"
               >
                 Konsultasi Gratis
               </Link>
@@ -87,7 +87,7 @@ export function Navbar() {
               className="lg:hidden p-2 -mr-2"
               aria-label="Buka menu navigasi"
             >
-              <Menu className="text-bekon-near-black" size={24} />
+              <Menu className="text-white" size={24} />
             </button>
           </div>
         </div>
@@ -100,7 +100,7 @@ export function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[100] bg-bekon-near-black flex flex-col"
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col"
           >
             <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/10">
               <span className="font-bold tracking-[0.18em] text-xl text-white">
