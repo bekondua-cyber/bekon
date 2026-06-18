@@ -106,7 +106,9 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
             </button>
           ))}
         </motion.div>
+      </div>
 
+      <div className="w-full px-0">
         {/* Grid */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -115,12 +117,12 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0"
           >
             {featured && (
               <Link
                 href={`/portfolio/${featured.slug}`}
-                className="relative group overflow-hidden rounded-xl md:col-span-2 md:row-span-2 min-h-[300px] md:min-h-[400px]"
+                className="relative group overflow-hidden rounded-none md:col-span-2 md:row-span-2 min-h-[400px] md:min-h-[560px]"
               >
                 <Image
                   src={featured.coverImage ?? ""}
@@ -145,7 +147,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
               <Link
                 key={item.id}
                 href={`/portfolio/${item.slug}`}
-                className="relative group overflow-hidden rounded-xl min-h-[220px]"
+                className="relative group overflow-hidden rounded-none min-h-[280px]"
               >
                 <Image
                   src={item.coverImage ?? ""}
@@ -167,7 +169,9 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
             ))}
           </motion.div>
         </AnimatePresence>
+      </div>
 
+      <div className="max-w-container mx-auto px-6 lg:px-20">
         <div className="mt-8 text-center md:hidden">
           <Link
             href="/portfolio"
