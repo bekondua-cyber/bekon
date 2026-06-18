@@ -63,7 +63,7 @@ export function HeroSection() {
       ))}
 
       {/* Subtle dark overlay */}
-      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/25 to-black/10" />
 
       {/* Content overlay */}
       <div className="absolute inset-0 flex flex-col justify-center px-8 lg:px-24 gap-5">
@@ -110,7 +110,7 @@ function DesktopContent() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9, ease: [0, 0, 0.2, 1], delay: 0.2 }}
-      className="flex flex-col gap-5"
+      className="flex flex-col gap-5 pb-16 sm:pb-0"
     >
       {/* Section label - blur pill */}
       <div className="inline-block self-start">
@@ -122,8 +122,11 @@ function DesktopContent() {
       </div>
 
       {/* Headline - blur block */}
-      <div className="bg-black/35 backdrop-blur-md rounded-xl px-8 py-6 self-start max-w-3xl">
-        <h1 className="font-display text-5xl lg:text-[64px] xl:text-[72px] font-light leading-[1.05] text-white">
+      <div className="self-start max-w-3xl">
+        <h1
+          className="font-display text-5xl lg:text-[64px] xl:text-[72px] font-light leading-[1.05] text-white"
+          style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
+        >
           Wujudkan
           <br />
           <em className="not-italic text-bekon-gold">Hunian</em>
@@ -135,9 +138,12 @@ function DesktopContent() {
       {/* Gold divider */}
       <div className="w-16 h-px bg-bekon-gold self-start ml-1" />
 
-      {/* Description - blur block */}
-      <div className="bg-black/35 backdrop-blur-md rounded-xl px-6 py-4 self-start max-w-md">
-        <p className="text-white text-[16px] leading-relaxed">
+      {/* Description - text shadow */}
+      <div className="self-start max-w-md">
+        <p
+          className="text-white text-[16px] leading-relaxed"
+          style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
+        >
           BEKON adalah mitra jangka panjang yang mewujudkan investasi hunian
           berkualitas dengan transparansi, estetika, dan ketepatan. Berpengalaman
           sejak 2009.
