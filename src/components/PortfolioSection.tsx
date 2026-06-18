@@ -44,7 +44,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
     <section
       id="portfolio"
       aria-label="Portfolio BEKON"
-      className="bg-black/80 pt-20 md:pt-28 pb-20"
+      className="bg-black/80 pt-20 md:pt-28 pb-0"
     >
       <div className="max-w-container mx-auto px-6 lg:px-20">
         <motion.div
@@ -106,8 +106,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
         </AnimatePresence>
       </div>
 
-      <div className="w-screen relative left-1/2 -translate-x-1/2 mt-4">
-        <div className="max-w-container mx-auto px-6 lg:px-20">
+      <div className="w-screen relative left-1/2 -translate-x-1/2 mt-2 md:mt-4 px-2 md:px-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 lg:gap-4">
             {items.map((item) => {
               const isActive = activeItem.id === item.id;
@@ -141,7 +140,6 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
               );
             })}
           </div>
-        </div>
       </div>
 
       <div className="max-w-container mx-auto px-6 lg:px-20">
