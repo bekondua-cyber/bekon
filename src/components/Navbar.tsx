@@ -8,18 +8,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { navLinks } from "@/data/site-config";
 import { cn } from "@/lib/utils";
 
-const layananDropdown = [
-  { label: "Desain Eksterior", href: "/layanan/desain-eksterior" },
-  { label: "Desain Interior", href: "/layanan/desain-interior" },
-  { label: "Bangun Rumah & Renovasi", href: "/layanan/bangun-rumah-renovasi" },
-  { label: "Interior Rumah", href: "/layanan/interior-rumah" },
-  { label: "Bangun Kost & Ruko", href: "/layanan/bangun-kost-ruko" },
+const portfolioDropdown = [
+  { label: "Semua Portfolio", href: "/portfolio" },
+  { label: "Eksterior", href: "/portfolio?category=eksterior" },
+  { label: "Interior", href: "/portfolio?category=interior" },
+  { label: "Bangun", href: "/portfolio?category=bangun" },
+  { label: "Renovasi", href: "/portfolio?category=renovasi" },
+  { label: "Kost & Ruko", href: "/portfolio?category=kost-ruko" },
+];
+
+const videoDropdown = [
+  { label: "Semua Video", href: "/video" },
+  { label: "Home Tour", href: "/video#hometour" },
+  { label: "3D Desain", href: "/video#3d-desain" },
 ];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [layananOpen, setLayananOpen] = useState(false);
+  const [portfolioOpen, setPortfolioOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -67,31 +75,31 @@ export function Navbar() {
             <div className="hidden lg:flex items-center gap-7">
               {navLinks.map((link) => {
                 const isActive = (href: string) => pathname === href || pathname.startsWith(href);
-                if (link.href === "/layanan") {
+                if (link.href === "/portfolio") {
                   return (
                     <div
                       key={link.href}
                       className="relative"
-                      onMouseEnter={() => setLayananOpen(true)}
-                      onMouseLeave={() => setLayananOpen(false)}
+                      onMouseEnter={() => setPortfolioOpen(true)}
+                      onMouseLeave={() => setPortfolioOpen(false)}
                     >
                       <button
                         className={cn(
                           "flex items-center gap-1 text-sm transition-colors text-white/90 hover:text-bekon-gold px-2 py-1",
-                          (isActive("/layanan") || layananOpen) && "text-bekon-gold"
+                          (isActive("/portfolio") || portfolioOpen) && "text-bekon-gold"
                         )}
                       >
-                        Layanan
+                        Portfolio
                         <ChevronDown
                           size={14}
                           className={cn(
                             "transition-transform duration-200",
-                            layananOpen && "rotate-180"
+                            portfolioOpen && "rotate-180"
                           )}
                         />
                       </button>
                       <AnimatePresence>
-                        {layananOpen && (
+                        {portfolioOpen && (
                           <motion.div
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -99,7 +107,54 @@ export function Navbar() {
                             transition={{ duration: 0.2 }}
                             className="absolute top-full left-0 mt-2 w-56 bg-black/90 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden shadow-xl z-50"
                           >
-                            {layananDropdown.map((item) => (
+                            {portfolioDropdown.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className="block px-4 py-3 text-sm text-white/80 hover:text-bekon-gold hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                }
+                if (link.href === "/video") {
+                  return (
+                    <div
+                      key={link.href}
+                      className="relative"
+                      onMouseEnter={() => setVideoOpen(true)}
+                      onMouseLeave={() => setVideoOpen(false)}
+                    >
+                      <button
+                        className={cn(
+                          "flex items-center gap-1 text-sm transition-colors text-white/90 hover:text-bekon-gold px-2 py-1",
+                          (isActive("/video") || videoOpen) && "text-bekon-gold"
+                        )}
+                      >
+                        Video
+                        <ChevronDown
+                          size={14}
+                          className={cn(
+                            "transition-transform duration-200",
+                            videoOpen && "rotate-180"
+                          )}
+                        />
+                      </button>
+                      <AnimatePresence>
+                        {videoOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute top-full left-0 mt-2 w-56 bg-black/90 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden shadow-xl z-50"
+                          >
+                            {videoDropdown.map((item) => (
                               <Link
                                 key={item.href}
                                 href={item.href}
@@ -169,7 +224,7 @@ export function Navbar() {
 
             <div className="flex flex-col items-center justify-center flex-1 gap-7 px-6">
               {navLinks.map((link, i) => {
-                if (link.href === "/layanan") {
+                if (link.href === "/portfolio") {
                   return (
                     <motion.div
                       key={link.href}
@@ -179,10 +234,37 @@ export function Navbar() {
                       className="text-center"
                     >
                       <span className="text-white/90 font-display text-[36px] font-light">
-                        Layanan
+                        Portfolio
                       </span>
                       <div className="mt-4 flex flex-col items-center gap-3">
-                        {layananDropdown.map((item) => (
+                        {portfolioDropdown.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setMenuOpen(false)}
+                            className="text-sm text-white/60 hover:text-bekon-gold transition-colors"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  );
+                }
+                if (link.href === "/video") {
+                  return (
+                    <motion.div
+                      key={link.href}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.06, duration: 0.3 }}
+                      className="text-center"
+                    >
+                      <span className="text-white/90 font-display text-[36px] font-light">
+                        Video
+                      </span>
+                      <div className="mt-4 flex flex-col items-center gap-3">
+                        {videoDropdown.map((item) => (
                           <Link
                             key={item.href}
                             href={item.href}

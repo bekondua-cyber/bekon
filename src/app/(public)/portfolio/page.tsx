@@ -23,7 +23,11 @@ async function fetchPortfolio() {
   }
 }
 
-export default async function PortfolioPage() {
+export default async function PortfolioPage({
+  searchParams,
+}: {
+  searchParams: { category?: string };
+}) {
   const items = await fetchPortfolio();
 
   return (
@@ -38,7 +42,7 @@ export default async function PortfolioPage() {
           </p>
         </div>
 
-        <PortfolioGrid items={items} />
+        <PortfolioGrid items={items} initialCategory={searchParams.category} />
       </div>
     </div>
   );

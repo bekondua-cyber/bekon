@@ -24,8 +24,11 @@ interface PortfolioItem {
   isFeatured?: boolean;
 }
 
-export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
-  const [activeFilter, setActiveFilter] = useState("semua");
+const VALID_CATEGORIES = CATEGORIES.map((c) => c.value);
+
+export function PortfolioGrid({ items, initialCategory }: { items: PortfolioItem[]; initialCategory?: string }) {
+  const validInitial = initialCategory && VALID_CATEGORIES.includes(initialCategory) ? initialCategory : "semua";
+  const [activeFilter, setActiveFilter] = useState(validInitial);
 
   const filtered =
     activeFilter === "semua"
