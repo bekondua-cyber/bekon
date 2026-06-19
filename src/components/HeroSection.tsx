@@ -1,43 +1,50 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import Image from "next/image";
-import { ChevronDown } from "lucide-react";
-import { WhatsAppIcon } from "@/components/Icons";
-import Link from "next/link";
-import { siteConfig } from "@/data/site-config";
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import Image from "next/image"
+import { ChevronDown } from "lucide-react"
+import { WhatsAppIcon } from "@/components/Icons"
+import Link from "next/link"
+import { siteConfig } from "@/data/site-config"
+import type { HeroSlide } from "@/types/hero"
 
-const MotionImage = motion.create(Image);
-
-const slides = [
-  {
-    image:
-      "https://images.unsplash.com/photo-1719887805632-de5be825f72b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920",
-    alt: "Rumah modern tropical dengan palm trees - proyek BEKON Serang",
-  },
-  {
-    image:
-      "https://images.unsplash.com/photo-1745761320791-5ae142edee8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920",
-    alt: "Hunian mewah modern dengan kolam renang - karya BEKON",
-  },
-  {
-    image:
-      "https://images.unsplash.com/photo-1762117360944-82ad090fffb5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920",
-    alt: "Rumah 2 lantai minimalis modern dengan carport - BEKON Banten",
-  },
-];
+const MotionImage = motion.create(Image)
 
 export function HeroSection() {
-  const [current, setCurrent] = useState(0);
+  const [slides, setSlides] = useState<HeroSlide[]>([])
+  const [current, setCurrent] = useState(0)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    async function fetchSlides() {
+      try {
+        const res = await fetch("/api/hero-slides")
+        const json = await res.json()
+        setSlides(json.data || [])
+      } catch {
+        setSlides([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSlides()
+  }, [])
+
+  useEffect(() => {
+    if (slides.length <= 1) return
     const timer = setInterval(
       () => setCurrent((p) => (p + 1) % slides.length),
       5000
-    );
-    return () => clearInterval(timer);
-  }, []);
+    )
+    return () => clearInterval(timer)
+  }, [slides.length])
+
+  if (loading) return <HeroSkeleton />
+  if (slides.length === 0) return null
+
+  const activeSlides = slides.filter((s) => s.isActive)
+  const displaySlides = activeSlides.length > 0 ? activeSlides : slides
 
   return (
     <section
@@ -46,13 +53,16 @@ export function HeroSection() {
       className="relative min-h-screen overflow-hidden"
     >
       {/* Background Images */}
-      {slides.map((s, i) => {
-        const isActive = i === current;
+      {displaySlides.map((s, i) => {
+        const isActive = i === current
+        const imageUrl = s.sourceType === "portfolio" && s.portfolio?.coverImage
+          ? s.portfolio.coverImage
+          : s.image
         return (
           <MotionImage
-            key={i}
-            src={s.image}
-            alt={s.alt}
+            key={s.id}
+            src={imageUrl}
+            alt={s.title}
             fill
             sizes="100vw"
             quality={60}
@@ -64,7 +74,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
             {...(isActive ? { priority: true } : { loading: "lazy" })}
           />
-        );
+        )
       })}
 
       {/* Subtle dark overlay */}
@@ -72,24 +82,26 @@ export function HeroSection() {
 
       {/* Content overlay */}
       <div className="absolute inset-0 flex flex-col justify-center px-8 lg:px-24 gap-5">
-        <DesktopContent />
+        <DesktopContent slides={displaySlides} current={current} />
       </div>
 
       {/* Dot Navigator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            aria-label={`Slide ${i + 1}`}
-            className={`rounded-full p-2 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-bekon-gold ${
-              i === current
-                ? "bg-bekon-gold w-6 h-2"
-                : "bg-white/50 w-3 h-3"
-            }`}
-          />
-        ))}
-      </div>
+      {displaySlides.length > 1 && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {displaySlides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              aria-label={`Slide ${i + 1}`}
+              className={`rounded-full p-2 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-bekon-gold ${
+                i === current
+                  ? "bg-bekon-gold w-6 h-2"
+                  : "bg-white/50 w-3 h-3"
+              }`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Scroll indicator */}
       <motion.a
@@ -106,10 +118,13 @@ export function HeroSection() {
         <ChevronDown className="text-bekon-gold" size={18} />
       </motion.a>
     </section>
-  );
+  )
 }
 
-function DesktopContent() {
+function DesktopContent({ slides, current }: { slides: HeroSlide[]; current: number }) {
+  const slide = slides[current]
+  if (!slide) return null
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -128,11 +143,7 @@ function DesktopContent() {
           className="font-display text-5xl lg:text-[64px] xl:text-[72px] font-light leading-[1.05] text-white"
           style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
         >
-          Wujudkan
-          <br />
-          <em className="not-italic text-bekon-gold">Hunian</em>
-          <br />
-          Impian Anda
+          {slide.title}
         </h1>
       </div>
 
@@ -140,28 +151,30 @@ function DesktopContent() {
       <div className="w-16 h-px bg-bekon-gold self-start ml-1" />
 
       {/* Description - text shadow */}
-      <div className="self-start max-w-md">
-        <p
-          className="text-white text-[16px] leading-relaxed"
-          style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
-        >
-          BEKON adalah mitra jangka panjang yang mewujudkan investasi hunian
-          berkualitas dengan transparansi, estetika, dan ketepatan. Berpengalaman
-          sejak 2009.
-        </p>
-      </div>
+      {slide.subtitle && (
+        <div className="self-start max-w-md">
+          <p
+            className="text-white text-[16px] leading-relaxed"
+            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
+          >
+            {slide.subtitle}
+          </p>
+        </div>
+      )}
 
-      {/* CTA buttons - no blur */}
+      {/* CTA buttons */}
       <div className="flex flex-col sm:flex-row gap-4 self-start">
-        <a
-          href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis%20untuk%20proyek%20saya`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
-        >
-          <WhatsAppIcon className="w-[18px] h-[18px]" aria-hidden="true" />
-          Konsultasi Gratis
-        </a>
+        {slide.ctaLink && (
+          <a
+            href={slide.ctaLink.startsWith("http") ? slide.ctaLink : `https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
+          >
+            <WhatsAppIcon className="w-[18px] h-[18px]" aria-hidden="true" />
+            {slide.ctaText || "Konsultasi Gratis"}
+          </a>
+        )}
         <Link
           href="/portfolio"
           className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border-2 border-bekon-gold text-bekon-gold rounded-full transition-all duration-200 hover:bg-bekon-gold hover:text-white text-sm font-medium"
@@ -170,5 +183,32 @@ function DesktopContent() {
         </Link>
       </div>
     </motion.div>
-  );
+  )
+}
+
+function HeroSkeleton() {
+  return (
+    <section className="relative min-h-screen bg-gray-900 overflow-hidden" aria-label="Loading">
+      <div className="absolute inset-0 bg-gray-800 animate-pulse" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/25 to-black/10" />
+      <div className="absolute inset-0 flex flex-col justify-center px-8 lg:px-24 gap-5">
+        <div className="self-start">
+          <div className="h-3 w-64 bg-gray-700 rounded animate-pulse" />
+        </div>
+        <div className="self-start max-w-3xl space-y-3">
+          <div className="h-16 w-96 bg-gray-700 rounded animate-pulse" />
+          <div className="h-16 w-80 bg-gray-700 rounded animate-pulse" />
+        </div>
+        <div className="w-16 h-px bg-gray-700 self-start ml-1 animate-pulse" />
+        <div className="self-start max-w-md">
+          <div className="h-4 w-full bg-gray-700 rounded animate-pulse" />
+          <div className="h-4 w-3/4 bg-gray-700 rounded animate-pulse mt-2" />
+        </div>
+        <div className="flex gap-4 self-start">
+          <div className="h-12 w-44 bg-gray-700 rounded-full animate-pulse" />
+          <div className="h-12 w-44 bg-gray-700 rounded-full animate-pulse" />
+        </div>
+      </div>
+    </section>
+  )
 }

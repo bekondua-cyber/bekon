@@ -37,6 +37,8 @@ model Portfolio {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  heroSlides   HeroSlide[]
+
   @@index([isPublished, isFeatured])
   @@index([isPublished, category])
   @@map("portfolio")
@@ -142,4 +144,25 @@ model Setting {
   updatedAt DateTime @updatedAt
 
   @@map("setting")
+}
+
+model HeroSlide {
+  id          String   @id @default(cuid())
+  image       String
+  title       String
+  subtitle    String?
+  ctaText     String?
+  ctaLink     String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  sourceType  String   @default("custom")
+  portfolioId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  portfolio   Portfolio? @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([order])
+  @@index([isActive])
+  @@map("hero_slide")
 }
