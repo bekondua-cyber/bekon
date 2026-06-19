@@ -80,12 +80,13 @@ export function HeroSection() {
             sizes="100vw"
             quality={60}
             className="object-cover"
+            priority={i === 0}
+            {...(i !== 0 ? { loading: "lazy" } : {})}
             animate={{
               opacity: isActive ? 1 : 0,
               scale: isActive ? 1 : 1.05,
             }}
             transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-            {...(isActive ? { priority: true } : { loading: "lazy" })}
           />
         )
       })}
