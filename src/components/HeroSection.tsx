@@ -32,10 +32,14 @@ export function HeroSection() {
   useEffect(() => {
     async function fetchSlides() {
       try {
-        const res = await fetch("/api/hero-slides")
+        const res = await fetch("/api/hero-slides", { cache: "no-store" })
         const json = await res.json()
+        console.log("🎨 Hero slides fetched:", json.data)
+        console.log("🎨 Total slides:", json.data?.length)
+        console.log("🎨 First slide image:", json.data?.[0]?.image)
         setSlides(json.data || [])
-      } catch {
+      } catch (error) {
+        console.error("❌ Error fetching slides:", error)
         setSlides([])
       } finally {
         setLoading(false)
