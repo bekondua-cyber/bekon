@@ -54,7 +54,7 @@ export function Navbar() {
           <div className="flex items-center justify-between h-16 md:h-20">
             <Link
               href="/"
-              aria-label="BEKON Bangun Eka Konstruksi - Beranda"
+              aria-label="BEKON - Bangun Eka Konstruksi"
               className="flex items-center gap-2 md:gap-3"
             >
               <div className="flex-shrink-0">

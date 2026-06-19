@@ -55,6 +55,7 @@ export function HeroSection() {
             alt={s.alt}
             fill
             sizes="100vw"
+            quality={60}
             className="object-cover"
             animate={{
               opacity: isActive ? 1 : 0,
@@ -156,7 +157,7 @@ function DesktopContent() {
           href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis%20untuk%20proyek%20saya`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-white rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
+          className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
         >
           <WhatsAppIcon className="w-[18px] h-[18px]" aria-hidden="true" />
           Konsultasi Gratis
