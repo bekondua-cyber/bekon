@@ -36,7 +36,7 @@ const TestimonialCard = ({ item }: { item: Testimonial }) => {
             {item.projectType}{item.projectType && item.location ? " • " : ""}{item.location}
           </p>
         </div>
-        <span className="ml-auto text-bekon-gold text-xs border border-[#B8963E] rounded-full px-2 py-0.5">★ Review</span>
+        <span className="ml-auto text-bekon-gold text-xs border border-bekon-gold rounded-full px-2 py-0.5">★ Review</span>
       </div>
     </div>
   );
@@ -117,7 +117,7 @@ export default function TestimoniColumns({ items }: { items: Testimonial[] }) {
           <h2 className="font-[Cormorant_Garamond] text-[42px] md:text-[56px] font-light text-bekon-near-black mt-3 leading-tight">
             Apa Kata Klien Kami
           </h2>
-          <div className="w-16 h-px bg-[#B8963E] mx-auto mt-4"></div>
+          <div className="w-16 h-px bg-bekon-gold mx-auto mt-4"></div>
         </div>
 
         {/* Columns */}

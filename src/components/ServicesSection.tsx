@@ -121,7 +121,7 @@ function ServiceCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className={`bg-[#1A1A1A] border border-white/10 rounded-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(184,150,62,0.15)] hover:border-bekon-gold group ${
+      className={`bg-bekon-near-black border border-white/10 rounded-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(184,150,62,0.15)] hover:border-bekon-gold group ${
         centered ? "md:max-w-sm" : ""
       }`}
     >

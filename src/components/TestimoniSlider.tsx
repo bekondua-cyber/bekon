@@ -178,20 +178,20 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
   return (
     <section
       aria-label="Testimoni klien BEKON"
-      className="bg-[#1A1A1A] py-24 px-4"
+      className="bg-bekon-near-black py-24 px-4"
     >
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-16">
-          <span className="inline-block text-[12px] font-medium tracking-widest text-[#B8963E] uppercase mb-6">
+          <span className="inline-block text-[12px] font-medium tracking-widest text-bekon-gold uppercase mb-6">
             Testimoni Klien
           </span>
-          <h2 className="font-[Cormorant_Garamond] text-3xl md:text-6xl font-light text-[#F8F5F0] mb-6">
+          <h2 className="font-[Cormorant_Garamond] text-3xl md:text-6xl font-light text-bekon-off-white mb-6">
             Apa Kata Klien Kami
           </h2>
           {/* Decorative Line */}
           <div className="flex justify-center">
-            <div className="w-16 h-px bg-[#B8963E]"></div>
+            <div className="w-16 h-px bg-bekon-gold"></div>
           </div>
         </div>
 
@@ -241,7 +241,7 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
           <button
             onClick={handlePrev}
             aria-label="Testimoni sebelumnya"
-            className="absolute left-0 top-1/2 -translate-y-1/2 text-[#F8F5F0] hover:text-[#B8963E] transition-colors duration-300 -ml-12 lg:-ml-16"
+            className="absolute left-0 top-1/2 -translate-y-1/2 text-bekon-off-white hover:text-bekon-gold transition-colors duration-300 -ml-12 lg:-ml-16"
           >
             <ChevronLeft size={32} />
           </button>
@@ -249,7 +249,7 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
           <button
             onClick={handleNext}
             aria-label="Testimoni berikutnya"
-            className="absolute right-0 top-1/2 -translate-y-1/2 text-[#F8F5F0] hover:text-[#B8963E] transition-colors duration-300 -mr-12 lg:-mr-16"
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-bekon-off-white hover:text-bekon-gold transition-colors duration-300 -mr-12 lg:-mr-16"
           >
             <ChevronRight size={32} />
           </button>
@@ -262,9 +262,9 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
               key={index}
               onClick={() => setCurrentIndex(index)}
               aria-label={`Slide ${index + 1}`}
-              className={`transition-all duration-300 rounded-full p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B8963E] ${
+              className={`transition-all duration-300 rounded-full p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-bekon-gold ${
                 index === currentIndex
-                  ? "bg-[#B8963E] w-6 h-2"
+                  ? "bg-bekon-gold w-6 h-2"
                   : "bg-white/30 w-3 h-3"
               }`}
             />
@@ -288,19 +288,19 @@ function TestimonialCard({
 }: TestimonialCardProps) {
   return (
     <div
-      className={`bg-[#F8F5F0] rounded-2xl relative transition-all duration-500 ease-in-out ${
+      className={`bg-bekon-off-white rounded-2xl relative transition-all duration-500 ease-in-out ${
         isMain ? "px-12 py-10 shadow-2xl" : "p-8 shadow-lg"
       }`}
     >
       {/* Quote Mark Decoration */}
-      <div className="absolute top-4 left-6 text-[120px] leading-none font-light text-[#B8963E] opacity-20">
+      <div className="absolute top-4 left-6 text-[120px] leading-none font-light text-bekon-gold opacity-20">
         &ldquo;
       </div>
 
       {/* Stars Rating */}
       <div className="flex gap-1 mb-6 relative z-10">
         {Array.from({ length: testimonial.rating }).map((_, i) => (
-          <span key={i} className="text-[#B8963E] text-xl">
+          <span key={i} className="text-bekon-gold text-xl">
             ★
           </span>
         ))}
@@ -308,7 +308,7 @@ function TestimonialCard({
 
       {/* Review Text */}
       <p
-        className={`font-[Cormorant_Garamond] italic text-[#1A1A1A] leading-relaxed mb-6 relative z-10 ${
+        className={`font-[Cormorant_Garamond] italic text-bekon-near-black leading-relaxed mb-6 relative z-10 ${
           isMain ? "text-2xl" : "text-lg"
         }`}
       >
@@ -316,7 +316,7 @@ function TestimonialCard({
       </p>
 
       {/* Divider Line */}
-      <div className="w-12 h-px bg-[#B8963E] mb-6"></div>
+      <div className="w-12 h-px bg-bekon-gold mb-6"></div>
 
       {/* Client Info */}
       <div className="flex items-center gap-4 relative z-10">
@@ -331,10 +331,10 @@ function TestimonialCard({
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[#1A1A1A] text-base">
+          <p className="font-semibold text-bekon-near-black text-base">
             {testimonial.clientName}
           </p>
-          <p className="text-[#6B6560] text-sm">
+          <p className="text-bekon-text-muted text-sm">
             {testimonial.projectType}
             {testimonial.projectType && testimonial.location ? " • " : ""}
             {testimonial.location}
@@ -342,9 +342,9 @@ function TestimonialCard({
         </div>
 
         {/* Google Review Badge */}
-        <div className="flex-shrink-0 flex items-center gap-1 bg-[#F1F3F4] border border-[#E0D9CE] px-3 py-1.5 rounded-full whitespace-nowrap">
+        <div className="flex-shrink-0 flex items-center gap-1 bg-gray-100 border border-bekon-border px-3 py-1.5 rounded-full whitespace-nowrap">
           <span className="text-xs font-medium">★</span>
-          <span className="text-xs font-medium text-[#1A1A1A]">Review</span>
+          <span className="text-xs font-medium text-bekon-near-black">Review</span>
         </div>
       </div>
     </div>
