@@ -116,14 +116,10 @@ function DesktopContent() {
       transition={{ duration: 0.9, ease: [0, 0, 0.2, 1], delay: 0.2 }}
       className="flex flex-col gap-5 pb-16 sm:pb-0"
     >
-      {/* Section label - blur pill */}
-      <div className="inline-block self-start">
-        <div className="bg-black/40 backdrop-blur-md rounded-full px-5 py-2">
-          <span className="text-bekon-gold text-xs font-semibold uppercase tracking-[0.15em]">
-            Jasa Konstruksi & Desain &mdash; Serang, Banten
-          </span>
-        </div>
-      </div>
+      {/* Section label */}
+      <span className="text-bekon-gold text-xs font-semibold uppercase tracking-[0.15em]">
+        Jasa Konstruksi & Desain &mdash; Serang, Banten
+      </span>
 
       {/* Headline - blur block */}
       <div className="self-start max-w-3xl">
