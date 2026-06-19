@@ -85,15 +85,15 @@ export default function AdminSettingsPage() {
         {activeTab === "Perusahaan" && (
           <>
             <h2 className="font-semibold text-gray-900">Informasi Perusahaan</h2>
-            <Field label="Nama Perusahaan" value={settings.nama_perusahaan || ""} onChange={(v) => updateSetting("nama_perusahaan", v)} />
-            <Field label="Alamat" value={settings.alamat || ""} onChange={(v) => updateSetting("alamat", v)} />
-            <Field label="Telepon" value={settings.telepon || ""} onChange={(v) => updateSetting("telepon", v)} />
-            <Field label="Email" value={settings.email || ""} onChange={(v) => updateSetting("email", v)} />
-            <Field label="Tahun Berdiri" value={settings.tahun_berdiri || ""} onChange={(v) => updateSetting("tahun_berdiri", v)} />
+            <Field label="Nama Perusahaan" value={getSetting(settings, "nama_perusahaan")} onChange={(v) => updateSetting("nama_perusahaan", v)} />
+            <Field label="Alamat" value={getSetting(settings, "alamat")} onChange={(v) => updateSetting("alamat", v)} />
+            <Field label="Telepon" value={getSetting(settings, "telepon")} onChange={(v) => updateSetting("telepon", v)} />
+            <Field label="Email" value={getSetting(settings, "email")} onChange={(v) => updateSetting("email", v)} />
+            <Field label="Tahun Berdiri" value={getSetting(settings, "tahun_berdiri")} onChange={(v) => updateSetting("tahun_berdiri", v)} />
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Deskripsi Perusahaan</label>
               <textarea
-                value={settings.deskripsi || ""}
+                value={getSetting(settings, "deskripsi")}
                 onChange={(e) => updateSetting("deskripsi", e.target.value)}
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none resize-y"
@@ -105,30 +105,30 @@ export default function AdminSettingsPage() {
         {activeTab === "WhatsApp & Kontak" && (
           <>
             <h2 className="font-semibold text-gray-900">WhatsApp & Kontak</h2>
-            <Field label="WA Admin 1 (nomor)" value={settings.wa_admin_1 || ""} onChange={(v) => updateSetting("wa_admin_1", v)} />
-            <Field label="WA Admin 1 (nama)" value={settings.wa_admin_1_name || ""} onChange={(v) => updateSetting("wa_admin_1_name", v)} />
-            <Field label="WA Admin 2 (nomor)" value={settings.wa_admin_2 || ""} onChange={(v) => updateSetting("wa_admin_2", v)} />
-            <Field label="WA Admin 2 (nama)" value={settings.wa_admin_2_name || ""} onChange={(v) => updateSetting("wa_admin_2_name", v)} />
-            <Field label="Instagram" value={settings.instagram || ""} onChange={(v) => updateSetting("instagram", v)} />
-            <Field label="YouTube" value={settings.youtube || ""} onChange={(v) => updateSetting("youtube", v)} />
-            <Field label="TikTok" value={settings.tiktok || ""} onChange={(v) => updateSetting("tiktok", v)} />
+            <Field label="WA Admin 1 (nomor)" value={getSetting(settings, "wa_admin_1")} onChange={(v) => updateSetting("wa_admin_1", v)} />
+            <Field label="WA Admin 1 (nama)" value={getSetting(settings, "wa_admin_1_name")} onChange={(v) => updateSetting("wa_admin_1_name", v)} />
+            <Field label="WA Admin 2 (nomor)" value={getSetting(settings, "wa_admin_2")} onChange={(v) => updateSetting("wa_admin_2", v)} />
+            <Field label="WA Admin 2 (nama)" value={getSetting(settings, "wa_admin_2_name")} onChange={(v) => updateSetting("wa_admin_2_name", v)} />
+            <Field label="Instagram" value={getSetting(settings, "instagram")} onChange={(v) => updateSetting("instagram", v)} />
+            <Field label="YouTube" value={getSetting(settings, "youtube")} onChange={(v) => updateSetting("youtube", v)} />
+            <Field label="TikTok" value={getSetting(settings, "tiktok")} onChange={(v) => updateSetting("tiktok", v)} />
           </>
         )}
 
         {activeTab === "SEO Global" && (
           <>
             <h2 className="font-semibold text-gray-900">SEO Global</h2>
-            <Field label="Default Meta Title" value={settings.meta_title_default || ""} onChange={(v) => updateSetting("meta_title_default", v)} />
+            <Field label="Default Meta Title" value={getSetting(settings, "meta_title_default")} onChange={(v) => updateSetting("meta_title_default", v)} />
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Default Meta Description</label>
               <textarea
-                value={settings.meta_desc_default || ""}
+                value={getSetting(settings, "meta_desc_default")}
                 onChange={(e) => updateSetting("meta_desc_default", e.target.value)}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none resize-y"
               />
             </div>
-            <Field label="Google Analytics ID" value={settings.google_analytics_id || ""} onChange={(v) => updateSetting("google_analytics_id", v)} />
+            <Field label="Google Analytics ID" value={getSetting(settings, "google_analytics_id")} onChange={(v) => updateSetting("google_analytics_id", v)} />
           </>
         )}
 
@@ -144,6 +144,10 @@ export default function AdminSettingsPage() {
       </div>
     </div>
   )
+}
+
+function getSetting(settings: Record<string, string>, key: string, defaultValue: string = "") {
+  return settings[key] || defaultValue
 }
 
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {

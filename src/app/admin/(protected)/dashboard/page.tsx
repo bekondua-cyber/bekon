@@ -52,8 +52,8 @@ export default function AdminDashboardPage() {
         totalVideos: videos.data?.length || 0,
         recentLeads,
       })
-    } catch {
-      toast.error("Gagal memuat data dashboard")
+    } catch (error) {
+      toast.error(`Gagal memuat data dashboard: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setLoading(false)
     }
