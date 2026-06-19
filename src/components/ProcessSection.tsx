@@ -51,10 +51,10 @@ export function ProcessSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-bekon-gold uppercase text-xs font-semibold tracking-[0.15em]">
+          <span className="section-label">
             Proses Kerja
           </span>
-          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-white mt-3">
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-white mt-5">
             Perjalanan Membangun
             <br />
             Bersama BEKON

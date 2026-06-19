@@ -183,7 +183,7 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-16">
-          <span className="inline-block text-[12px] font-medium tracking-widest text-bekon-gold uppercase mb-6">
+          <span className="section-label inline-block mb-6">
             Testimoni Klien
           </span>
           <h2 className="font-[Cormorant_Garamond] text-3xl md:text-6xl font-light text-bekon-off-white mb-6">

@@ -69,7 +69,7 @@ export function ServicesSection() {
           className="text-center mb-14"
         >
           <span className="section-label">Layanan Kami</span>
-          <h2 className="font-display text-[clamp(32px,4vw,42px)] text-bekon-near-black mt-3">
+          <h2 className="font-display text-[clamp(32px,4vw,42px)] text-bekon-near-black mt-5">
             Solusi Lengkap Untuk
             <br />
             Hunian & Bangunan Anda

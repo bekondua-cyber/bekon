@@ -49,7 +49,7 @@ export function WhyBekonSection() {
             transition={{ duration: 0.7, ease: [0, 0, 0.2, 1], delay: 0.2 }}
           >
             <span className="section-label">Keunggulan</span>
-            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3 mb-6">
+            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-5 mb-6">
               Mengapa Memilih BEKON?
             </h2>
 

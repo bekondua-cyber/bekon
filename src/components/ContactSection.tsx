@@ -60,7 +60,7 @@ export function ContactSection() {
             transition={{ duration: 0.6 }}
           >
             <span className="section-label">Kontak</span>
-            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3 mb-8">
+            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-5 mb-8">
               Hubungi Kami
             </h2>
 

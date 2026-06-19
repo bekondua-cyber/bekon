@@ -15,7 +15,7 @@ export default function LayananPage() {
       <div className="max-w-container mx-auto px-6 lg:px-20 pt-32 pb-20">
         <div className="text-center mb-14">
           <span className="section-label">Layanan Kami</span>
-          <h1 className="font-display text-[clamp(32px,4vw,48px)] text-bekon-near-black mt-3">
+          <h1 className="font-display text-[clamp(32px,4vw,48px)] text-bekon-near-black mt-5">
             Solusi Lengkap Untuk
             <br />
             Hunian & Bangunan Anda

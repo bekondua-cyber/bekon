@@ -17,7 +17,7 @@ export default function TentangKamiPage() {
         {/* Hero */}
         <div className="text-center mb-16" id="perusahaan">
           <span className="section-label">Tentang Kami</span>
-          <h1 className="font-display text-[clamp(32px,4vw,48px)] text-bekon-near-black mt-3">
+          <h1 className="font-display text-[clamp(32px,4vw,48px)] text-bekon-near-black mt-5">
             Mitra Terpercaya Untuk
             <br />
             Hunian & Bangunan Berkualitas

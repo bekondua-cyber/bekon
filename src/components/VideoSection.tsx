@@ -31,7 +31,7 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
       >
         <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
           <span className="section-label">Video</span>
-          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3 mb-6">
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-5 mb-6">
             Lihat Hasil Nyata Proyek Kami
           </h2>
           <p className="text-bekon-text-muted text-sm">
@@ -59,7 +59,7 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
           className="text-center mb-12"
         >
           <span className="section-label">Video</span>
-          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3">
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-5">
             Lihat Hasil Nyata Proyek Kami
           </h2>
         </motion.div>

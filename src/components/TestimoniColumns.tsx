@@ -113,7 +113,7 @@ export default function TestimoniColumns({ items }: { items: Testimonial[] }) {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="text-bekon-gold text-xs uppercase tracking-widest font-medium">Testimoni Klien</span>
+          <span className="section-label">Testimoni Klien</span>
           <h2 className="font-[Cormorant_Garamond] text-[42px] md:text-[56px] font-light text-bekon-near-black mt-3 leading-tight">
             Apa Kata Klien Kami
           </h2>

@@ -25,7 +25,7 @@
 
 @layer components {
   .section-label {
-    @apply font-body text-xs font-semibold uppercase tracking-[0.15em] text-bekon-gold;
+    @apply font-body text-lg md:text-[27px] font-semibold uppercase tracking-[0.1em] text-bekon-gold;
   }
 
   .section-title {

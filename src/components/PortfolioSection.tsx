@@ -29,7 +29,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
       >
         <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
           <span className="section-label text-bekon-gold-light">Portfolio</span>
-          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-off-white mt-3 mb-6">
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-off-white mt-5 mb-6">
             Karya Terbaik Kami
           </h2>
           <p className="text-bekon-off-white/60 text-sm">
@@ -56,7 +56,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
         >
           <div>
             <span className="section-label text-bekon-gold-light">Portfolio</span>
-            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-off-white mt-3">
+            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-off-white mt-5">
               Karya Terbaik Kami
             </h2>
           </div>

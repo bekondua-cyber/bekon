@@ -39,7 +39,7 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
       >
         <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
           <span className="section-label text-[#7A6228]">Blog</span>
-          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3 mb-6">
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-5 mb-6">
             Tips & Inspirasi Rumah
           </h2>
           <p className="text-bekon-text-muted text-sm">
@@ -66,7 +66,7 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
         >
           <div>
             <span className="section-label">Blog</span>
-            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-3">
+            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-5">
               Tips & Inspirasi Rumah
             </h2>
           </div>
