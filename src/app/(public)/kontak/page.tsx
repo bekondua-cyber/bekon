@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Kontak",
   description:
     "Hubungi BEKON untuk konsultasi gratis. Tersedia WhatsApp, telepon, email, dan form konsultasi online.",
+  alternates: { canonical: "/kontak" },
 };
 
 export default function KontakPage() {

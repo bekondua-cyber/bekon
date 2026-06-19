@@ -3,6 +3,9 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { toast } from "sonner"
+import { Edit, Trash2 } from "lucide-react"
+import { AdminSearch } from "@/components/admin/AdminSearch"
+import { TableSkeleton } from "@/components/admin/AdminSkeleton"
 
 interface ArticleItem {
   id: string
@@ -17,6 +20,7 @@ interface ArticleItem {
 export default function AdminArtikelPage() {
   const [items, setItems] = useState<ArticleItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
   const router = useRouter()
 
   useEffect(() => {
@@ -72,10 +76,17 @@ export default function AdminArtikelPage() {
     }
   }
 
+  const q = search.toLowerCase()
+  const filtered = items.filter((item) => item.title.toLowerCase().includes(q))
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Memuat...</p>
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
+          <div className="h-9 w-36 bg-gray-200 rounded-lg animate-pulse" />
+        </div>
+        <TableSkeleton rows={5} cols={5} />
       </div>
     )
   }
@@ -84,12 +95,15 @@ export default function AdminArtikelPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Artikel</h1>
-        <Link
-          href="/admin/artikel/tambah"
-          className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
-        >
-          + Tambah Artikel
-        </Link>
+        <div className="flex items-center gap-3">
+          <AdminSearch value={search} onChange={setSearch} placeholder="Cari artikel..." />
+          <Link
+            href="/admin/artikel/tambah"
+            className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
+          >
+            + Tambah Artikel
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -104,14 +118,14 @@ export default function AdminArtikelPage() {
             </tr>
           </thead>
           <tbody>
-            {items.length === 0 ? (
+            {filtered.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-8 text-gray-500">
-                  Belum ada artikel
+                  {search ? "Tidak ada artikel yang cocok" : "Belum ada artikel"}
                 </td>
               </tr>
             ) : (
-              items.map((item) => (
+              filtered.map((item) => (
                 <tr key={item.id} className="border-b border-gray-100">
                   <td className="px-4 py-3 font-medium text-gray-900">{item.title}</td>
                   <td className="px-4 py-3 text-gray-600 capitalize">{item.category || "-"}</td>
@@ -139,14 +153,14 @@ export default function AdminArtikelPage() {
                         className="text-gray-400 hover:text-bekon-gold transition-colors"
                         title="Edit"
                       >
-                        ✏️
+                        <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                         title="Hapus"
                       >
-                        🗑️
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>

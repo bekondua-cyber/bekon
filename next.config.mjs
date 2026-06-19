@@ -20,11 +20,11 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: '/:path*',
         headers: [{ key: 'X-Robots-Tag', value: 'index, follow' }],
       },
       {
-        source: '/admin/(.*)',
+        source: '/admin/:path*',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
     ];
@@ -35,7 +35,7 @@ const nextConfig = {
   },
   webpack: (config) => {
     config.watchOptions = {
-      ignored: ['**/node_modules', '**/.git', 'C:/Users/**'],
+      ignored: ['**/node_modules', '**/.git', '**/Application Data/**', 'C:\\Users\\PC\\Cookies', 'C:/Users/**'],
     }
     return config
   },

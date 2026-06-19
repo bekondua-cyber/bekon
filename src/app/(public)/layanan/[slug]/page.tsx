@@ -19,6 +19,7 @@ export function generateMetadata({ params }: Props): Metadata {
   return {
     title: service.title,
     description: service.description,
+    alternates: { canonical: `/layanan/${params.slug}` },
   };
 }
 

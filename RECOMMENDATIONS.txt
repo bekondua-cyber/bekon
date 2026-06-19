@@ -1,0 +1,316 @@
+================================================================================
+REKOMENDASI PERBAIKAN - WEBSITE BEKON
+Tanggal: 19 Juni 2026
+================================================================================
+
+================================================================================
+FASE 1: CRITICAL FIXES (Selesaikan dalam 1-3 hari)
+================================================================================
+
+1.1 FIX BROKEN IMAGE COMPONENT
+------------------------------
+File: src/components/PortfolioSection.tsx
+Tindakan: Tambah conditional rendering untuk null coverImage
+Prioritas: Tertinggi
+Detail: Saat coverImage null/empty, jangan render <Image> component.
+  Tampilkan placeholder gradient/dark background dengan text "No Image".
+  Juga fix thumbnail images di grid bawah yang punya masalah sama.
+
+1.2 ADD PHONE VALIDATION
+------------------------------
+File: src/components/ContactSection.tsx
+Tindakan: Validasi nomor telepon Indonesia sebelum submit
+Prioritas: Tertinggi
+Detail: Tambah regex validasi nomor HP Indonesia.
+  Format: +628xxx, 628xxx, atau 08xxx (min 10 digit, max 15 digit).
+  Tampilkan error message jika format salah.
+  Juga tambah validasi di form admin leads jika ada.
+
+1.3 INPUT VALIDATION FOR API
+------------------------------
+File: src/app/api/leads/route.ts
+Tindakan: Implementasi zod validation schema
+Prioritas: Tertinggi
+Detail: Install zod (npm install zod).
+  Buat validation schema untuk setiap field:
+  - name: string, min 2, max 100
+  - phone: string, regex for Indonesian phone
+  - service: string, max 100, optional
+  - message: string, max 1000, optional
+  - budget: string, max 100, optional
+  - location: string, max 200, optional
+
+1.4 ADD RATE LIMITING
+------------------------------
+File: middleware.ts (baru) atau next.config.mjs
+Tindakan: Implementasi rate limiting
+Prioritas: Tertinggi
+Detail:
+  Opsi 1: Vercel Edge Rate Limiting (jika deploy di Vercel)
+  Opsi 2: next-rate-limit package
+  Opsi 3: Custom middleware with IP tracking
+  Minimum: 10 requests/minute untuk public API, 100/minute untuk page views
+
+1.5 FIX ADMIN MIDDLEWARE
+------------------------------
+File: middleware.ts
+Tindakan: Perbaiki matcher untuk cover semua /admin/ routes
+Prioritas: Tertinggi
+Detail: Ubah matcher dari:
+  export const config = { matcher: ["/admin/(protected)/:path*", "/admin/dashboard/:path*"] }
+  Menjadi:
+  export const config = { matcher: ["/admin/:path*"] }
+
+================================================================================
+FASE 2: HIGH PRIORITY FIXES (Selesaikan dalam 1 minggu)
+================================================================================
+
+2.1 CONSOLIDATE SVG ICONS
+------------------------------
+Tindakan: Buat shared Icons component
+Detail:
+  1. Buat src/components/Icons.tsx
+  2. Pindahkan WhatsApp, Instagram, YouTube, TikTok SVG ke sini
+  3. Export sebagai React components
+  4. Import dan gunakan di semua komponen yang membutuhkan
+  5. Hapus inline SVG duplikasi
+
+2.2 REPLACE EMOJI WITH ICONS IN ADMIN
+------------------------------
+Tindakan: Ganti emoji dengan lucide-react icons
+Detail:
+  ✏️ -> <Pencil size={16} />
+  🗑️ -> <Trash2 size={16} />
+  👁️ -> <Eye size={16} />
+  👤 -> <User size={16} />
+  📞 -> <Phone size={16} />
+  Semua icon ada di package lucide-react yang sudah terinstall.
+
+2.3 REPLACE HARDCODED COLORS
+------------------------------
+Tindakan: Ganti hardcoded hex colors dengan Tailwind tokens
+Detail:
+  PortfolioSection.tsx:
+    #CBA84A -> text-bekon-gold
+    #F8F5F0 -> text-bekon-off-white
+    #B8963E -> text-bekon-gold
+    #7A6228 -> text-bekon-gold-dark
+  TestimoniColumns.tsx:
+    #E0D9CE -> border-bekon-border
+    #F8F5F0 -> bg-bekon-off-white
+    #B8963E -> text-bekon-gold
+    #1A1A1A -> bg-bekon-near-black atau text-bekon-near-black
+
+2.4 ADD NEXT/IMAGE FOR UPLOADED IMAGES
+------------------------------
+Tindakan: Ganti <img> dengan <Image> dari next/image
+Detail:
+  Admin pages menggunakan Cloudinary untuk upload.
+  Tambah domain Cloudinary ke remotePatterns di next.config.mjs.
+  Gunakan Image component dengan proper sizes attribute.
+  Tambah lazy loading default.
+
+2.5 OPTIMIZE DYNAMIC IMPORTS
+------------------------------
+Tindakan: Hapus ssr:false dari content components
+Detail:
+  Di src/app/page.tsx:
+  - HeroSection: Bisa tetap dynamic (framer-motion), tapi tanpa ssr:false
+  - ServicesSection: Hapus dynamic import, import langsung
+  - PortfolioSection: Hapus ssr:false
+  - WhyBekonSection: Hapus dynamic import
+  - ProcessSection: Hapus dynamic import
+  - TestimoniColumns: Hapus ssr:false
+  - VideoSection: Hapus ssr:false
+  - BlogSection: Hapus dynamic import
+  - CTASection: Hapus dynamic import
+  - ContactSection: Hapus ssr:false
+  - FloatingWhatsApp: SATU-SATUNYA yang perlu ssr:false
+
+2.6 ADD ERROR BOUNDARY
+------------------------------
+Tindakan: Tambah React Error Boundary
+Detail:
+  1. Buat ErrorBoundary component
+  2. Wrap admin page content di layout.tsx
+  3. Tampilkan fallback UI yang informatif
+
+2.7 REMOVE MOCK AUTH DATA
+------------------------------
+Tindakan: Hapus hardcoded mock user
+Detail:
+  Di src/lib/auth.ts:
+  - Hapus getCurrentUser() function
+  - Hapus updateCredentials() function
+  - Simplify logout() 
+  - Function isAuthenticated() sudah cukup
+
+================================================================================
+FASE 3: MEDIUM PRIORITY (Selesaikan dalam 2-3 minggu)
+================================================================================
+
+3.1 SKIP NAVIGATION LINK
+------------------------------
+Tindakan: Tambah skip-to-content link
+Detail:
+  Di layout.tsx, tambahkan sebagai first focusable element:
+  <a href="#main-content" className="sr-only focus:not-sr-only ...">
+    Skip to content
+  </a>
+  Tambah id="main-content" pada <main> tag di page.tsx
+
+3.2 REDUCED MOTION SUPPORT
+------------------------------
+Tindakan: Respect prefers-reduced-motion
+Detail:
+  Di TestimoniColumns.tsx:
+  - Cek window.matchMedia('(prefers-reduced-motion: reduce)')
+  - Jika true, atur animation duration ke 0 atau disable animation
+  Di TestimoniSlider.tsx:
+  - Nonaktifkan autoplay jika reduced motion
+  Di SocialProofBar.tsx:
+  - Bypass animated counter jika reduced motion
+
+3.3 ADD LOADING SKELETONS
+------------------------------
+Tindakan: Ganti "Memuat..." dengan skeleton components
+Detail:
+  Buat reusable Skeleton component.
+  Gunakan di semua halaman admin yang loading.
+  Tambah shimmer animation dengan Tailwind.
+
+3.4 ARTICLE RICH TEXT EDITOR
+------------------------------
+Tindakan: Integrasi rich text editor
+Detail:
+  Pilihan: TipTap (recommended), React Quill, or Draft.js
+  Simpan sebagai HTML.
+  Tampilkan dengan dangerouslySetInnerHTML di public page.
+  Tambah sanitasi HTML untuk XSS prevention (DOMPurify).
+
+3.5 SEARCH & FILTER IN ADMIN
+------------------------------
+Tindakan: Add search functionality
+Detail:
+  Portfolio list: search by title, filter by category
+  Artikel list: search by title, filter by category/status
+  Leads list: search by name/phone, filter by status/date range
+
+3.6 BULK ACTIONS IN ADMIN
+------------------------------
+Tindakan: Add batch operations
+Detail:
+  Checkbox selection for each row.
+  "Select All" checkbox in header.
+  Bulk delete action with confirmation.
+  Bulk publish/unpublish.
+
+3.7 LOADING STATE ON FORM SUBMIT
+------------------------------
+Tindakan: Prevent double submit in all forms
+Detail:
+  Contact form: disable button after submit
+  All admin forms: already have saving state, verify consistency
+  Add loading spinner on submit buttons
+
+================================================================================
+FASE 4: LONG TERM IMPROVEMENTS (1-2 bulan)
+================================================================================
+
+4.1 JSON-LD STRUCTURED DATA
+-------------------------------
+Tindakan: Tambah schema.org markup
+Detail:
+  LocalBusiness schema untuk BEKON.
+  Include: name, address, telephone, openingHours, areaServed.
+  Review/aggregateRating schema untuk testimonial.
+  Article schema untuk blog posts.
+  Product/Service schema untuk layanan.
+
+4.2 CANONICAL URLS
+-------------------------------
+Tindakan: Tambah rel="canonical" tags
+Detail:
+  Set canonical URL di setiap halaman.
+  Pastikan tidak ada duplikat konten.
+  Gunakan metadataBase dari layout.tsx.
+
+4.3 DARK MODE SUPPORT
+-------------------------------
+Tindakan: Implement dark mode
+Detail:
+  Tambah dark mode toggler.
+  Tambah dark: variants di semua komponen.
+  Persist preference di localStorage.
+  Default follow system preference.
+
+4.4 UNIT & INTEGRATION TESTS
+-------------------------------
+Tindakan: Add testing infrastructure
+Detail:
+  Jest + React Testing Library setup.
+  Test critical components: Contact form, Portfolio logic.
+  Test API routes: leads submission, auth flow.
+  Test admin CRUD operations.
+
+4.5 PERFORMANCE OPTIMIZATION
+-------------------------------
+Tindakan: Bundle analysis & optimization
+Detail:
+  Run next/analyze to check bundle.
+  Code split large components.
+  Lazy load framer-motion only when needed.
+  Optimize recharts import (only used in dashboard).
+
+4.6 CSP HEADERS
+-------------------------------
+Tindakan: Content Security Policy
+Detail:
+  Tambah CSP headers di next.config.mjs.
+  Restrict script-src, style-src, img-src.
+  Allow Cloudinary, YouTube, Google Analytics.
+  Report violations to logging endpoint.
+
+================================================================================
+FASE 5: MONITORING & MAINTENANCE (Berkelanjutan)
+================================================================================
+
+5.1 ADD ANALYTICS
+-------------------------------
+Tindakan: Integrasi Google Analytics / Umami
+Detail:
+  Settings page has Google Analytics ID field (already prepared).
+  Implement Google Analytics 4 gtag.
+  Or use privacy-friendly alternative (Umami, Plausible).
+
+5.2 ERROR MONITORING
+-------------------------------
+Tindakan: Add error tracking
+Detail:
+  Integrasi Sentry atau similar.
+  Track client-side errors.
+  Track API errors.
+  Track build failures.
+
+5.3 REGULAR DEPENDENCY UPDATES
+-------------------------------
+Tindakan: Keep dependencies updated
+Detail:
+  npm audit setiap minggu.
+  Update non-major versions regularly.
+  Test after each update.
+  Monitor for deprecation notices.
+
+5.4 PERFORMANCE BUDGET
+-------------------------------
+Tindakan: Set performance targets
+Detail:
+  Lighthouse score target: 90+ all categories.
+  First Contentful Paint: < 1.5s.
+  Largest Contentful Paint: < 2.5s.
+  Total Bundle Size: < 300KB JS.
+  Image optimization: serve WebP, proper dimensions.
+
+================================================================================
+END OF RECOMMENDATIONS
+================================================================================

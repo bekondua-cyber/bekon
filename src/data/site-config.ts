@@ -20,7 +20,9 @@ export const siteConfig = {
     tiktok: "https://tiktok.com/@bekon_id",
   },
   maps_url: "https://maps.google.com/?q=Serang+Banten",
-  copyright: `© ${new Date().getFullYear()} Bangun Eka Konstruksi. All rights reserved.`,
+  openingHours: "Mo-Fr 08:00-17:00",
+  priceRange: "$$",
+  getCopyright: () => `© ${new Date().getFullYear()} Bangun Eka Konstruksi. All rights reserved.`,
 };
 
 export const navLinks = [

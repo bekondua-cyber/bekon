@@ -5,61 +5,62 @@ import type { Testimonial } from "@/components/TestimoniColumns";
 import type { VideoItem } from "@/components/VideoSection";
 import type { ArticleItem } from "@/components/BlogSection";
 import { Footer } from "@/components/Footer";
+import { siteConfig } from "@/data/site-config";
 import dynamic from "next/dynamic";
 
 const HeroSection = dynamic(
   () => import("@/components/HeroSection").then(m => ({ default: m.HeroSection })),
-  { ssr: false }
+  {}  
 );
 
 const ServicesSection = dynamic(
   () => import("@/components/ServicesSection").then(m => ({ default: m.ServicesSection })),
-  { ssr: false }
+  {}  
 );
 
 const PortfolioSection = dynamic(
   () => import("@/components/PortfolioSection").then(m => ({ default: m.PortfolioSection })),
-  { ssr: false }
+  {}  
 );
 
 const WhyBekonSection = dynamic(
   () => import("@/components/WhyBekonSection").then(m => ({ default: m.WhyBekonSection })),
-  { ssr: false }
+  {}  
 );
 
 const ProcessSection = dynamic(
   () => import("@/components/ProcessSection").then(m => ({ default: m.ProcessSection })),
-  { ssr: false }
+  {}  
 );
 
 const TestimoniColumns = dynamic(
   () => import("@/components/TestimoniColumns"),
-  { ssr: false }
+  {}  
 );
 
 const VideoSection = dynamic(
   () => import("@/components/VideoSection").then(m => ({ default: m.VideoSection })),
-  { ssr: false }
+  {}  
 );
 
 const BlogSection = dynamic(
   () => import("@/components/BlogSection").then(m => ({ default: m.BlogSection })),
-  { ssr: false }
+  {}  
 );
 
 const CTASection = dynamic(
   () => import("@/components/CTASection").then(m => ({ default: m.CTASection })),
-  { ssr: false }
+  {}  
 );
 
 const ContactSection = dynamic(
   () => import("@/components/ContactSection").then(m => ({ default: m.ContactSection })),
-  { ssr: false }
+  {}  
 );
 
 const FloatingWhatsApp = dynamic(
   () => import("@/components/FloatingWhatsApp").then(m => ({ default: m.FloatingWhatsApp })),
-  { ssr: false }
+  {}  
 );
 
 // Untuk server component, gunakan absolute URL dari env atau construct dari headers
@@ -117,10 +118,71 @@ export default async function HomePage() {
     { value: settings.stat_kepuasan || "100", label: "Kepuasan Klien", suffix: "%" },
   ];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: siteConfig.fullName,
+    alternateName: siteConfig.name,
+    description: siteConfig.description,
+    url: "https://bekon.co.id",
+    telephone: [siteConfig.phone1, siteConfig.phone2],
+    email: siteConfig.email,
+    image: "https://bekon.co.id/og-image.jpg",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: siteConfig.address,
+      addressLocality: "Serang",
+      addressRegion: "Banten",
+      addressCountry: "ID",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: -6.12,
+      longitude: 106.15,
+    },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "08:00",
+      closes: "17:00",
+    },
+    priceRange: siteConfig.priceRange,
+    sameAs: [siteConfig.social.instagram, siteConfig.social.youtube, siteConfig.social.tiktok],
+    founder: {
+      "@type": "Person",
+      name: "Bangun Eka Konstruksi",
+    },
+    foundingDate: "2009",
+    areaServed: ["Serang", "Cilegon", "Banten"],
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Jasa Konstruksi & Desain",
+      itemListElement: [
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Desain Eksterior" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Desain Interior" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Bangun Rumah" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Renovasi Rumah" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Interior Rumah" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Bangun Kost & Ruko" } },
+      ],
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.9",
+      bestRating: "5",
+      ratingCount: "100",
+      reviewCount: "100",
+    },
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navbar />
-      <main>
+      <main id="main">
         <HeroSection />
         <SocialProofBar stats={stats} />
         <ServicesSection />

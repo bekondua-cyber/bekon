@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Blog",
   description:
     "Tips, inspirasi desain, dan panduan membangun rumah dari BEKON.",
+  alternates: { canonical: "/informasi/blog" },
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";

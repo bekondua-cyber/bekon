@@ -135,16 +135,26 @@ export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
   const displayItems = items.length > 0 ? items : dummyTestimonials;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
   const totalItems = displayItems.length;
 
+  useEffect(() => {
+    const mq = matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   const startAutoPlay = useCallback(() => {
     if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+    if (reducedMotion) return;
     autoPlayRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % totalItems);
     }, 4000);
-  }, [totalItems]);
+  }, [totalItems, reducedMotion]);
 
   useEffect(() => {
     if (!isHovering) {

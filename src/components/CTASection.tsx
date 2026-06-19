@@ -1,3 +1,4 @@
+"use client";
 import { siteConfig } from "@/data/site-config";
 
 export function CTASection() {

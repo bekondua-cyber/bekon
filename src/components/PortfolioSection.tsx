@@ -28,11 +28,11 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
         className="bg-black/80 pt-20 md:pt-28 pb-0"
       >
         <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
-          <span className="section-label text-[#CBA84A]">Portfolio</span>
-          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-[#F8F5F0] mt-3 mb-6">
+          <span className="section-label text-bekon-gold-light">Portfolio</span>
+          <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-off-white mt-3 mb-6">
             Karya Terbaik Kami
           </h2>
-          <p className="text-[#F8F5F0]/60 text-sm">
+          <p className="text-bekon-off-white/60 text-sm">
             Belum ada portfolio yang tersedia. Silakan kembali lagi nanti.
           </p>
         </div>
@@ -55,14 +55,14 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
           className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4"
         >
           <div>
-            <span className="section-label text-[#CBA84A]">Portfolio</span>
-            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-[#F8F5F0] mt-3">
+            <span className="section-label text-bekon-gold-light">Portfolio</span>
+            <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-off-white mt-3">
               Karya Terbaik Kami
             </h2>
           </div>
           <Link
             href="/portfolio"
-            className="text-[#CBA84A] text-sm font-medium hover:text-[#B8963E] transition-colors hidden md:inline-flex items-center gap-1"
+            className="text-bekon-gold-light text-sm font-medium hover:text-bekon-gold transition-colors hidden md:inline-flex items-center gap-1"
           >
             Lihat Semua Portfolio &rarr;
           </Link>
@@ -79,14 +79,25 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
             transition={{ duration: 0.3 }}
           >
             <Link href={`/portfolio/${activeItem.slug}`} className="relative block aspect-[16/9] overflow-hidden">
-              <Image
-                src={activeItem.coverImage ?? ""}
-                alt={activeItem.title}
-                fill
-                sizes="100vw"
-                className="object-cover"
-                priority
-              />
+              {activeItem.coverImage ? (
+                <Image
+                  src={activeItem.coverImage}
+                  alt={activeItem.title}
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                  priority
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                  <div className="text-center">
+                    <svg className="w-16 h-16 mx-auto text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-gray-500 text-sm">No Image Available</p>
+                  </div>
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                 {activeItem.category && (
@@ -114,7 +125,9 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
                 <div
                   key={item.id}
                   onClick={() => setActiveItem(item)}
-                  onMouseEnter={() => setActiveItem(item)}
+                  onMouseEnter={() => {
+                    if (matchMedia("(hover: hover)").matches) setActiveItem(item)
+                  }}
                   className={`group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-200 ${
                     isActive
                       ? "ring-2 ring-bekon-gold ring-offset-2 ring-offset-black/80 opacity-100"
@@ -122,13 +135,21 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
                   }`}
                 >
                   <div className="relative aspect-[3/4] overflow-hidden">
-                    <Image
-                      src={item.coverImage ?? ""}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
+                    {item.coverImage ? (
+                      <Image
+                        src={item.coverImage}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                        <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3">
@@ -146,7 +167,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
         <div className="mt-6 text-center md:hidden">
           <Link
             href="/portfolio"
-            className="text-[#CBA84A] text-sm font-medium hover:text-[#B8963E] transition-colors inline-flex items-center gap-1"
+            className="text-bekon-gold-light text-sm font-medium hover:text-bekon-gold transition-colors inline-flex items-center gap-1"
           >
             Lihat Semua Portfolio &rarr;
           </Link>

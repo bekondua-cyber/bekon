@@ -1,6 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { Edit, Trash2 } from "lucide-react"
+import { AdminSearch } from "@/components/admin/AdminSearch"
+import { GridCardSkeleton } from "@/components/admin/AdminSkeleton"
 
 interface VideoItem {
   id: string
@@ -18,6 +21,7 @@ interface VideoItem {
 export default function AdminVideoPage() {
   const [items, setItems] = useState<VideoItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<string | null>(null)
   const [form, setForm] = useState({
@@ -173,10 +177,17 @@ export default function AdminVideoPage() {
     }
   }
 
+  const q = search.toLowerCase()
+  const filtered = items.filter((item) => item.title.toLowerCase().includes(q))
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Memuat...</p>
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
+          <div className="h-9 w-36 bg-gray-200 rounded-lg animate-pulse" />
+        </div>
+        <GridCardSkeleton count={6} />
       </div>
     )
   }
@@ -185,12 +196,15 @@ export default function AdminVideoPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Video</h1>
-        <button
-          onClick={openAddForm}
-          className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
-        >
-          + Tambah Video
-        </button>
+        <div className="flex items-center gap-3">
+          <AdminSearch value={search} onChange={setSearch} placeholder="Cari video..." />
+          <button
+            onClick={openAddForm}
+            className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
+          >
+            + Tambah Video
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -292,12 +306,12 @@ export default function AdminVideoPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="col-span-full text-center py-8 text-gray-500">
-            Belum ada video
+            {search ? "Tidak ada video yang cocok" : "Belum ada video"}
           </div>
         ) : (
-          items.map((item) => (
+          filtered.map((item) => (
             <div key={item.id} className={`bg-white rounded-xl border overflow-hidden ${item.isPublished ? "border-gray-200" : "border-gray-300 border-dashed opacity-70"}`}>
               <div className="aspect-video bg-gray-100 relative">
                 <img
@@ -344,14 +358,14 @@ export default function AdminVideoPage() {
                       className="text-gray-400 hover:text-blue-500 transition-colors text-sm px-1"
                       title="Edit"
                     >
-                      ✏️
+                      <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
                       className="text-gray-400 hover:text-red-500 transition-colors text-sm px-1"
                       title="Hapus"
                     >
-                      🗑️
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

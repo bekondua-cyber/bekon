@@ -1,6 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { Trash2 } from "lucide-react"
+import { AdminSearch } from "@/components/admin/AdminSearch"
+import { CardSkeleton } from "@/components/admin/AdminSkeleton"
 
 interface TestimoniItem {
   id: string
@@ -17,6 +20,7 @@ interface TestimoniItem {
 export default function AdminTestimoniPage() {
   const [items, setItems] = useState<TestimoniItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({
     clientName: "",
@@ -103,10 +107,17 @@ export default function AdminTestimoniPage() {
     }
   }
 
+  const q = search.toLowerCase()
+  const filtered = items.filter((item) => item.clientName.toLowerCase().includes(q))
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Memuat...</p>
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
+          <div className="h-9 w-36 bg-gray-200 rounded-lg animate-pulse" />
+        </div>
+        <CardSkeleton count={4} />
       </div>
     )
   }
@@ -115,12 +126,15 @@ export default function AdminTestimoniPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Testimoni</h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
-        >
-          {showForm ? "Batal" : "+ Tambah Testimoni"}
-        </button>
+        <div className="flex items-center gap-3">
+          <AdminSearch value={search} onChange={setSearch} placeholder="Cari klien..." />
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
+          >
+            {showForm ? "Batal" : "+ Tambah Testimoni"}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -215,10 +229,10 @@ export default function AdminTestimoniPage() {
       )}
 
       <div className="space-y-3">
-        {items.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">Belum ada testimoni</div>
+        {filtered.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">{search ? "Tidak ada testimoni yang cocok" : "Belum ada testimoni"}</div>
         ) : (
-          items.map((item) => (
+          filtered.map((item) => (
             <div key={item.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-start gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3">
@@ -242,7 +256,7 @@ export default function AdminTestimoniPage() {
                   {item.isPublished ? "Published" : "Draft"}
                 </button>
                 <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-500" title="Hapus">
-                  🗑️
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>

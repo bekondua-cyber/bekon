@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Video",
   description:
     "Tonton video home tour, desain 3D, dan proses pembangunan proyek BEKON.",
+  alternates: { canonical: "/video" },
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";

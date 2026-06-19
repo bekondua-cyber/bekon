@@ -7,6 +7,7 @@ import { whyBekon } from "@/data/why-bekon";
 export const metadata: Metadata = {
   title: "Tentang Kami",
   description: `Tentang ${siteConfig.fullName} (BEKON) — kontraktor dan arsitek profesional sejak ${siteConfig.since} di Serang, Cilegon, Banten.`,
+  alternates: { canonical: "/tentang-kami" },
 };
 
 export default function TentangKamiPage() {

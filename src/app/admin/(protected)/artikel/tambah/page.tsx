@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { RichTextEditor } from "@/components/admin/RichTextEditor"
 
 export default function AdminArtikelTambahPage() {
   const router = useRouter()
@@ -133,12 +134,11 @@ export default function AdminArtikelTambahPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Konten</label>
-            <textarea
+            <label className="block text-sm font-medium text-gray-600 mb-2">Konten</label>
+            <RichTextEditor
               value={form.content}
-              onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-              rows={12}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none resize-y font-mono"
+              onChange={(content) => setForm((f) => ({ ...f, content }))}
+              placeholder="Tulis artikel di sini..."
             />
           </div>
 

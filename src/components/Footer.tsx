@@ -154,7 +154,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-6 border-t border-white/10 text-center">
-          <p className="text-white/40 text-xs">{siteConfig.copyright}</p>
+          <p className="text-white/40 text-xs">{siteConfig.getCopyright()}</p>
         </div>
       </div>
     </footer>

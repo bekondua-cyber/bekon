@@ -1,6 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { Edit, Trash2, User } from "lucide-react"
+import { AdminSearch } from "@/components/admin/AdminSearch"
+import { ProfileCardSkeleton } from "@/components/admin/AdminSkeleton"
 
 interface TeamMember {
   id: string
@@ -26,6 +29,7 @@ const emptyForm: MemberForm = { name: "", role: "", bio: "", photo: "", sortOrde
 export default function AdminTimPage() {
   const [items, setItems] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<MemberForm>(emptyForm)
@@ -131,10 +135,17 @@ export default function AdminTimPage() {
     }
   }
 
+  const q = search.toLowerCase()
+  const filtered = items.filter((member) => member.name.toLowerCase().includes(q))
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Memuat...</p>
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
+          <div className="h-9 w-36 bg-gray-200 rounded-lg animate-pulse" />
+        </div>
+        <ProfileCardSkeleton count={6} />
       </div>
     )
   }
@@ -143,12 +154,15 @@ export default function AdminTimPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Tim</h1>
-        <button
-          onClick={openAddForm}
-          className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
-        >
-          + Tambah Anggota
-        </button>
+        <div className="flex items-center gap-3">
+          <AdminSearch value={search} onChange={setSearch} placeholder="Cari anggota..." />
+          <button
+            onClick={openAddForm}
+            className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
+          >
+            + Tambah Anggota
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -248,17 +262,17 @@ export default function AdminTimPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.length === 0 ? (
-          <div className="col-span-full text-center py-8 text-gray-500">Belum ada anggota tim</div>
+        {filtered.length === 0 ? (
+          <div className="col-span-full text-center py-8 text-gray-500">{search ? "Tidak ada anggota yang cocok" : "Belum ada anggota tim"}</div>
         ) : (
-          items.map((member) => (
+          filtered.map((member) => (
             <div key={member.id} className="bg-white rounded-xl border border-gray-200 p-4">
               <div className="flex items-center gap-3">
                 {member.photo ? (
                   <img src={member.photo} alt="" className="w-12 h-12 rounded-full object-cover" />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-                    👤
+                    <User className="w-5 h-5" />
                   </div>
                 )}
                 <div className="flex-1">
@@ -267,10 +281,10 @@ export default function AdminTimPage() {
                 </div>
                 <div className="flex gap-1">
                   <button onClick={() => openEditForm(member)} className="text-gray-400 hover:text-bekon-gold" title="Edit">
-                    ✏️
+                    <Edit className="w-4 h-4" />
                   </button>
                   <button onClick={() => handleDelete(member.id)} className="text-gray-400 hover:text-red-500" title="Hapus">
-                    🗑️
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>

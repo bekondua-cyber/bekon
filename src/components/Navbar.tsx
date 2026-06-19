@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +29,7 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [portfolioOpen, setPortfolioOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -62,14 +64,27 @@ export function Navbar() {
               aria-label="BEKON Bangun Eka Konstruksi - Beranda"
               className="flex items-center gap-3"
             >
-              <div className="flex flex-col leading-none">
-                <span className="font-bold tracking-[0.18em] text-xl text-white">
-                  BEKON
-                </span>
-                <span className="uppercase tracking-[0.06em] text-[9px] text-white">
-                  Bangun Eka Konstruksi
-                </span>
-              </div>
+              {logoError ? (
+                <div className="flex flex-col leading-none">
+                  <span className="font-bold tracking-[0.18em] text-xl text-white">
+                    BEKON
+                  </span>
+                  <span className="uppercase tracking-[0.06em] text-[9px] text-white">
+                    Bangun Eka Konstruksi
+                  </span>
+                </div>
+              ) : (
+                <Image
+                  src="/logo.png"
+                  alt="BEKON Bangun Eka Konstruksi"
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  className="h-10 w-auto object-contain"
+                  priority
+                  onError={() => setLogoError(true)}
+                />
+              )}
             </Link>
 
             <div className="hidden lg:flex items-center gap-7">
@@ -279,30 +294,36 @@ export function Navbar() {
                   );
                 }
                 return (
-                  <motion.a
+                  <motion.div
                     key={link.href}
-                    href={link.href}
-                    onClick={() => setMenuOpen(false)}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.06, duration: 0.3 }}
-                    className="text-white hover:text-bekon-gold transition-colors text-center font-display text-[36px] font-light"
                   >
-                    {link.label}
-                  </motion.a>
+                    <Link
+                      href={link.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="text-white hover:text-bekon-gold transition-colors text-center font-display text-[36px] font-light"
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.div>
                 );
               })}
 
-              <motion.a
-                href="/kontak"
-                onClick={() => setMenuOpen(false)}
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: navLinks.length * 0.06 + 0.1 }}
-                className="mt-4 px-8 py-3 bg-bekon-gold text-white rounded-full text-sm font-medium"
+                transition={{ delay: navLinks.length * 0.06, duration: 0.3 }}
               >
-                Konsultasi Gratis
-              </motion.a>
+                <Link
+                  href="/kontak"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-white hover:text-bekon-gold transition-colors text-center font-display text-[36px] font-light"
+                >
+                  Konsultasi Gratis
+                </Link>
+              </motion.div>
             </div>
 
             <div className="px-6 pb-8 text-center">

@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Portfolio Proyek | BEKON - Jasa Bangun Rumah Serang",
   description:
     "Lihat karya terbaik BEKON dalam desain dan konstruksi rumah, interior, renovasi, dan bangunan komersial.",
+  alternates: { canonical: "/portfolio" },
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";

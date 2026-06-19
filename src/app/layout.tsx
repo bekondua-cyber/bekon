@@ -44,6 +44,9 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true },
   },
   metadataBase: new URL("https://bekon.co.id"),
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({
@@ -53,7 +56,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${cormorant.variable} ${inter.variable}`}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-bekon-gold focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
+          Langsung ke konten utama
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

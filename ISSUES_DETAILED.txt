@@ -1,0 +1,360 @@
+================================================================================
+DAFTAR DETAIL ISSUES - WEBSITE BEKON
+Tanggal: 19 Juni 2026
+Total Issues: 42 (5 Critical, 10 High, 15 Medium, 12 Low)
+================================================================================
+
+================================================================================
+CRITICAL ISSUES (5)
+================================================================================
+
+CRIT-1: Broken Image Component (Null Cover Image)
+----------------------------------------------------------------------
+File: src/components/PortfolioSection.tsx:83-89
+Line: 83 (Image component)
+Severity: CRITICAL
+Deskripsi: When PortfolioItem has null/empty coverImage, the Next.js Image
+  component renders with src="" causing a broken image. The code uses
+  `coverImage ?? ""` as fallback but empty string is invalid for Image src.
+Dampak: Broken image icon displayed to users. Error in console.
+Rekomendasi: Add conditional rendering - if no coverImage, show placeholder.
+  Either use a default placeholder image or show a gradient background.
+Code Snippet:
+  {activeItem.coverImage ? (
+    <Image src={activeItem.coverImage} alt={activeItem.title} fill ... />
+  ) : (
+    <div className="bg-gray-800 flex items-center justify-center h-full">
+      <span className="text-white/40">No Image</span>
+    </div>
+  )}
+
+CRIT-2: No Phone Validation in Contact Form
+----------------------------------------------------------------------
+File: src/components/ContactSection.tsx:25-32
+Line: 25 (handleSubmit function)
+Severity: CRITICAL
+Deskripsi: Contact form allows submission of any text as phone number.
+  Phone field has no validation pattern, empty strings, or invalid formats
+  are all accepted and passed to WhatsApp URL.
+Dampak: Invalid WhatsApp leads. Customer service wastes time on invalid leads.
+Rekomendasi: Add phone validation regex before generating WhatsApp URL.
+  Validate Indonesian phone format: +62, 62, or 08 prefix.
+Code Snippet:
+  const phoneRegex = /^(\+62|62|0)8[1-9][0-9]{6,11}$/;
+  if (form.phone && !phoneRegex.test(form.phone)) {
+    alert("Nomor telepon tidak valid");
+    return;
+  }
+
+CRIT-3: No Input Sanitization in Leads API
+----------------------------------------------------------------------
+File: src/app/api/leads/route.ts:6-14
+Line: 6-14 (entire POST handler)
+Severity: CRITICAL
+Deskripsi: The POST /api/leads endpoint accepts raw JSON without any
+  validation beyond checking if name and phone exist. No field length
+  limits, type validation, or content sanitization.
+Dampak: Potential XSS if stored data displayed, database spam, injection.
+Rekomendasi: Implement input validation with zod:
+  const schema = z.object({
+    name: z.string().min(2).max(100),
+    phone: z.string().min(8).max(20),
+    service: z.string().optional(),
+    message: z.string().max(1000).optional(),
+  });
+
+CRIT-4: No Rate Limiting on API Endpoints
+----------------------------------------------------------------------
+File: ALL API routes in src/app/api/
+Severity: CRITICAL
+Deskripsi: No rate limiting, IP blocking, DDoS protection, or request
+  throttling on any API endpoint (public or admin).
+Dampak: Vulnerable to brute force attacks, spam, DDoS.
+  Login endpoint can be brute-forced without restriction.
+Rekomendasi: Implement rate limiting via:
+  1. Vercel Edge Rate Limiting (if deployed on Vercel)
+  2. Custom middleware with Upstash Redis
+  3. At minimum, add basic IP-based rate limiting
+  4. Add CAPTCHA to public lead form
+
+CRIT-5: Admin Middleware Matcher Incomplete
+----------------------------------------------------------------------
+File: middleware.ts:9-11
+Line: 10 (matcher array)
+Severity: CRITICAL
+Deskripsi: Middleware only protects `/admin/(protected)/:path*` and
+  `/admin/dashboard/:path*` but admin panel has route group layout
+  that provides client-side auth. The admin root `/admin` also doesn't
+  redirect quickly enough.
+Dampak: Flash of unauthenticated admin content. Routes might be accessible
+  briefly before client-side redirect completes.
+Rekomendasi: Update matcher to:
+  export const config = { matcher: ["/admin/:path*"] };
+
+================================================================================
+HIGH PRIORITY ISSUES (10)
+================================================================================
+
+HIGH-1: SVG Icon Duplication
+----------------------------------------------------------------------
+Files: ServicesSection.tsx, ProcessSection.tsx, Navbar.tsx, Footer.tsx,
+       CTASection.tsx, ContactSection.tsx, FloatingWhatsApp.tsx, HeroSection.tsx
+Severity: HIGH
+Deskripsi: WhatsApp SVG icon duplicated ~5 times across components.
+  Social media icons (Instagram, YouTube, TikTok) duplicated in Footer
+  and ContactSection. Each SVG is ~20-30 lines of inline code.
+Dampak: ~2-3KB unnecessary bundle size. Hard to maintain/update icons.
+Rekomendasi: Create shared Icons component or use lucide-react icons.
+
+HIGH-2: Emoji Icons in Admin Panel
+----------------------------------------------------------------------
+Files: src/app/admin/(protected)/portfolio/page.tsx:141-155
+       src/app/admin/(protected)/artikel/page.tsx:142-150
+       src/app/admin/(protected)/video/page.tsx:347-354
+       src/app/admin/(protected)/testimoni/page.tsx:245-246
+       src/app/admin/(protected)/tim/page.tsx:270-275
+Severity: HIGH
+Deskripsi: Uses emoji (✏️, 🗑️, 👁️, 👤) for action buttons instead
+  of proper icon components.
+Dampak: Accessibility issues (screen readers handle emoji inconsistently),
+  rendering varies across OS/browser.
+Rekomendasi: Replace with lucide-react icons (Pencil, Trash2, Eye, User).
+
+HIGH-3: Hardcoded Colors in PortfolioSection
+----------------------------------------------------------------------
+File: src/components/PortfolioSection.tsx:33,59,67,93,100,149
+Severity: HIGH
+Deskripsi: Uses #CBA84A, #F8F5F0, #B8963E instead of Tailwind theme tokens.
+Dampak: Theme changes require finding and replacing hardcoded values.
+Rekomendasi: Replace with text-bekon-gold, text-bekon-off-white, etc.
+
+HIGH-4: Hardcoded Colors in TestimoniColumns
+----------------------------------------------------------------------
+File: src/components/TestimoniColumns.tsx:20-42,106-107,114-117
+Severity: HIGH
+Deskripsi: Uses hex colors directly instead of CSS variables/Tailwind tokens.
+Dampak: Theme inconsistency, hard to maintain.
+Rekomendasi: Replace with Tailwind utility classes.
+
+HIGH-5: No next/image for User-Uploaded Images
+----------------------------------------------------------------------
+Files: All admin portfolio pages (tambah, edit)
+Severity: HIGH
+Deskripsi: Admin pages use regular <img> tags for uploaded images instead
+  of next/Image component.
+Dampak: No lazy loading, no responsive images, no optimization.
+Rekomendasi: Use next/Image with Cloudinary URL transformations.
+
+HIGH-6: ssr: false on ALL Dynamic Imports
+----------------------------------------------------------------------
+File: src/app/page.tsx:10-63
+Severity: HIGH
+Deskripsi: All 9 components using dynamic() have ssr: false. This includes
+  content sections like Services, Portfolio, Process, etc.
+Dampak: Poor initial load performance. Content not visible until JS loads.
+  Potential SEO impact as crawlers may not see content.
+Rekomendasi: Only use ssr: false for FloatingWhatsApp. Remove ssr: false
+  for content sections. They import framer-motion which handles hydration.
+
+HIGH-7: Empty src/components/ui/ Directory
+----------------------------------------------------------------------
+File: src/components/ui/
+Severity: HIGH
+Deskripsi: Directory exists but is empty. Appears to be prepared for
+  shadcn/ui components but never populated.
+Dampak: Potential confusion. Dead import path.
+Rekomendasi: Either populate with shadcn/ui components or remove directory.
+
+HIGH-8: Mock Auth Data in Client Library
+----------------------------------------------------------------------
+File: src/lib/auth.ts:11-12
+Severity: HIGH
+Deskripsi: getCurrentUser() returns hardcoded { username: "Admin", password: "" }
+  The function is exported and available for import.
+Dampak: Security risk if accidentally used in code. Mock data in production.
+Rekomendasi: Remove mock implementation or replace with actual session check.
+
+HIGH-9: Admin Login Page Not Excluded from Search Index
+----------------------------------------------------------------------
+File: next.config.mjs:27-29
+Severity: HIGH
+Deskripsi: X-Robots-Tag only covers /admin/(.*) but login at /admin/login IS
+  under that pattern. However, the sitemap/robots may still expose it.
+Dampak: Login page could appear in search results.
+Rekomendasi: Verify robots.txt disallows /admin/ path.
+
+HIGH-10: Missing Error Boundary in Admin
+----------------------------------------------------------------------
+File: src/app/admin/(protected)/layout.tsx
+Severity: HIGH
+Deskripsi: No React Error Boundary wrapping admin page content.
+Dampak: If one admin page throws an error, the entire admin panel crashes.
+Rekomendasi: Add <ErrorBoundary> wrapper around main content area.
+
+================================================================================
+MEDIUM PRIORITY ISSUES (15)
+================================================================================
+
+MED-1: Mobile Menu Uses <a> Instead of <Link>
+File: src/components/Navbar.tsx:284,289
+Desc: Mobile menu hamburger uses motion.a instead of next/link Link component.
+Impact: Full page reload instead of client-side navigation on mobile.
+Fix: Replace <motion.a> with <Link> from next/link.
+
+MED-2: PortfolioSection onMouseEnter on Mobile
+File: src/components/PortfolioSection.tsx:117
+Desc: onMouseEnter used for item selection, but on mobile this fires
+  on tap and may cause unintended behavior.
+Impact: Accidental portfolio item change on mobile.
+Fix: Only use onMouseEnter/onMouseLeave on non-touch devices.
+
+MED-3: TestimoniColumns Reduced Motion
+File: src/components/TestimoniColumns.tsx:58-60
+Desc: Infinite scroll animation has no respect for prefers-reduced-motion.
+Impact: Can cause discomfort for users with vestibular disorders.
+Fix: Use matchMedia('(prefers-reduced-motion: reduce)') to disable animation.
+
+MED-4: No Submit Feedback in Contact Form
+File: src/components/ContactSection.tsx:25-32
+Desc: No loading state, no success/error feedback, nothing prevents double click.
+Impact: User might click multiple times opening multiple WhatsApp tabs.
+Fix: Add loading state, disable button during submit.
+
+MED-5: CTASection Uses Client Data
+File: src/components/CTASection.tsx (server component)
+Desc: CTASection imports siteConfig which is used in server context.
+Impact: Works on server, but siteConfig contains dynamic date() call.
+Fix: Move CTA to client component or pass data as props.
+
+MED-6: Autoplay Reduced Motion
+File: src/components/TestimoniSlider.tsx:142-147
+Desc: Autoplay carousel doesn't check reduced motion preference.
+Impact: Accessibility issue.
+Fix: Check prefers-reduced-motion before starting autoplay.
+
+MED-7: No Search/Filter in Admin Lists
+Files: All admin list pages (portfolio, artikel, leads, etc.)
+Desc: Lists don't have search or filter capabilities beyond tabs.
+Impact: Hard to find items when many exist.
+Fix: Add search input that filters by name/title.
+
+MED-8: No Rich Text Editor for Articles
+File: src/app/admin/(protected)/artikel/tambah/page.tsx
+Desc: Article content uses plain textarea instead of rich text editor.
+Impact: No formatting options for articles.
+Fix: Integrate a rich text editor like TipTap or Quill.
+
+MED-9: Settings Not Preloaded
+File: src/app/admin/(protected)/settings/page.tsx
+Desc: Settings form shows empty fields if settings don't exist in DB yet.
+Impact: Admin must manually fill all fields.
+Fix: Provide default values for empty fields.
+
+MED-10: No Loading Skeletons
+Files: All pages with data fetching
+Desc: Pages show simple "Memuat..." text during loading.
+Impact: Poor perceived performance.
+Fix: Add skeleton/shimmer loading states.
+
+MED-11: No Skip-to-Content Link
+File: src/app/layout.tsx
+Desc: No skip navigation link for keyboard users.
+Impact: Keyboard users must tab through entire navbar.
+Fix: Add a "Skip to content" link as first focusable element.
+
+MED-12: Missing aria-required on Form Fields
+File: src/components/ContactSection.tsx:188-213
+Desc: Form fields marked as required visually but don't have aria-required.
+Impact: Screen readers may not announce fields as required.
+Fix: Add aria-required="true" to required fields.
+
+MED-13: No Bulk Actions in Admin
+Files: All admin list pages
+Desc: Cannot select multiple items and perform batch operations.
+Impact: Deleting multiple items requires individual confirmation dialogs.
+Fix: Add checkbox selection and bulk delete/action button.
+
+MED-14: All Hero Images Load at Once
+File: src/components/HeroSection.tsx:48-63
+Desc: All 3 hero background images are in the DOM simultaneously.
+Impact: Unnecessary bandwidth, especially on mobile.
+Fix: Only render active slide image, use loading="lazy" for others.
+
+MED-15: Image fill Without Container Dimensions
+File: src/components/PortfolioSection.tsx:126-131
+Desc: Images use fill prop but parent may not always have position:relative
+  properly set in all viewport conditions.
+Impact: Layout shift during image load.
+Fix: Ensure parent container always has position:relative with defined aspect.
+
+================================================================================
+LOW PRIORITY ISSUES (12)
+================================================================================
+
+LOW-1: Unused framer-motion imports
+File: src/components/TestimonialsSection.tsx:4
+Desc: AnimatePresence imported but may not be used.
+Fix: Remove unused imports.
+
+LOW-2: CTA uses <a> instead of Link
+File: src/components/WhyBekonSection.tsx:98
+Desc: Internal navigation uses <a> instead of next/link Link.
+Fix: Use Link for client-side navigation.
+
+LOW-3: DesktopContent hidden on mobile
+File: src/components/HeroSection.tsx:70
+Desc: DesktopContent is always rendered including on mobile (no conditional).
+Fix: Check if intended behavior (content renders but may overflow).
+
+LOW-4: Dynamic Date in Exported Object
+File: src/data/site-config.ts:23
+Desc: copyright uses new Date().getFullYear() at module evaluation time.
+Impact: Date computed when module loads, could be stale in ISR.
+Fix: Use build-time constant or compute in component.
+
+LOW-5: setInterval cleanup in SocialProofBar
+File: src/components/SocialProofBar.tsx:38
+Desc: setInterval in useEffect without exhaustive deps.
+Impact: Potential issues in React StrictMode (double execution).
+Fix: Add proper cleanup and consider using requestAnimationFrame.
+
+LOW-6: Generic Error Messages
+File: src/app/admin/(protected)/dashboard/page.tsx:56
+Desc: "Gagal memuat data dashboard" doesn't tell which API failed.
+Fix: Show more specific error messages per failed fetch.
+
+LOW-7: No Dark Mode Styles
+File: src/components/ContactSection.tsx:229
+Desc: Select dropdown uses white background with no dark mode support.
+Impact: Inconsistent if dark mode added later.
+Fix: Add dark: variants.
+
+LOW-8: No Logo Image
+File: src/components/Navbar.tsx:60-73
+Desc: Brand uses only text "BEKON" with subtitle, no logo image.
+Impact: Less brand recognition.
+Fix: Add logo image with proper alt text.
+
+LOW-9: Unused Tailwind Colors
+File: tailwind.config.ts:26-28
+Desc: bekon.error, bekon.success, bekon.warning defined but not used.
+Fix: Remove unused color definitions.
+
+LOW-10: WhatsApp SVG Could Use Lucide
+File: src/components/HeroSection.tsx:161-169
+Desc: WhatsApp icon uses inline SVG instead of lucide-react.
+Fix: lucide-react doesn't have WhatsApp icon - this is acceptable.
+
+LOW-11: Inconsistent Error Response Format
+Files: Admin API routes
+Desc: Some return { error }, some return { detail }, some return { message }.
+Fix: Standardize error response format.
+
+LOW-12: Additional ARIA Landmarks
+Files: All pages
+Desc: Basic semantic HTML used but no complementary landmarks.
+Fix: Add role="complementary", role="contentinfo" where appropriate.
+
+================================================================================
+END OF ISSUES DETAILED REPORT
+================================================================================

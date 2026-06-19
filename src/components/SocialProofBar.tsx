@@ -19,6 +19,7 @@ function AnimatedCounter({
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const started = useRef(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (started.current) return;
@@ -35,10 +36,13 @@ function AnimatedCounter({
           const increment = numValue / steps;
           let current = 0;
 
-          const timer = setInterval(() => {
+          timerRef.current = setInterval(() => {
             current = Math.min(current + increment, numValue);
             setCount(Math.floor(current));
-            if (current >= numValue) clearInterval(timer);
+            if (current >= numValue && timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+            }
           }, step);
         }
       },
@@ -46,7 +50,13 @@ function AnimatedCounter({
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

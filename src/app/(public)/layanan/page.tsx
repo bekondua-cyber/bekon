@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Layanan",
   description:
     "BEKON menyediakan layanan desain eksterior, interior, bangun rumah, renovasi, dan bangun kost & ruko di Serang, Cilegon, Banten.",
+  alternates: { canonical: "/layanan" },
 };
 
 export default function LayananPage() {

@@ -12,6 +12,8 @@ export function ContactSection() {
     service: "",
     message: "",
   });
+  const [phoneError, setPhoneError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const services = [
     "Desain Eksterior",
@@ -22,13 +24,24 @@ export function ContactSection() {
     "Bangun Kost & Ruko",
   ];
 
+  const phoneRegex = /^(\+62|62|0)8[1-9][0-9]{6,11}$/;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const text = `Halo BEKON, saya ${form.name || "calon klien"}.\nLayanan: ${form.service || "Belum ditentukan"}\nPesan: ${form.message || "Saya ingin konsultasi"}`;
+    if (submitting) return;
+    setPhoneError("");
+    const phone = form.phone.trim();
+    if (phone && !phoneRegex.test(phone)) {
+      setPhoneError("Nomor telepon tidak valid. Gunakan format: 08xxxxxxxxxx");
+      return;
+    }
+    setSubmitting(true);
+    const text = `Halo BEKON, saya ${form.name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${form.service || "Belum ditentukan"}\nPesan: ${form.message || "Saya ingin konsultasi"}`;
     window.open(
       `https://wa.me/${siteConfig.whatsapp1}?text=${encodeURIComponent(text)}`,
       "_blank"
     );
+    setTimeout(() => setSubmitting(false), 2000);
   };
 
   return (
@@ -191,6 +204,7 @@ export function ContactSection() {
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className="w-full px-4 py-2.5 border border-bekon-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bekon-gold/30 focus:border-bekon-gold bg-white"
                     placeholder="Nama Anda"
+                    aria-required="true"
                   />
                 </div>
 
@@ -211,6 +225,9 @@ export function ContactSection() {
                     className="w-full px-4 py-2.5 border border-bekon-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bekon-gold/30 focus:border-bekon-gold bg-white"
                     placeholder="+62 812-xxxx-xxxx"
                   />
+                  {phoneError && (
+                    <p className="text-bekon-error text-xs mt-1.5">{phoneError}</p>
+                  )}
                 </div>
 
                 <div>
@@ -258,7 +275,8 @@ export function ContactSection() {
 
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-bekon-whatsapp text-white rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-bekon-whatsapp text-white rounded-full text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   <svg
                     width="18"
