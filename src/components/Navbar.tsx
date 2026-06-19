@@ -25,18 +25,16 @@ const videoDropdown = [
 ];
 
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [portfolioOpen, setPortfolioOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
-  }, []);
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  };
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -50,46 +48,44 @@ export function Navbar() {
       <nav
         role="navigation"
         aria-label="Navigasi utama"
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          scrolled
-            ? "bg-black/85 backdrop-blur-md border-b border-white/10 shadow-lg"
-            : "bg-black/40 backdrop-blur-sm border-b border-transparent shadow-none"
-        )}
+        className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-md border-b border-white/10 shadow-lg transition-all duration-300"
       >
         <div className="max-w-container mx-auto px-6 lg:px-20">
           <div className="flex items-center justify-between h-16 md:h-20">
             <Link
               href="/"
               aria-label="BEKON Bangun Eka Konstruksi - Beranda"
-              className="flex items-center gap-3"
+              className="flex items-center gap-2 md:gap-3"
             >
-              {logoError ? (
-                <div className="flex flex-col leading-none">
-                  <span className="font-bold tracking-[0.18em] text-xl text-white">
-                    BEKON
-                  </span>
-                  <span className="uppercase tracking-[0.06em] text-[9px] text-white">
-                    Bangun Eka Konstruksi
-                  </span>
-                </div>
-              ) : (
-                <Image
-                  src="/logo.png"
-                  alt="BEKON Bangun Eka Konstruksi"
-                  width={0}
-                  height={0}
-                  sizes="100vw"
-                  className="h-10 w-auto object-contain"
-                  priority
-                  onError={() => setLogoError(true)}
-                />
-              )}
+              <div className="flex-shrink-0">
+                {logoError ? (
+                  <div className="w-10 h-10 bg-bekon-gold rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">B</span>
+                  </div>
+                ) : (
+                  <Image
+                    src="/logo-icon.png"
+                    alt="BEKON Logo"
+                    width={40}
+                    height={40}
+                    className="object-contain md:w-12 md:h-12"
+                    priority
+                    onError={() => setLogoError(true)}
+                  />
+                )}
+              </div>
+              <div className="flex flex-col leading-tight">
+                <span className="text-white font-bold text-base md:text-xl tracking-wide">
+                  BEKON
+                </span>
+                <span className="text-gray-400 text-[9px] md:text-xs leading-tight">
+                  Bangun Eka Konstruksi
+                </span>
+              </div>
             </Link>
 
             <div className="hidden lg:flex items-center gap-7">
               {navLinks.map((link) => {
-                const isActive = (href: string) => pathname === href || pathname.startsWith(href);
                 if (link.href === "/portfolio") {
                   return (
                     <div
@@ -126,7 +122,12 @@ export function Navbar() {
                               <Link
                                 key={item.href}
                                 href={item.href}
-                                className="block px-4 py-3 text-sm text-white/80 hover:text-bekon-gold hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                                className={cn(
+                                  "block px-4 py-3 text-sm transition-colors border-b border-white/5 last:border-0",
+                                  isActive(item.href)
+                                    ? "text-bekon-gold bg-white/5"
+                                    : "text-white/80 hover:text-bekon-gold hover:bg-white/5"
+                                )}
                               >
                                 {item.label}
                               </Link>
@@ -173,7 +174,12 @@ export function Navbar() {
                               <Link
                                 key={item.href}
                                 href={item.href}
-                                className="block px-4 py-3 text-sm text-white/80 hover:text-bekon-gold hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                                className={cn(
+                                  "block px-4 py-3 text-sm transition-colors border-b border-white/5 last:border-0",
+                                  isActive(item.href)
+                                    ? "text-bekon-gold bg-white/5"
+                                    : "text-white/80 hover:text-bekon-gold hover:bg-white/5"
+                                )}
                               >
                                 {item.label}
                               </Link>
@@ -248,7 +254,14 @@ export function Navbar() {
                       transition={{ delay: i * 0.06, duration: 0.3 }}
                       className="text-center"
                     >
-                      <span className="text-white/90 font-display text-[36px] font-light">
+                      <span
+                        className={cn(
+                          "font-display text-[36px] font-light transition-colors",
+                          isActive("/portfolio")
+                            ? "text-bekon-gold"
+                            : "text-white/90"
+                        )}
+                      >
                         Portfolio
                       </span>
                       <div className="mt-4 flex flex-col items-center gap-3">
@@ -257,7 +270,12 @@ export function Navbar() {
                             key={item.href}
                             href={item.href}
                             onClick={() => setMenuOpen(false)}
-                            className="text-sm text-white/60 hover:text-bekon-gold transition-colors"
+                            className={cn(
+                              "text-sm transition-colors",
+                              isActive(item.href)
+                                ? "text-bekon-gold"
+                                : "text-white/60 hover:text-bekon-gold"
+                            )}
                           >
                             {item.label}
                           </Link>
@@ -275,7 +293,14 @@ export function Navbar() {
                       transition={{ delay: i * 0.06, duration: 0.3 }}
                       className="text-center"
                     >
-                      <span className="text-white/90 font-display text-[36px] font-light">
+                      <span
+                        className={cn(
+                          "font-display text-[36px] font-light transition-colors",
+                          isActive("/video")
+                            ? "text-bekon-gold"
+                            : "text-white/90"
+                        )}
+                      >
                         Video
                       </span>
                       <div className="mt-4 flex flex-col items-center gap-3">
@@ -284,7 +309,12 @@ export function Navbar() {
                             key={item.href}
                             href={item.href}
                             onClick={() => setMenuOpen(false)}
-                            className="text-sm text-white/60 hover:text-bekon-gold transition-colors"
+                            className={cn(
+                              "text-sm transition-colors",
+                              isActive(item.href)
+                                ? "text-bekon-gold"
+                                : "text-white/60 hover:text-bekon-gold"
+                            )}
                           >
                             {item.label}
                           </Link>
@@ -303,7 +333,12 @@ export function Navbar() {
                     <Link
                       href={link.href}
                       onClick={() => setMenuOpen(false)}
-                      className="text-white hover:text-bekon-gold transition-colors text-center font-display text-[36px] font-light"
+                      className={cn(
+                        "transition-colors text-center font-display text-[36px] font-light",
+                        isActive(link.href)
+                          ? "text-bekon-gold"
+                          : "text-white hover:text-bekon-gold"
+                      )}
                     >
                       {link.label}
                     </Link>
@@ -319,7 +354,12 @@ export function Navbar() {
                 <Link
                   href="/kontak"
                   onClick={() => setMenuOpen(false)}
-                  className="text-white hover:text-bekon-gold transition-colors text-center font-display text-[36px] font-light"
+                  className={cn(
+                    "transition-colors text-center font-display text-[36px] font-light",
+                    isActive("/kontak")
+                      ? "text-bekon-gold"
+                      : "text-white hover:text-bekon-gold"
+                  )}
                 >
                   Konsultasi Gratis
                 </Link>
