@@ -16,10 +16,6 @@ export default function AdminHeroTambahPage() {
   const [portfolios, setPortfolios] = useState<PortfolioOption[]>([])
   const [form, setForm] = useState({
     image: "",
-    title: "",
-    subtitle: "",
-    ctaText: "",
-    ctaLink: "",
     isActive: true,
     sourceType: "custom" as "custom" | "portfolio",
     portfolioId: "",
@@ -40,10 +36,6 @@ export default function AdminHeroTambahPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title.trim()) {
-      toast.error("Title wajib diisi")
-      return
-    }
     if (form.sourceType === "custom" && !form.image) {
       toast.error("Image wajib diupload")
       return
@@ -52,23 +44,21 @@ export default function AdminHeroTambahPage() {
       toast.error("Pilih portfolio terlebih dahulu")
       return
     }
-
     setLoading(true)
     try {
       const selectedPortfolio = portfolios.find((p) => p.id === form.portfolioId)
       const payload = {
-        ...form,
         image: form.sourceType === "portfolio" ? (selectedPortfolio?.coverImage || "") : form.image,
+        isActive: form.isActive,
+        sourceType: form.sourceType,
         portfolioId: form.sourceType === "portfolio" ? form.portfolioId : null,
       }
-
       const res = await fetch("/api/admin/hero-slides", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         credentials: "include",
       })
-
       if (res.ok) {
         toast.success("Hero slide berhasil dibuat")
         router.push("/admin/hero")
@@ -91,11 +81,9 @@ export default function AdminHeroTambahPage() {
         </button>
         <h1 className="text-2xl font-bold text-gray-900">Tambah Hero Slide</h1>
       </div>
-
       <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <h2 className="font-semibold text-gray-900">Image</h2>
-
           <div className="flex gap-4 mb-4">
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input
@@ -120,7 +108,6 @@ export default function AdminHeroTambahPage() {
               Dari Portfolio
             </label>
           </div>
-
           {form.sourceType === "custom" ? (
             <ImageUploader value={form.image} onChange={(url) => setForm((f) => ({ ...f, image: url }))} />
           ) : (
@@ -128,9 +115,7 @@ export default function AdminHeroTambahPage() {
               <label className="block text-sm font-medium text-gray-600 mb-1">Pilih Project Portfolio</label>
               <select
                 value={form.portfolioId}
-                onChange={(e) => {
-                  setForm((f) => ({ ...f, portfolioId: e.target.value }))
-                }}
+                onChange={(e) => setForm((f) => ({ ...f, portfolioId: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
               >
                 <option value="">Pilih portfolio...</option>
@@ -150,64 +135,8 @@ export default function AdminHeroTambahPage() {
             </div>
           )}
         </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900">Konten</h2>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Title *</label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              maxLength={100}
-              placeholder="Wujudkan Hunian Impian Anda"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none"
-              required
-            />
-            <span className="text-xs text-gray-400 mt-1">{form.title.length}/100</span>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Subtitle</label>
-            <textarea
-              value={form.subtitle}
-              onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
-              maxLength={200}
-              rows={3}
-              placeholder="Deskripsi singkat..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none resize-y"
-            />
-            <span className="text-xs text-gray-400 mt-1">{form.subtitle.length}/200</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">CTA Text</label>
-              <input
-                type="text"
-                value={form.ctaText}
-                onChange={(e) => setForm((f) => ({ ...f, ctaText: e.target.value }))}
-                placeholder="Konsultasi Gratis"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">CTA Link</label>
-              <input
-                type="text"
-                value={form.ctaLink}
-                onChange={(e) => setForm((f) => ({ ...f, ctaLink: e.target.value }))}
-                placeholder="/kontak"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <h2 className="font-semibold text-gray-900">Pengaturan</h2>
-
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input
               type="checkbox"
@@ -218,7 +147,6 @@ export default function AdminHeroTambahPage() {
             Active (tampil di halaman utama)
           </label>
         </div>
-
         <div className="flex gap-3">
           <button
             type="submit"

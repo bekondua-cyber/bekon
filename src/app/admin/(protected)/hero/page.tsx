@@ -146,7 +146,12 @@ export default function AdminHeroPage() {
   }
 
   const q = search.toLowerCase()
-  const filtered = items.filter((item) => item.title.toLowerCase().includes(q))
+  const filtered = items.filter((item) => {
+    const label = item.sourceType === "portfolio" && item.portfolio?.title
+      ? item.portfolio.title
+      : item.image || ""
+    return label.toLowerCase().includes(q)
+  })
   const allSelected = filtered.length > 0 && selected.length === filtered.length
 
   if (loading) return <LoadingState />
@@ -199,7 +204,6 @@ export default function AdminHeroPage() {
               </th>
               <th className="text-left px-4 py-3 font-medium text-gray-600 w-10"></th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Preview</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Title</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Order</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Tipe</th>
@@ -209,7 +213,7 @@ export default function AdminHeroPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-8 text-gray-500">
+                <td colSpan={7} className="text-center py-8 text-gray-500">
                   {search ? "Tidak ada slide yang cocok" : "Belum ada hero slide"}
                 </td>
               </tr>
@@ -231,7 +235,7 @@ export default function AdminHeroPage() {
                       checked={selected.includes(item.id)}
                       onChange={() => toggleOne(item.id)}
                       className="rounded border-gray-300"
-                      aria-label={`Pilih ${item.title}`}
+                      aria-label={`Pilih slide ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-3 text-gray-400 cursor-grab" title="Drag to reorder">
@@ -252,8 +256,7 @@ export default function AdminHeroPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate">{item.title}</td>
-                  <td className="px-4 py-3">
+                    <td className="px-4 py-3">
                     <button
                       onClick={() => handleToggleActive(item)}
                       className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${

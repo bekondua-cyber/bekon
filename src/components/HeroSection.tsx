@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Image from "next/image"
@@ -10,6 +9,20 @@ import { siteConfig } from "@/data/site-config"
 import type { HeroSlide } from "@/types/hero"
 
 const MotionImage = motion.create(Image)
+
+const STATIC_CONTENT = {
+  label: "Jasa Konstruksi & Desain — Serang, Banten",
+  title: "Wujudkan Hunian Impian Anda",
+  subtitle: "BEKON adalah mitra jangka panjang yang mewujudkan investasi hunian berkualitas dengan transparansi, estetika, dan ketepatan. Berpengalaman sejak 2009.",
+  ctaPrimary: {
+    text: "Konsultasi Gratis",
+    link: `https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis%20untuk%20proyek%20saya`,
+  },
+  ctaSecondary: {
+    text: "Lihat Portfolio",
+    link: "/portfolio",
+  },
+}
 
 export function HeroSection() {
   const [slides, setSlides] = useState<HeroSlide[]>([])
@@ -52,7 +65,7 @@ export function HeroSection() {
       aria-label="Hero BEKON - Jasa Bangun Rumah Serang"
       className="relative min-h-screen overflow-hidden"
     >
-      {/* Background Images */}
+      {/* Background Images - BERGANTI */}
       {displaySlides.map((s, i) => {
         const isActive = i === current
         const imageUrl = s.sourceType === "portfolio" && s.portfolio?.coverImage
@@ -62,7 +75,7 @@ export function HeroSection() {
           <MotionImage
             key={s.id}
             src={imageUrl}
-            alt={s.title}
+            alt={STATIC_CONTENT.title}
             fill
             sizes="100vw"
             quality={60}
@@ -80,9 +93,9 @@ export function HeroSection() {
       {/* Subtle dark overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/25 to-black/10" />
 
-      {/* Content overlay */}
+      {/* Content overlay - STATIS, TIDAK BERGANTI */}
       <div className="absolute inset-0 flex flex-col justify-center px-8 lg:px-24 gap-5">
-        <DesktopContent slides={displaySlides} current={current} />
+        <DesktopContent />
       </div>
 
       {/* Dot Navigator */}
@@ -121,10 +134,7 @@ export function HeroSection() {
   )
 }
 
-function DesktopContent({ slides, current }: { slides: HeroSlide[]; current: number }) {
-  const slide = slides[current]
-  if (!slide) return null
-
+function DesktopContent() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -132,54 +142,45 @@ function DesktopContent({ slides, current }: { slides: HeroSlide[]; current: num
       transition={{ duration: 0.9, ease: [0, 0, 0.2, 1], delay: 0.2 }}
       className="flex flex-col gap-5 pb-16 sm:pb-0"
     >
-      {/* Section label */}
       <span className="text-bekon-gold text-xs font-semibold uppercase tracking-[0.15em]">
-        Jasa Konstruksi & Desain &mdash; Serang, Banten
+        {STATIC_CONTENT.label}
       </span>
 
-      {/* Headline - blur block */}
       <div className="self-start max-w-3xl">
         <h1
           className="font-display text-5xl lg:text-[64px] xl:text-[72px] font-light leading-[1.05] text-white"
           style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
         >
-          {slide.title}
+          {STATIC_CONTENT.title}
         </h1>
       </div>
 
-      {/* Gold divider */}
       <div className="w-16 h-px bg-bekon-gold self-start ml-1" />
 
-      {/* Description - text shadow */}
-      {slide.subtitle && (
-        <div className="self-start max-w-md">
-          <p
-            className="text-white text-[16px] leading-relaxed"
-            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
-          >
-            {slide.subtitle}
-          </p>
-        </div>
-      )}
+      <div className="self-start max-w-md">
+        <p
+          className="text-white text-[16px] leading-relaxed"
+          style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
+        >
+          {STATIC_CONTENT.subtitle}
+        </p>
+      </div>
 
-      {/* CTA buttons */}
       <div className="flex flex-col sm:flex-row gap-4 self-start">
-        {slide.ctaLink && (
-          <a
-            href={slide.ctaLink.startsWith("http") ? slide.ctaLink : `https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
-          >
-            <WhatsAppIcon className="w-[18px] h-[18px]" aria-hidden="true" />
-            {slide.ctaText || "Konsultasi Gratis"}
-          </a>
-        )}
+        <a
+          href={STATIC_CONTENT.ctaPrimary.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
+        >
+          <WhatsAppIcon className="w-[18px] h-[18px]" aria-hidden="true" />
+          {STATIC_CONTENT.ctaPrimary.text}
+        </a>
         <Link
-          href="/portfolio"
+          href={STATIC_CONTENT.ctaSecondary.link}
           className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border-2 border-bekon-gold text-bekon-gold rounded-full transition-all duration-200 hover:bg-bekon-gold hover:text-white text-sm font-medium"
         >
-          Lihat Portfolio &rarr;
+          {STATIC_CONTENT.ctaSecondary.text} →
         </Link>
       </div>
     </motion.div>

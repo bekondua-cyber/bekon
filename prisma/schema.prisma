@@ -149,10 +149,6 @@ model Setting {
 model HeroSlide {
   id          String   @id @default(cuid())
   image       String
-  title       String
-  subtitle    String?
-  ctaText     String?
-  ctaLink     String?
   order       Int      @default(0)
   isActive    Boolean  @default(true)
   sourceType  String   @default("custom")

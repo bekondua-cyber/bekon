@@ -46,11 +46,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { image, title, subtitle, ctaText, ctaLink, sourceType, portfolioId, isActive } = body
+    const { image, sourceType, portfolioId, isActive } = body
 
-    if (!title || !title.trim()) {
-      return NextResponse.json({ error: "Title wajib diisi" }, { status: 400 })
-    }
     if (!image && sourceType !== "portfolio") {
       return NextResponse.json({ error: "Image wajib diisi" }, { status: 400 })
     }
@@ -61,10 +58,6 @@ export async function POST(request: NextRequest) {
     const slide = await prisma.heroSlide.create({
       data: {
         image: sourceType === "portfolio" ? "" : image,
-        title: title.trim(),
-        subtitle: subtitle?.trim() || null,
-        ctaText: ctaText?.trim() || null,
-        ctaLink: ctaLink?.trim() || null,
         order: nextOrder,
         isActive: isActive ?? true,
         sourceType: sourceType || "custom",
@@ -103,8 +96,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
-    const { id, image, title, subtitle, ctaText, ctaLink, order, isActive, sourceType, portfolioId } = body
-
+    const { id, image, order, isActive, sourceType, portfolioId } = body
     if (!id) {
       return NextResponse.json({ error: "ID wajib diisi" }, { status: 400 })
     }
@@ -118,10 +110,6 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: {
         ...(image !== undefined && { image }),
-        ...(title !== undefined && { title: title.trim() }),
-        ...(subtitle !== undefined && { subtitle: subtitle?.trim() || null }),
-        ...(ctaText !== undefined && { ctaText: ctaText?.trim() || null }),
-        ...(ctaLink !== undefined && { ctaLink: ctaLink?.trim() || null }),
         ...(order !== undefined && { order }),
         ...(isActive !== undefined && { isActive }),
         ...(sourceType !== undefined && { sourceType }),
