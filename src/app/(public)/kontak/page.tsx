@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function KontakPage() {
   return (
     <div className="min-h-screen bg-[#F8F5F0]">
-      <div className="max-w-3xl mx-auto w-full px-4 py-16">
+      <div className="max-w-3xl mx-auto w-full px-4 pt-28 pb-16">
         {/* Header Section */}
         <div className="text-center mb-12">
           <h1 className="font-display text-[clamp(32px,4vw,48px)] text-bekon-near-black">
@@ -26,9 +26,9 @@ export default function KontakPage() {
 
         <div className="space-y-6">
           {/* WhatsApp Card */}
-          <div className="bg-[#25D366]/10 border border-[#25D366]/30 rounded-xl p-8">
-            <h2 className="text-lg font-semibold text-bekon-near-black mb-6">
-              Konsultasi via WhatsApp
+          <div className="bg-black rounded-xl p-8">
+            <h2 className="text-lg font-semibold text-white mb-6">
+              Konsultasi Gratis Sekarang
             </h2>
             <div className="flex flex-wrap gap-4 justify-center">
               <a
