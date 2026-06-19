@@ -21,6 +21,8 @@ export default function AdminArtikelEditPage() {
   const id = params.id as string
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploadingThumb, setUploadingThumb] = useState(false)
+  const [thumbProgress, setThumbProgress] = useState(0)
   const [form, setForm] = useState<ArticleForm>({
     title: "",
     slug: "",
@@ -68,8 +70,15 @@ export default function AdminArtikelEditPage() {
   async function handleThumbnailUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    setUploadingThumb(true)
+    setThumbProgress(0)
+    const interval = setInterval(() => {
+      setThumbProgress(prev => {
+        if (prev >= 90) { clearInterval(interval); return 90 }
+        return Math.min(prev + Math.random() * 15, 90)
+      })
+    }, 200)
     try {
-      toast.loading("Mengupload thumbnail...")
       const formData = new FormData()
       formData.append("file", file)
       const res = await fetch("/api/admin/upload", {
@@ -79,11 +88,14 @@ export default function AdminArtikelEditPage() {
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || "Upload gagal")
+      clearInterval(interval)
+      setThumbProgress(100)
       setForm((f) => ({ ...f, thumbnail: json.data.url }))
-      toast.dismiss()
-      toast.success("Thumbnail berhasil diupload")
+      setTimeout(() => { setUploadingThumb(false); setThumbProgress(0) }, 500)
     } catch {
-      toast.dismiss()
+      clearInterval(interval)
+      setUploadingThumb(false)
+      setThumbProgress(0)
       toast.error("Gagal upload thumbnail")
     }
   }
@@ -201,7 +213,27 @@ export default function AdminArtikelEditPage() {
                 </button>
               </div>
             )}
-            <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="text-sm" />
+            {uploadingThumb ? (
+              <div className="flex items-center gap-3 py-2">
+                <div className="relative w-10 h-10 flex-shrink-0">
+                  <svg className="w-10 h-10 transform -rotate-90">
+                    <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="3" fill="none" className="text-gray-200" />
+                    <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray={`${(thumbProgress / 100) * 106.8} 106.8`} className="text-bekon-gold transition-all duration-300" strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[10px] font-semibold text-bekon-gold">{thumbProgress}%</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">Mengupload thumbnail...</p>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1 min-w-[120px]">
+                    <div className="bg-bekon-gold h-1.5 rounded-full transition-all duration-300" style={{ width: `${thumbProgress}%` }} />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="text-sm" />
+            )}
           </div>
 
           <label className="flex items-center gap-2 text-sm">

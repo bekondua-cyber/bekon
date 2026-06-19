@@ -26,6 +26,10 @@ export default function AdminPortfolioEditPage() {
   const id = params.id as string
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [uploadCoverProgress, setUploadCoverProgress] = useState(0)
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [uploadImagesProgress, setUploadImagesProgress] = useState(0)
   const [form, setForm] = useState<PortfolioForm>({
     title: "",
     slug: "",
@@ -98,17 +102,35 @@ export default function AdminPortfolioEditPage() {
     return json.data.url
   }
 
+  function simulateProgress(
+    setProgress: React.Dispatch<React.SetStateAction<number>>,
+    setIsUploading: (v: boolean) => void
+  ) {
+    setIsUploading(true)
+    setProgress(0)
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) { clearInterval(interval); return 90 }
+        return Math.min(prev + Math.random() * 15, 90)
+      })
+    }, 200)
+    return interval
+  }
+
   async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    const interval = simulateProgress(setUploadCoverProgress, setUploadingCover)
     try {
-      toast.loading("Mengupload cover...")
       const url = await uploadImage(file)
+      clearInterval(interval)
+      setUploadCoverProgress(100)
       setForm((f) => ({ ...f, coverImage: url }))
-      toast.dismiss()
-      toast.success("Cover berhasil diupload")
+      setTimeout(() => { setUploadingCover(false); setUploadCoverProgress(0) }, 500)
     } catch {
-      toast.dismiss()
+      clearInterval(interval)
+      setUploadingCover(false)
+      setUploadCoverProgress(0)
       toast.error("Gagal upload cover")
     }
   }
@@ -116,18 +138,21 @@ export default function AdminPortfolioEditPage() {
   async function handleImagesUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files
     if (!files) return
+    const interval = simulateProgress(setUploadImagesProgress, setUploadingImages)
     try {
-      toast.loading("Mengupload gambar...")
       const urls: string[] = []
       for (let i = 0; i < files.length; i++) {
         const url = await uploadImage(files[i])
         urls.push(url)
       }
+      clearInterval(interval)
+      setUploadImagesProgress(100)
       setForm((f) => ({ ...f, images: [...f.images, ...urls] }))
-      toast.dismiss()
-      toast.success(`${urls.length} gambar berhasil diupload`)
+      setTimeout(() => { setUploadingImages(false); setUploadImagesProgress(0) }, 500)
     } catch {
-      toast.dismiss()
+      clearInterval(interval)
+      setUploadingImages(false)
+      setUploadImagesProgress(0)
       toast.error("Gagal upload gambar")
     }
   }
@@ -287,7 +312,29 @@ export default function AdminPortfolioEditPage() {
             </div>
           )}
 
-          <input type="file" accept="image/*" onChange={handleCoverUpload} className="text-sm" />
+          <div className="relative">
+            {uploadingCover ? (
+              <div className="flex items-center gap-3 py-2">
+                <div className="relative w-10 h-10 flex-shrink-0">
+                  <svg className="w-10 h-10 transform -rotate-90">
+                    <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="3" fill="none" className="text-gray-200" />
+                    <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray={`${(uploadCoverProgress / 100) * 106.8} 106.8`} className="text-bekon-gold transition-all duration-300" strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[10px] font-semibold text-bekon-gold">{uploadCoverProgress}%</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">Mengupload cover...</p>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1 min-w-[120px]">
+                    <div className="bg-bekon-gold h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadCoverProgress}%` }} />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <input type="file" accept="image/*" onChange={handleCoverUpload} className="text-sm" />
+            )}
+          </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
@@ -308,7 +355,29 @@ export default function AdminPortfolioEditPage() {
             ))}
           </div>
 
-          <input type="file" accept="image/*" multiple onChange={handleImagesUpload} className="text-sm" />
+          <div className="relative">
+            {uploadingImages ? (
+              <div className="flex items-center gap-3 py-2">
+                <div className="relative w-10 h-10 flex-shrink-0">
+                  <svg className="w-10 h-10 transform -rotate-90">
+                    <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="3" fill="none" className="text-gray-200" />
+                    <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray={`${(uploadImagesProgress / 100) * 106.8} 106.8`} className="text-bekon-gold transition-all duration-300" strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[10px] font-semibold text-bekon-gold">{uploadImagesProgress}%</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">Mengupload gambar...</p>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1 min-w-[120px]">
+                    <div className="bg-bekon-gold h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadImagesProgress}%` }} />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <input type="file" accept="image/*" multiple onChange={handleImagesUpload} className="text-sm" />
+            )}
+          </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">

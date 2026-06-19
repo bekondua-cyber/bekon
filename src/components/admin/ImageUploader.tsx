@@ -8,6 +8,7 @@ interface ImageUploaderProps {
   onChange: (url: string) => void
   accept?: string
   maxSizeMB?: number
+  onUploadProgress?: (progress: number) => void
 }
 
 export function ImageUploader({
@@ -15,10 +16,13 @@ export function ImageUploader({
   onChange,
   accept = "image/*",
   maxSizeMB = 5,
+  onUploadProgress,
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   async function uploadImage(file: File): Promise<string> {
     const formData = new FormData()
@@ -49,16 +53,43 @@ export function ImageUploader({
     }
     try {
       setUploading(true)
-      toast.loading("Mengupload gambar...")
+      setUploadProgress(0)
+
+      if (onUploadProgress) onUploadProgress(0)
+
+      progressIntervalRef.current = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+            return 90
+          }
+          const next = prev + Math.random() * 15
+          return Math.min(next, 90)
+        })
+      }, 200)
+
       const url = await uploadImage(file)
+
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+      setUploadProgress(100)
+
       onChange(url)
-      toast.dismiss()
-      toast.success("Gambar berhasil diupload")
+
+      if (onUploadProgress) onUploadProgress(100)
+
+      setTimeout(() => {
+        setUploadProgress(0)
+        setUploading(false)
+        if (onUploadProgress) onUploadProgress(0)
+      }, 800)
+
     } catch (err) {
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+      setUploadProgress(0)
+      setUploading(false)
       toast.dismiss()
       toast.error(err instanceof Error ? err.message : "Gagal upload gambar")
-    } finally {
-      setUploading(false)
+      if (onUploadProgress) onUploadProgress(0)
     }
   }
 
@@ -86,30 +117,81 @@ export function ImageUploader({
           dragOver
             ? "border-bekon-gold bg-bekon-gold/5"
             : "border-gray-300 hover:border-gray-400"
-        }`}
+        } ${uploading ? "pointer-events-none" : ""}`}
       >
         {value ? (
           <div className="relative w-full aspect-video max-h-48 mx-auto rounded-lg overflow-hidden">
-            <Image src={value} alt="Preview" fill className="object-cover" unoptimized />
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onChange("") }}
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 transition-colors"
-              aria-label="Hapus gambar"
-            >
-              ×
-            </button>
+            <Image
+              src={value}
+              alt="Preview"
+              fill
+              className="object-cover"
+              unoptimized
+            />
+            {!uploading && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onChange("") }}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 transition-colors"
+                aria-label="Hapus gambar"
+              >
+                ×
+              </button>
+            )}
           </div>
         ) : (
           <div className="py-8">
             {uploading ? (
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 border-2 border-bekon-gold border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm text-gray-500">Mengupload...</span>
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative w-16 h-16">
+                  <svg className="w-16 h-16 transform -rotate-90">
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      className="text-gray-200"
+                    />
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray={`${(uploadProgress / 100) * 175.9} 175.9`}
+                      className="text-bekon-gold transition-all duration-300"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-sm font-semibold text-bekon-gold">
+                      {uploadProgress}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-sm text-gray-600 font-medium">
+                    Mengupload...
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    Mohon tunggu
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="text-gray-400"
+                >
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
@@ -131,8 +213,23 @@ export function ImageUploader({
           onChange={handleInputChange}
           className="hidden"
           aria-label="Pilih gambar"
+          disabled={uploading}
         />
       </div>
+
+      {uploading && uploadProgress > 0 && uploadProgress < 100 && (
+        <div className="mt-3">
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-bekon-gold h-2 rounded-full transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-1 text-center">
+            Upload progress: {uploadProgress}%
+          </p>
+        </div>
+      )}
     </div>
   )
 }
