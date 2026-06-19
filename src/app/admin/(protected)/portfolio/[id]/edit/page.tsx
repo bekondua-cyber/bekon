@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
+import Image from "next/image"
 import { toast } from "sonner"
 
 const categories = ["eksterior", "interior", "bangun", "renovasi", "kost-ruko"]
@@ -275,7 +276,7 @@ export default function AdminPortfolioEditPage() {
 
           {form.coverImage && (
             <div className="relative w-48 h-32 rounded-lg overflow-hidden">
-              <img src={form.coverImage} alt="Cover" className="w-full h-full object-cover" />
+              <Image src={form.coverImage} alt="Cover" fill className="object-cover" unoptimized />
               <button
                 type="button"
                 onClick={() => setForm((f) => ({ ...f, coverImage: "" }))}
@@ -295,7 +296,7 @@ export default function AdminPortfolioEditPage() {
           <div className="grid grid-cols-5 gap-3">
             {form.images.map((url, i) => (
               <div key={i} className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
-                <img src={url} alt="" className="w-full h-full object-cover" />
+                <Image src={url} alt="" fill className="object-cover" unoptimized />
                 <button
                   type="button"
                   onClick={() => removeImage(i)}

@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { ChevronDown, MessageCircle } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { WhatsAppIcon } from "@/components/Icons";
 import Link from "next/link";
 import { siteConfig } from "@/data/site-config";
 
@@ -161,7 +162,7 @@ function DesktopContent() {
           rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-white rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
         >
-          <MessageCircle className="w-[18px] h-[18px]" aria-hidden="true" />
+          <WhatsAppIcon className="w-[18px] h-[18px]" aria-hidden="true" />
           Konsultasi Gratis
         </a>
         <Link

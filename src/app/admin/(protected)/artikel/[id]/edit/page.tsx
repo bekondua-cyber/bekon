@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
+import Image from "next/image"
 import { toast } from "sonner"
 import { RichTextEditor } from "@/components/admin/RichTextEditor"
 
@@ -190,7 +191,7 @@ export default function AdminArtikelEditPage() {
             <label className="block text-sm font-medium text-gray-600 mb-1">Thumbnail</label>
             {form.thumbnail && (
               <div className="relative w-48 h-32 rounded-lg overflow-hidden mb-2">
-                <img src={form.thumbnail} alt="" className="w-full h-full object-cover" />
+                <Image src={form.thumbnail} alt="" fill className="object-cover" unoptimized />
                 <button
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, thumbnail: "" }))}
