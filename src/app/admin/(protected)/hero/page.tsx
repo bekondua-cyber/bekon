@@ -40,6 +40,9 @@ export default function AdminHeroPage() {
       if (res.ok) {
         toast.success("Slide berhasil dihapus")
         fetchItems()
+      } else if (res.status === 404) {
+        toast.info("Slide ini sudah terhapus sebelumnya")
+        fetchItems()
       } else {
         toast.error("Gagal menghapus slide")
       }

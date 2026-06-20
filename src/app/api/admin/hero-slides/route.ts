@@ -47,6 +47,10 @@ function validationErrorResponse(error: z.ZodError) {
   )
 }
 
+function isPrismaErrorCode(error: unknown, code: string): boolean {
+  return typeof error === "object" && error !== null && "code" in error && (error as { code: unknown }).code === code
+}
+
 export async function GET(request: NextRequest) {
   const unauthorized = await requireAdmin()
   if (unauthorized) return unauthorized
@@ -229,7 +233,17 @@ export async function DELETE(request: NextRequest) {
 
     if (id) {
       console.log("[Hero Slides API] Deleting single slide:", id)
-      await prisma.heroSlide.delete({ where: { id } })
+      try {
+        await prisma.heroSlide.delete({ where: { id } })
+      } catch (deleteError) {
+        if (isPrismaErrorCode(deleteError, "P2025")) {
+          return NextResponse.json(
+            { error: "Hero slide tidak ditemukan (kemungkinan sudah terhapus sebelumnya)" },
+            { status: 404 }
+          )
+        }
+        throw deleteError
+      }
       return NextResponse.json({ success: true })
     }
 
