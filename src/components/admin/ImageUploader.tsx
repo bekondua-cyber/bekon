@@ -15,7 +15,7 @@ export function ImageUploader({
   value,
   onChange,
   accept = "image/*",
-  maxSizeMB = 5,
+  maxSizeMB = 4,
   onUploadProgress,
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false)
@@ -34,6 +34,16 @@ export function ImageUploader({
       credentials: "include",
     })
     console.log("[ImageUploader] Upload response status:", res.status)
+
+    if (res.status === 413) {
+      throw new Error(`File terlalu besar untuk server. Coba kompres atau gunakan file di bawah ${maxSizeMB}MB.`)
+    }
+
+    const contentType = res.headers.get("content-type") || ""
+    if (!contentType.includes("application/json")) {
+      throw new Error(`Upload gagal (server merespons status ${res.status})`)
+    }
+
     const json = await res.json()
     console.log("[ImageUploader] Upload response data:", json)
     if (!res.ok) {
