@@ -355,7 +355,7 @@ export default function AdminPortfolioTambahPage() {
         <div className="flex gap-3">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || uploadingCover || uploadingImages}
             className="px-6 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors disabled:opacity-50"
           >
             {loading ? "Menyimpan..." : "Simpan"}

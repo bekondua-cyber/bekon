@@ -42,7 +42,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
+    console.log("[Portfolio API] POST received:", JSON.stringify({ ...body, images: `${(body.images || []).length} images` }))
     const item = await prisma.portfolio.create({ data: body })
+    console.log("[Portfolio API] Created portfolio:", item.id)
     return NextResponse.json({ data: item })
   } catch (error) {
     console.error("POST /api/admin/portfolio error:", error)
@@ -59,6 +61,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json()
+    console.log("[Portfolio API] PUT received, id:", body.id)
     const { id, ...data } = body
 
     if (!id) {
@@ -68,10 +71,12 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    console.log("[Portfolio API] Updating portfolio:", id)
     const item = await prisma.portfolio.update({
       where: { id },
       data,
     })
+    console.log("[Portfolio API] Updated portfolio:", item.id)
     return NextResponse.json({ data: item })
   } catch (error) {
     console.error("PUT /api/admin/portfolio error:", error)
@@ -90,15 +95,21 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")
 
-    if (!id) {
-      return NextResponse.json(
-        { error: "ID wajib diisi" },
-        { status: 400 }
-      )
+    if (id) {
+      await prisma.portfolio.delete({ where: { id } })
+      return NextResponse.json({ success: true })
     }
 
-    await prisma.portfolio.delete({ where: { id } })
-    return NextResponse.json({ success: true })
+    const body = await request.json().catch(() => ({}))
+    if (body.ids && Array.isArray(body.ids) && body.ids.length > 0) {
+      await prisma.portfolio.deleteMany({ where: { id: { in: body.ids } } })
+      return NextResponse.json({ success: true })
+    }
+
+    return NextResponse.json(
+      { error: "ID atau ids wajib diisi" },
+      { status: 400 }
+    )
   } catch (error) {
     console.error("DELETE /api/admin/portfolio error:", error)
     return NextResponse.json(

@@ -49,6 +49,11 @@ export default function AdminPortfolioEditPage() {
       try {
         const res = await fetch(`/api/admin/portfolio?id=${id}`, { credentials: "include" })
         const json = await res.json()
+        if (!res.ok) {
+          toast.error(json.error || "Gagal memuat data portfolio")
+          setLoading(false)
+          return
+        }
         const d = json.data
         if (d) {
           setForm({
@@ -409,7 +414,7 @@ export default function AdminPortfolioEditPage() {
         <div className="flex gap-3">
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || uploadingCover || uploadingImages}
             className="px-6 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors disabled:opacity-50"
           >
             {saving ? "Menyimpan..." : "Simpan Perubahan"}

@@ -20,6 +20,7 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten di
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
+        link: false,
       }),
       LinkExtension.configure({
         openOnClick: false,
@@ -31,6 +32,7 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten di
       Placeholder.configure({ placeholder }),
     ],
     content: value,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

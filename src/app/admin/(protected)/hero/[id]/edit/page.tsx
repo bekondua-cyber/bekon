@@ -40,6 +40,12 @@ export default function AdminHeroEditPage() {
         const portfolioJson = await portfolioRes.json()
         setPortfolios(portfolioJson.data || [])
 
+        if (!slideRes.ok) {
+          toast.error(slideJson.error || "Gagal memuat data slide")
+          setLoading(false)
+          return
+        }
+
         const d = slideJson.data
         if (d) {
           setForm({

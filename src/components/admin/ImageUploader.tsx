@@ -25,6 +25,7 @@ export function ImageUploader({
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   async function uploadImage(file: File): Promise<string> {
+    console.log("[ImageUploader] Uploading file:", file.name, `(${(file.size / 1024 / 1024).toFixed(2)}MB)`)
     const formData = new FormData()
     formData.append("file", file)
     const res = await fetch("/api/admin/upload", {
@@ -32,13 +33,16 @@ export function ImageUploader({
       body: formData,
       credentials: "include",
     })
+    console.log("[ImageUploader] Upload response status:", res.status)
     const json = await res.json()
+    console.log("[ImageUploader] Upload response data:", json)
     if (!res.ok) {
       throw new Error(json.detail || json.error || "Upload gagal")
     }
     if (!json.data?.url) {
       throw new Error("Response tidak mengandung URL gambar")
     }
+    console.log("[ImageUploader] Upload success, URL:", json.data.url)
     return json.data.url
   }
 

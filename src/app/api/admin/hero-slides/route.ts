@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
+    console.log("[Hero Slides API] POST received:", JSON.stringify(body))
     const { image, sourceType, portfolioId, isActive } = body
 
     if (!image && sourceType !== "portfolio") {
@@ -55,9 +56,10 @@ export async function POST(request: NextRequest) {
     const maxOrder = await prisma.heroSlide.aggregate({ _max: { order: true } })
     const nextOrder = (maxOrder._max.order ?? -1) + 1
 
+    console.log("[Hero Slides API] Creating slide with order:", nextOrder)
     const slide = await prisma.heroSlide.create({
       data: {
-        image: sourceType === "portfolio" ? "" : image,
+        image: image || "",
         order: nextOrder,
         isActive: isActive ?? true,
         sourceType: sourceType || "custom",
@@ -83,9 +85,11 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json()
+    console.log("[Hero Slides API] PUT received:", JSON.stringify(body))
 
     // Bulk reorder
     if (body.slides && Array.isArray(body.slides)) {
+      console.log("[Hero Slides API] Bulk reorder:", body.slides.length, "slides")
       const updates = body.slides.map((s: { id: string; order: number }) =>
         prisma.heroSlide.update({
           where: { id: s.id },
@@ -101,8 +105,10 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "ID wajib diisi" }, { status: 400 })
     }
 
+    console.log("[Hero Slides API] Updating slide:", id)
     const existing = await prisma.heroSlide.findUnique({ where: { id } })
     if (!existing) {
+      console.log("[Hero Slides API] Slide not found:", id)
       return NextResponse.json({ error: "Hero slide not found" }, { status: 404 })
     }
 
@@ -136,14 +142,17 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")
+    console.log("[Hero Slides API] DELETE received, id:", id)
 
     if (id) {
+      console.log("[Hero Slides API] Deleting single slide:", id)
       await prisma.heroSlide.delete({ where: { id } })
       return NextResponse.json({ success: true })
     }
 
     const body = await request.json().catch(() => ({}))
     const ids = body.ids
+    console.log("[Hero Slides API] Bulk delete, ids:", ids)
     if (ids && Array.isArray(ids) && ids.length > 0) {
       await prisma.heroSlide.deleteMany({ where: { id: { in: ids } } })
       return NextResponse.json({ success: true })
