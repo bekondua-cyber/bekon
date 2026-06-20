@@ -64,7 +64,6 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${cormorant.variable} ${inter.variable}`}>
       <head>
-        <link rel="preload" as="image" href="/hero-fallback.jpg" />
         <style dangerouslySetInnerHTML={{ __html: criticalCSS }} />
       </head>
       <body className="antialiased">
