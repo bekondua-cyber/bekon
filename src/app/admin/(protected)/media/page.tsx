@@ -24,6 +24,8 @@ export default function AdminMediaPage() {
   const [items, setItems] = useState<MediaItem[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [isDeleting, setIsDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -75,7 +77,7 @@ export default function AdminMediaPage() {
     }
   }
 
-  async function handleDelete(publicId: string) {
+  async function handleSingleDelete(publicId: string) {
     if (!confirm("Yakin ingin menghapus file ini?")) return
     try {
       const res = await fetch("/api/admin/upload", {
@@ -95,6 +97,48 @@ export default function AdminMediaPage() {
     }
   }
 
+  async function handleBulkDelete() {
+    if (selectedIds.length === 0) return
+    if (!confirm(`Yakin ingin menghapus ${selectedIds.length} gambar terpilih?`)) return
+
+    setIsDeleting(true)
+    try {
+      const res = await fetch("/api/admin/media", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds }),
+        credentials: "include",
+      })
+
+      if (res.ok) {
+        toast.success(`${selectedIds.length} gambar berhasil dihapus`)
+        setItems((prev) => prev.filter((m) => !selectedIds.includes(m.id)))
+        setSelectedIds([])
+      } else {
+        const json = await res.json()
+        toast.error(json.error || "Gagal menghapus gambar")
+      }
+    } catch {
+      toast.error("Gagal menghapus gambar")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === items.length) {
+      setSelectedIds([])
+    } else {
+      setSelectedIds(items.map((m) => m.id))
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
+    )
+  }
+
   function copyToClipboard(url: string) {
     navigator.clipboard.writeText(url)
     toast.success("URL berhasil disalin")
@@ -107,6 +151,8 @@ export default function AdminMediaPage() {
       </div>
     )
   }
+
+  const allSelected = items.length > 0 && selectedIds.length === items.length
 
   return (
     <div>
@@ -131,14 +177,78 @@ export default function AdminMediaPage() {
         </div>
       </div>
 
+      {selectedIds.length > 0 && (
+        <div className="mb-4 flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <span className="text-sm text-blue-900 font-medium">
+            {selectedIds.length} gambar terpilih
+          </span>
+          <button
+            onClick={() => setSelectedIds([])}
+            className="px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100 rounded transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleBulkDelete}
+            disabled={isDeleting}
+            className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isDeleting ? (
+              <>
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Menghapus...
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Hapus Terpilih
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
       {items.length === 0 ? (
         <div className="text-center py-8 text-gray-500">Belum ada media</div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {items.length > 0 && (
+            <div className="bg-gray-50 rounded-lg border-2 border-gray-300 p-4 flex items-center justify-center">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleSelectAll}
+                className="w-6 h-6 text-bekon-gold border-gray-300 rounded focus:ring-bekon-gold"
+                title="Pilih semua"
+              />
+            </div>
+          )}
+
           {items.map((item) => (
-            <div key={item.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden group">
-              <div className="aspect-video bg-gray-100 relative">
-                <img src={item.url} alt={item.filename} className="w-full h-full object-cover" />
+            <div
+              key={item.id}
+              className={`group relative bg-white rounded-xl border-2 overflow-hidden transition-all ${
+                selectedIds.includes(item.id)
+                  ? "border-bekon-gold shadow-lg"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <div className="absolute top-2 left-2 z-10">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(item.id)}
+                  onChange={() => toggleSelect(item.id)}
+                  className="w-5 h-5 text-bekon-gold border-gray-300 rounded focus:ring-bekon-gold bg-white/90"
+                />
+              </div>
+
+              <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                <img src={item.url} alt={item.filename} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <button
                     onClick={() => copyToClipboard(item.url)}
@@ -147,7 +257,7 @@ export default function AdminMediaPage() {
                     Copy URL
                   </button>
                   <button
-                    onClick={() => handleDelete(item.publicId)}
+                    onClick={() => handleSingleDelete(item.publicId)}
                     className="px-2 py-1 bg-red-500 text-white rounded text-xs font-medium"
                   >
                     Hapus
