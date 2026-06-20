@@ -208,7 +208,7 @@ export function Navbar() {
             <div className="hidden lg:block">
               <Link
                 href="/kontak"
-                className="px-5 py-2 rounded-full text-sm font-medium bg-bekon-gold text-white hover:bg-bekon-gold-dark hover:-translate-y-0.5 transition-all duration-200"
+                className="px-5 py-2 rounded-full text-sm font-medium bg-bekon-gold text-bekon-near-black hover:bg-bekon-gold-dark hover:-translate-y-0.5 transition-all duration-200"
               >
                 Konsultasi Gratis
               </Link>

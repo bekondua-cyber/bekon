@@ -4,7 +4,7 @@ import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["300", "400", "600"],
+  weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-cormorant",
   display: "swap",
@@ -12,7 +12,7 @@ const cormorant = Cormorant_Garamond({
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   variable: "--font-inter",
   display: "swap",
 });
@@ -49,6 +49,13 @@ export const metadata: Metadata = {
   },
 };
 
+const criticalCSS = `
+  .hero-critical {
+    min-height: 100vh;
+    position: relative;
+  }
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -56,6 +63,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${cormorant.variable} ${inter.variable}`}>
+      <head>
+        <link rel="preload" as="image" href="/hero-fallback.jpg" />
+        <style dangerouslySetInnerHTML={{ __html: criticalCSS }} />
+      </head>
       <body className="antialiased">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-bekon-gold focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
           Langsung ke konten utama

@@ -85,6 +85,7 @@ export function HeroSection() {
             quality={60}
             className="object-cover"
             priority={i === 0}
+            fetchPriority={i === 0 ? "high" : "auto"}
             {...(i !== 0 ? { loading: "lazy" } : {})}
             animate={{
               opacity: isActive ? 1 : 0,

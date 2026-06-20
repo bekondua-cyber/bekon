@@ -22,6 +22,7 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
           { key: 'X-Robots-Tag', value: 'index, follow' },
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -38,16 +39,25 @@ const nextConfig = {
       },
     ];
   },
-  // Optimize package imports to reduce unused JS
   experimental: {
     optimizePackageImports: ['framer-motion', 'lucide-react'],
   },
-  webpack: (config) => {
+  webpack: (config, { dev, isServer }) => {
     config.watchOptions = {
-      ignored: ['**/node_modules', '**/.git', '**/Application Data/**', 'C:\\Users\\PC\\Cookies', 'C:/Users/**'],
+      ignored: [
+        '**/node_modules/**', '**/.git/**',
+        '**/Application Data/**',
+        'C:\\Users\\PC\\Cookies/**', 'C:/Users/**',
+      ],
+    }
+    if (!dev && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+      }
     }
     return config
-  },
-};
+  };
 
 export default nextConfig;

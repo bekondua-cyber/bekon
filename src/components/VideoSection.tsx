@@ -74,7 +74,7 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
         >
           {playing && activeVideo ? (
             <iframe
-              src={`https://www.youtube.com/embed/${activeVideo.youtubeId}?autoplay=1`}
+              src={`https://www.youtube-nocookie.com/embed/${activeVideo.youtubeId}?autoplay=1`}
               title={activeVideo.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

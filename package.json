@@ -56,6 +56,12 @@
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
   },
+  "browserslist": [
+    "chrome >= 90",
+    "edge >= 90",
+    "firefox >= 85",
+    "safari >= 14"
+  ],
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.19.43",
