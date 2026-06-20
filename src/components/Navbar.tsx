@@ -57,6 +57,7 @@ export function Navbar() {
               aria-label="BEKON - Bangun Eka Konstruksi"
               className="flex items-center gap-2 md:gap-3"
             >
+              <span className="sr-only">BEKON - Bangun Eka Konstruksi</span>
               <div className="flex-shrink-0">
                 {logoError ? (
                   <div className="w-10 h-10 bg-bekon-gold rounded-lg flex items-center justify-center">

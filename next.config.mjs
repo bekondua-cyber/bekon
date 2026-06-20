@@ -22,7 +22,7 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' },
           { key: 'X-Robots-Tag', value: 'index, follow' },
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -50,6 +50,8 @@ const nextConfig = {
         ...config.optimization,
         usedExports: true,
         sideEffects: false,
+        providedExports: true,
+        concatenateModules: true,
       }
     }
     return config

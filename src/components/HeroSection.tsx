@@ -81,8 +81,8 @@ export function HeroSection() {
             src={imageUrl}
             alt={STATIC_CONTENT.title}
             fill
-            sizes="100vw"
-            quality={60}
+            sizes="(max-width: 768px) 100vw, 100vw"
+            quality={50}
             className="object-cover"
             priority={i === 0}
             fetchPriority={i === 0 ? "high" : "auto"}
