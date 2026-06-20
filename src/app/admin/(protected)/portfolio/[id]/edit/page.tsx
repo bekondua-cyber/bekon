@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import { toast } from "sonner"
+import { uploadFile } from "@/lib/upload-client"
 
 const categories = ["eksterior", "interior", "bangun", "renovasi", "kost-ruko"]
 
@@ -87,26 +88,6 @@ export default function AdminPortfolioEditPage() {
     setForm((f) => ({ ...f, title, slug: generateSlug(title) }))
   }
 
-  async function uploadImage(file: File): Promise<string> {
-    const formData = new FormData()
-    formData.append("file", file)
-    const res = await fetch("/api/admin/upload", {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    })
-    const json = await res.json()
-    if (!res.ok) {
-      console.error("Upload error:", json)
-      throw new Error(json.detail || json.error || "Upload gagal")
-    }
-    if (!json.data?.url) {
-      console.error("Upload response missing URL:", json)
-      throw new Error("Response tidak mengandung URL gambar")
-    }
-    return json.data.url
-  }
-
   function simulateProgress(
     setProgress: React.Dispatch<React.SetStateAction<number>>,
     setIsUploading: (v: boolean) => void
@@ -127,16 +108,16 @@ export default function AdminPortfolioEditPage() {
     if (!file) return
     const interval = simulateProgress(setUploadCoverProgress, setUploadingCover)
     try {
-      const url = await uploadImage(file)
+      const media = await uploadFile(file)
       clearInterval(interval)
       setUploadCoverProgress(100)
-      setForm((f) => ({ ...f, coverImage: url }))
+      setForm((f) => ({ ...f, coverImage: media.url }))
       setTimeout(() => { setUploadingCover(false); setUploadCoverProgress(0) }, 500)
-    } catch {
+    } catch (err) {
       clearInterval(interval)
       setUploadingCover(false)
       setUploadCoverProgress(0)
-      toast.error("Gagal upload cover")
+      toast.error(err instanceof Error ? err.message : "Gagal upload cover")
     }
   }
 
@@ -147,18 +128,18 @@ export default function AdminPortfolioEditPage() {
     try {
       const urls: string[] = []
       for (let i = 0; i < files.length; i++) {
-        const url = await uploadImage(files[i])
-        urls.push(url)
+        const media = await uploadFile(files[i])
+        urls.push(media.url)
       }
       clearInterval(interval)
       setUploadImagesProgress(100)
       setForm((f) => ({ ...f, images: [...f.images, ...urls] }))
       setTimeout(() => { setUploadingImages(false); setUploadImagesProgress(0) }, 500)
-    } catch {
+    } catch (err) {
       clearInterval(interval)
       setUploadingImages(false)
       setUploadImagesProgress(0)
-      toast.error("Gagal upload gambar")
+      toast.error(err instanceof Error ? err.message : "Gagal upload gambar")
     }
   }
 

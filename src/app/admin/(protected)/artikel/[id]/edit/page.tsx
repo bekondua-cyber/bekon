@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import { toast } from "sonner"
 import { RichTextEditor } from "@/components/admin/RichTextEditor"
+import { uploadFile } from "@/lib/upload-client"
 
 interface ArticleForm {
   title: string
@@ -82,24 +83,16 @@ export default function AdminArtikelEditPage() {
       })
     }, 200)
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Upload gagal")
+      const media = await uploadFile(file)
       clearInterval(interval)
       setThumbProgress(100)
-      setForm((f) => ({ ...f, thumbnail: json.data.url }))
+      setForm((f) => ({ ...f, thumbnail: media.url }))
       setTimeout(() => { setUploadingThumb(false); setThumbProgress(0) }, 500)
-    } catch {
+    } catch (err) {
       clearInterval(interval)
       setUploadingThumb(false)
       setThumbProgress(0)
-      toast.error("Gagal upload thumbnail")
+      toast.error(err instanceof Error ? err.message : "Gagal upload thumbnail")
     }
   }
 

@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState, useRef } from "react"
 import { toast } from "sonner"
+import { uploadFile } from "@/lib/upload-client"
 
 interface MediaItem {
   id: string
@@ -50,31 +51,27 @@ export default function AdminMediaPage() {
 
     setUploading(true)
     let successCount = 0
+    const errors: string[] = []
 
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const formData = new FormData()
-        formData.append("file", files[i])
-        const res = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        })
-        if (res.ok) successCount++
+    for (let i = 0; i < files.length; i++) {
+      try {
+        await uploadFile(files[i])
+        successCount++
+      } catch (err) {
+        errors.push(`${files[i].name}: ${err instanceof Error ? err.message : "Upload gagal"}`)
       }
-
-      if (successCount > 0) {
-        toast.success(`${successCount} file berhasil diupload`)
-        fetchItems()
-      } else {
-        toast.error("Gagal upload file")
-      }
-    } catch {
-      toast.error("Gagal upload file")
-    } finally {
-      setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ""
     }
+
+    if (successCount > 0) {
+      toast.success(`${successCount} file berhasil diupload`)
+      fetchItems()
+    }
+    if (errors.length > 0) {
+      errors.forEach((e) => toast.error(e))
+    }
+
+    setUploading(false)
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   async function handleSingleDelete(publicId: string) {

@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { Edit, Trash2, User } from "lucide-react"
 import { AdminSearch } from "@/components/admin/AdminSearch"
 import { ProfileCardSkeleton } from "@/components/admin/AdminSkeleton"
+import { uploadFile } from "@/lib/upload-client"
 
 interface TeamMember {
   id: string
@@ -84,20 +85,16 @@ export default function AdminTimPage() {
       })
     }, 200)
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      const res = await fetch("/api/admin/upload", { method: "POST", body: formData, credentials: "include" })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Upload gagal")
+      const media = await uploadFile(file)
       clearInterval(interval)
       setPhotoProgress(100)
-      setForm((f) => ({ ...f, photo: json.data.url }))
+      setForm((f) => ({ ...f, photo: media.url }))
       setTimeout(() => { setUploadingPhoto(false); setPhotoProgress(0) }, 500)
-    } catch {
+    } catch (err) {
       clearInterval(interval)
       setUploadingPhoto(false)
       setPhotoProgress(0)
-      toast.error("Gagal upload foto")
+      toast.error(err instanceof Error ? err.message : "Gagal upload foto")
     }
   }
 
