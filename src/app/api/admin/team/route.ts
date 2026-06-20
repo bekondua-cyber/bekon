@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 
 export const dynamic = "force-dynamic"
+
+const teamCreateSchema = z.object({
+  name: z.string().min(1, "Nama wajib diisi"),
+  role: z.string().optional().nullable(),
+  bio: z.string().optional().nullable(),
+  photo: z.string().optional().nullable(),
+  sortOrder: z.number().int().optional(),
+  isActive: z.boolean().optional(),
+})
+
+const teamUpdateSchema = teamCreateSchema.partial()
+
+function validationErrorResponse(error: z.ZodError) {
+  return NextResponse.json(
+    {
+      error: "Validasi gagal",
+      details: error.issues.map((e) => ({ field: e.path.join("."), message: e.message })),
+    },
+    { status: 400 }
+  )
+}
 
 export async function GET() {
   const unauthorized = await requireAdmin()
@@ -28,7 +50,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const item = await prisma.teamMember.create({ data: body })
+    const validation = teamCreateSchema.safeParse(body)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+
+    const item = await prisma.teamMember.create({ data: validation.data })
     return NextResponse.json({ data: item })
   } catch (error) {
     console.error("POST /api/admin/team error:", error)
@@ -54,9 +81,14 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const validation = teamUpdateSchema.safeParse(data)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+
     const item = await prisma.teamMember.update({
       where: { id },
-      data,
+      data: validation.data,
     })
     return NextResponse.json({ data: item })
   } catch (error) {

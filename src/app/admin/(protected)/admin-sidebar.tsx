@@ -157,11 +157,10 @@ export function AdminSidebar() {
           &larr; Lihat Website
         </Link>
         <button
-          onClick={() => {
-            import("@/lib/auth").then((m) => {
-              m.logout();
-              window.location.href = "/admin/login";
-            });
+          onClick={async () => {
+            const { logout } = await import("@/lib/auth");
+            await logout();
+            window.location.href = "/admin/login";
           }}
           className="block text-gray-500 text-xs hover:text-red-400 transition-colors w-full text-left"
         >

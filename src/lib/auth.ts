@@ -7,8 +7,7 @@ export function isAuthenticated() {
     .find((c) => c.startsWith("next-auth.session-token=") || c.startsWith("__Secure-next-auth.session-token="))
 }
 
-export function logout() {
-  import("next-auth/react").then(({ signOut }) => {
-    signOut({ callbackUrl: "/admin/login" })
-  })
+export async function logout() {
+  const { signOut } = await import("next-auth/react")
+  await signOut({ redirect: false })
 }

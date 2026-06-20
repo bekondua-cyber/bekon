@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
+
+const leadUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  phone: z.string().optional().nullable(),
+  service: z.string().optional().nullable(),
+  budget: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  message: z.string().optional().nullable(),
+  status: z.enum(["new", "contacted", "survey", "proposal", "closing", "cancelled"]).optional(),
+  notes: z.string().optional().nullable(),
+})
+
+function validationErrorResponse(error: z.ZodError) {
+  return NextResponse.json(
+    {
+      error: "Validasi gagal",
+      details: error.issues.map((e) => ({ field: e.path.join("."), message: e.message })),
+    },
+    { status: 400 }
+  )
+}
 
 export async function GET() {
   const unauthorized = await requireAdmin()
@@ -35,9 +57,14 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const validation = leadUpdateSchema.safeParse(data)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+
     const item = await prisma.lead.update({
       where: { id },
-      data,
+      data: validation.data,
     })
     return NextResponse.json({ data: item })
   } catch (error) {

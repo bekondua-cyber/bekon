@@ -7,7 +7,8 @@ import { hashSync } from "bcryptjs"
 const prisma = new PrismaClient()
 
 async function main() {
-  const password = hashSync("bekon123", 12)
+  const defaultPassword = process.env.SEED_ADMIN_PASSWORD || "admin123"
+  const password = hashSync(defaultPassword, 12)
 
   await prisma.user.upsert({
     where: { email: "admin@bekon.com" },

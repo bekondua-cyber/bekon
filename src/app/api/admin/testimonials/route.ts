@@ -1,8 +1,33 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 
 export const dynamic = "force-dynamic"
+
+const testimonialCreateSchema = z.object({
+  clientName: z.string().min(1, "Nama klien wajib diisi"),
+  content: z.string().min(1, "Isi testimoni wajib diisi"),
+  projectType: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  rating: z.number().int().min(1).max(5).optional().nullable(),
+  photo: z.string().optional().nullable(),
+  portfolioId: z.string().optional().nullable(),
+  isPublished: z.boolean().optional(),
+  sortOrder: z.number().int().optional(),
+})
+
+const testimonialUpdateSchema = testimonialCreateSchema.partial()
+
+function validationErrorResponse(error: z.ZodError) {
+  return NextResponse.json(
+    {
+      error: "Validasi gagal",
+      details: error.issues.map((e) => ({ field: e.path.join("."), message: e.message })),
+    },
+    { status: 400 }
+  )
+}
 
 export async function GET() {
   const unauthorized = await requireAdmin()
@@ -28,7 +53,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const item = await prisma.testimonial.create({ data: body })
+    const validation = testimonialCreateSchema.safeParse(body)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+
+    const item = await prisma.testimonial.create({ data: validation.data })
     return NextResponse.json({ data: item })
   } catch (error) {
     console.error("POST /api/admin/testimonials error:", error)
@@ -54,9 +84,14 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const validation = testimonialUpdateSchema.safeParse(data)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+
     const item = await prisma.testimonial.update({
       where: { id },
-      data,
+      data: validation.data,
     })
     return NextResponse.json({ data: item })
   } catch (error) {

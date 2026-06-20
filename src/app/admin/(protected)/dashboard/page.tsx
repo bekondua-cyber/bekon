@@ -29,10 +29,10 @@ export default function AdminDashboardPage() {
   async function fetchData() {
     try {
       const [portfolioRes, articlesRes, leadsRes, videosRes] = await Promise.all([
-        fetch("/api/portfolio", { credentials: "include" }),
-        fetch("/api/articles", { credentials: "include" }),
+        fetch("/api/admin/portfolio", { credentials: "include" }),
+        fetch("/api/admin/articles", { credentials: "include" }),
         fetch("/api/admin/leads", { credentials: "include" }),
-        fetch("/api/videos", { credentials: "include" }),
+        fetch("/api/admin/videos", { credentials: "include" }),
       ])
 
       const portfolio = await portfolioRes.json()

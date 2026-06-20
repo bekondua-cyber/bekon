@@ -1,8 +1,32 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 
 export const dynamic = "force-dynamic"
+
+const videoCreateSchema = z.object({
+  title: z.string().min(1, "Judul wajib diisi"),
+  youtubeUrl: z.string().min(1, "URL YouTube wajib diisi"),
+  youtubeId: z.string().min(1, "YouTube ID wajib diisi"),
+  thumbnail: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  isFeatured: z.boolean().optional(),
+  isPublished: z.boolean().optional(),
+  sortOrder: z.number().int().optional(),
+})
+
+const videoUpdateSchema = videoCreateSchema.partial()
+
+function validationErrorResponse(error: z.ZodError) {
+  return NextResponse.json(
+    {
+      error: "Validasi gagal",
+      details: error.issues.map((e) => ({ field: e.path.join("."), message: e.message })),
+    },
+    { status: 400 }
+  )
+}
 
 export async function GET() {
   const unauthorized = await requireAdmin()
@@ -28,7 +52,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const item = await prisma.video.create({ data: body })
+    const validation = videoCreateSchema.safeParse(body)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+
+    const item = await prisma.video.create({ data: validation.data })
     return NextResponse.json({ data: item })
   } catch (error) {
     console.error("POST /api/admin/videos error:", error)
@@ -54,9 +83,14 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const validation = videoUpdateSchema.safeParse(data)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+
     const item = await prisma.video.update({
       where: { id },
-      data,
+      data: validation.data,
     })
     return NextResponse.json({ data: item })
   } catch (error) {

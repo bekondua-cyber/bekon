@@ -1,6 +1,51 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
+
+export const dynamic = "force-dynamic"
+
+const heroSlideCreateSchema = z
+  .object({
+    image: z.string().optional().nullable(),
+    title: z.string().optional().nullable(),
+    subtitle: z.string().optional().nullable(),
+    ctaText: z.string().optional().nullable(),
+    ctaLink: z.string().optional().nullable(),
+    isActive: z.boolean().optional(),
+    sourceType: z.enum(["custom", "portfolio"]).optional(),
+    portfolioId: z.string().optional().nullable(),
+  })
+  .refine((data) => !!data.image || data.sourceType === "portfolio", {
+    message: "Image wajib diisi",
+    path: ["image"],
+  })
+
+const heroSlideUpdateSchema = z.object({
+  image: z.string().optional(),
+  order: z.number().int().optional(),
+  isActive: z.boolean().optional(),
+  sourceType: z.enum(["custom", "portfolio"]).optional(),
+  portfolioId: z.string().nullable().optional(),
+  title: z.string().optional().nullable(),
+  subtitle: z.string().optional().nullable(),
+  ctaText: z.string().optional().nullable(),
+  ctaLink: z.string().optional().nullable(),
+})
+
+const reorderSchema = z.object({
+  slides: z.array(z.object({ id: z.string(), order: z.number().int() })),
+})
+
+function validationErrorResponse(error: z.ZodError) {
+  return NextResponse.json(
+    {
+      error: "Validasi gagal",
+      details: error.issues.map((e) => ({ field: e.path.join("."), message: e.message })),
+    },
+    { status: 400 }
+  )
+}
 
 export async function GET(request: NextRequest) {
   const unauthorized = await requireAdmin()
@@ -56,12 +101,13 @@ export async function POST(request: NextRequest) {
       image: body.image ? `${body.image.slice(0, 60)}...` : "KOSONG",
     }))
 
-    const { image, sourceType, portfolioId, isActive } = body
-
-    if (!image && sourceType !== "portfolio") {
-      console.error("[Hero API] Validation failed: image kosong")
-      return NextResponse.json({ error: "Image wajib diisi" }, { status: 400 })
+    const validation = heroSlideCreateSchema.safeParse(body)
+    if (!validation.success) {
+      console.error("[Hero API] Validation failed:", validation.error.issues)
+      return validationErrorResponse(validation.error)
     }
+
+    const { image, sourceType, portfolioId, isActive } = validation.data
 
     console.log("[Hero API] Validation passed, querying max order...")
     const maxOrder = await prisma.heroSlide.aggregate({ _max: { order: true } })
@@ -115,8 +161,13 @@ export async function PUT(request: NextRequest) {
 
     // Bulk reorder
     if (body.slides && Array.isArray(body.slides)) {
-      console.log("[Hero Slides API] Bulk reorder:", body.slides.length, "slides")
-      const updates = body.slides.map((s: { id: string; order: number }) =>
+      const reorderValidation = reorderSchema.safeParse(body)
+      if (!reorderValidation.success) {
+        return validationErrorResponse(reorderValidation.error)
+      }
+
+      console.log("[Hero Slides API] Bulk reorder:", reorderValidation.data.slides.length, "slides")
+      const updates = reorderValidation.data.slides.map((s) =>
         prisma.heroSlide.update({
           where: { id: s.id },
           data: { order: s.order },
@@ -126,10 +177,16 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
-    const { id, image, order, isActive, sourceType, portfolioId } = body
+    const { id, ...rest } = body
     if (!id) {
       return NextResponse.json({ error: "ID wajib diisi" }, { status: 400 })
     }
+
+    const validation = heroSlideUpdateSchema.safeParse(rest)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+    const { image, order, isActive, sourceType, portfolioId } = validation.data
 
     console.log("[Hero Slides API] Updating slide:", id)
     const existing = await prisma.heroSlide.findUnique({ where: { id } })

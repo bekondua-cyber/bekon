@@ -13,6 +13,7 @@ interface ArticleForm {
   content: string
   thumbnail: string
   isPublished: boolean
+  publishedAt: string | null
 }
 
 export default function AdminArtikelEditPage() {
@@ -31,6 +32,7 @@ export default function AdminArtikelEditPage() {
     content: "",
     thumbnail: "",
     isPublished: false,
+    publishedAt: null,
   })
 
   useEffect(() => {
@@ -48,6 +50,7 @@ export default function AdminArtikelEditPage() {
             content: d.content || "",
             thumbnail: d.thumbnail || "",
             isPublished: d.isPublished || false,
+            publishedAt: d.publishedAt || null,
           })
         }
       } catch {
@@ -105,10 +108,17 @@ export default function AdminArtikelEditPage() {
     setSaving(true)
 
     try {
+      const payload = {
+        id,
+        ...form,
+        publishedAt: form.isPublished
+          ? form.publishedAt || new Date().toISOString()
+          : null,
+      }
       const res = await fetch("/api/admin/articles", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, ...form }),
+        body: JSON.stringify(payload),
         credentials: "include",
       })
 
