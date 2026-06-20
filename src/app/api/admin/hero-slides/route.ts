@@ -90,18 +90,15 @@ export async function POST(request: NextRequest) {
     console.log("[Hero API] Prisma create SUCCESS, slide ID:", slide.id)
     console.log("[Hero API] Return 201 to client")
     return NextResponse.json({ data: slide }, { status: 201 })
-  } catch (error: any) {
-    console.error("[Hero API] ERROR caught:", {
-      message: error.message,
-      code: error.code,
-      meta: error.meta,
-      stack: error.stack?.split("\n").slice(0, 3).join("\n"),
-    })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error"
+    const code = error instanceof Error && "code" in error ? (error as { code: string }).code : "UNKNOWN"
+    console.error("[Hero API] ERROR caught:", { message, code })
     return NextResponse.json(
       {
         error: "Gagal membuat hero slide",
-        details: error.message,
-        code: error.code || "UNKNOWN",
+        details: message,
+        code,
       },
       { status: 500 }
     )
