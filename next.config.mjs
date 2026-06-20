@@ -16,7 +16,7 @@ const nextConfig = {
       },
     ],
   },
-  // Security and indexing headers
+
   async headers() {
     return [
       {
@@ -39,17 +39,12 @@ const nextConfig = {
       },
     ];
   },
+
   experimental: {
     optimizePackageImports: ['framer-motion', 'lucide-react'],
   },
+
   webpack: (config, { dev, isServer }) => {
-    config.watchOptions = {
-      ignored: [
-        '**/node_modules/**', '**/.git/**',
-        '**/Application Data/**',
-        'C:\\Users\\PC\\Cookies/**', 'C:/Users/**',
-      ],
-    }
     if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
@@ -58,6 +53,7 @@ const nextConfig = {
       }
     }
     return config
-  };
+  },
+};
 
 export default nextConfig;
