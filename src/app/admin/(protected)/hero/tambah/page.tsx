@@ -23,6 +23,7 @@ export default function AdminHeroTambahPage() {
   })
 
   function handleImageUploadProgress(progress: number) {
+    console.log("[HeroTambah] Upload progress:", progress)
     setIsUploading(progress > 0 && progress < 100)
   }
 
@@ -31,24 +32,40 @@ export default function AdminHeroTambahPage() {
       try {
         const res = await fetch("/api/admin/portfolio", { credentials: "include" })
         const json = await res.json()
+        console.log("[HeroTambah] Portfolios loaded:", json.data?.length || 0)
         setPortfolios(json.data || [])
-      } catch {
-        // silently fail
+      } catch (e) {
+        console.error("[HeroTambah] Failed to load portfolios:", e)
       }
     }
     fetchPortfolios()
   }, [])
 
+  useEffect(() => {
+    console.log("[HeroTambah] Form state:", {
+      image: form.image ? `${form.image.slice(0, 50)}...` : "KOSONG",
+      sourceType: form.sourceType,
+      portfolioId: form.portfolioId || "(none)",
+      isActive: form.isActive,
+    })
+  }, [form])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    console.log("[HeroTambah] SUBMIT triggered")
+    console.log("[HeroTambah] Form validation - image:", form.image ? "ADA" : "KOSONG", "sourceType:", form.sourceType)
+
     if (form.sourceType === "custom" && !form.image) {
+      console.error("[HeroTambah] Validation failed: Image kosong")
       toast.error("Image wajib diupload")
       return
     }
     if (form.sourceType === "portfolio" && !form.portfolioId) {
+      console.error("[HeroTambah] Validation failed: Portfolio tidak dipilih")
       toast.error("Pilih portfolio terlebih dahulu")
       return
     }
+
     setLoading(true)
     try {
       const selectedPortfolio = portfolios.find((p) => p.id === form.portfolioId)
@@ -58,21 +75,33 @@ export default function AdminHeroTambahPage() {
         sourceType: form.sourceType,
         portfolioId: form.sourceType === "portfolio" ? form.portfolioId : null,
       }
+      console.log("[HeroTambah] Sending POST payload:", {
+        ...payload,
+        image: payload.image ? `${payload.image.slice(0, 50)}...` : "KOSONG",
+      })
+
       const res = await fetch("/api/admin/hero-slides", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         credentials: "include",
       })
+      console.log("[HeroTambah] API response status:", res.status, "ok:", res.ok)
+
+      const json = await res.json()
+      console.log("[HeroTambah] API response body:", json)
+
       if (res.ok) {
+        console.log("[HeroTambah] SUCCESS - slide created:", json.data?.id)
         toast.success("Hero slide berhasil dibuat")
         router.push("/admin/hero")
       } else {
-        const err = await res.json()
-        toast.error(err.error || "Gagal membuat hero slide")
+        console.error("[HeroTambah] API ERROR:", json.error, json.details)
+        toast.error(json.error || json.details || "Gagal membuat hero slide")
       }
-    } catch {
-      toast.error("Gagal membuat hero slide")
+    } catch (e) {
+      console.error("[HeroTambah] NETWORK ERROR:", e)
+      toast.error(`Gagal membuat hero slide: ${e instanceof Error ? e.message : "Unknown error"}`)
     } finally {
       setLoading(false)
     }

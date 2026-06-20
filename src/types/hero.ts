@@ -1,6 +1,10 @@
 export interface HeroSlide {
   id: string
   image: string
+  title: string | null
+  subtitle: string | null
+  ctaText: string | null
+  ctaLink: string | null
   order: number
   isActive: boolean
   sourceType: "custom" | "portfolio"
@@ -17,6 +21,10 @@ export interface HeroSlide {
 
 export interface HeroSlideFormData {
   image: string
+  title?: string
+  subtitle?: string
+  ctaText?: string
+  ctaLink?: string
   order?: number
   isActive?: boolean
   sourceType?: "custom" | "portfolio"

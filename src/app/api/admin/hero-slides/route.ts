@@ -41,30 +41,45 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  console.log("[Hero API] === POST /api/admin/hero-slides ===")
+
   const unauthorized = await requireAdmin()
-  if (unauthorized) return unauthorized
+  if (unauthorized) {
+    console.log("[Hero API] Unauthorized access")
+    return unauthorized
+  }
 
   try {
     const body = await request.json()
-    console.log("[Hero Slides API] POST received:", JSON.stringify(body))
+    console.log("[Hero API] Request body:", JSON.stringify({
+      ...body,
+      image: body.image ? `${body.image.slice(0, 60)}...` : "KOSONG",
+    }))
+
     const { image, sourceType, portfolioId, isActive } = body
 
     if (!image && sourceType !== "portfolio") {
+      console.error("[Hero API] Validation failed: image kosong")
       return NextResponse.json({ error: "Image wajib diisi" }, { status: 400 })
     }
 
+    console.log("[Hero API] Validation passed, querying max order...")
     const maxOrder = await prisma.heroSlide.aggregate({ _max: { order: true } })
     const nextOrder = (maxOrder._max.order ?? -1) + 1
+    console.log("[Hero API] Max order:", maxOrder._max.order, "next:", nextOrder)
 
-    console.log("[Hero Slides API] Creating slide with order:", nextOrder)
+    const data = {
+      image: image || "",
+      order: nextOrder,
+      isActive: isActive ?? true,
+      sourceType: sourceType || "custom",
+      portfolioId: portfolioId || null,
+    }
+    console.log("[Hero API] Prisma create data:", { ...data, image: data.image ? `${data.image.slice(0, 60)}...` : "KOSONG" })
+
+    console.log("[Hero API] Executing Prisma create...")
     const slide = await prisma.heroSlide.create({
-      data: {
-        image: image || "",
-        order: nextOrder,
-        isActive: isActive ?? true,
-        sourceType: sourceType || "custom",
-        portfolioId: portfolioId || null,
-      },
+      data,
       include: {
         portfolio: {
           select: { id: true, title: true, slug: true, coverImage: true },
@@ -72,10 +87,24 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    console.log("[Hero API] Prisma create SUCCESS, slide ID:", slide.id)
+    console.log("[Hero API] Return 201 to client")
     return NextResponse.json({ data: slide }, { status: 201 })
-  } catch (error) {
-    console.error("POST /api/admin/hero-slides error:", error)
-    return NextResponse.json({ error: "Gagal membuat hero slide" }, { status: 500 })
+  } catch (error: any) {
+    console.error("[Hero API] ERROR caught:", {
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+      stack: error.stack?.split("\n").slice(0, 3).join("\n"),
+    })
+    return NextResponse.json(
+      {
+        error: "Gagal membuat hero slide",
+        details: error.message,
+        code: error.code || "UNKNOWN",
+      },
+      { status: 500 }
+    )
   }
 }
 
