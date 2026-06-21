@@ -10,7 +10,9 @@ export async function GET() {
       orderBy: { sortOrder: "asc" },
     })
 
-    return NextResponse.json({ data: items })
+    return NextResponse.json({ data: items }, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    })
   } catch (error) {
     console.error("GET /api/testimonials error:", error)
     return NextResponse.json(

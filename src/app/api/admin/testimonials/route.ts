@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { requireAdmin } from "@/lib/api-admin"
+import { requireAdmin, isPrismaErrorCode } from "@/lib/api-admin"
 
 export const dynamic = "force-dynamic"
 
@@ -95,6 +95,12 @@ export async function PUT(request: NextRequest) {
     })
     return NextResponse.json({ data: item })
   } catch (error) {
+    if (isPrismaErrorCode(error, "P2025")) {
+      return NextResponse.json(
+        { error: "Testimoni tidak ditemukan" },
+        { status: 404 }
+      )
+    }
     console.error("PUT /api/admin/testimonials error:", error)
     return NextResponse.json(
       { error: "Gagal mengupdate testimoni" },
@@ -121,6 +127,12 @@ export async function DELETE(request: NextRequest) {
     await prisma.testimonial.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (isPrismaErrorCode(error, "P2025")) {
+      return NextResponse.json(
+        { error: "Testimoni tidak ditemukan" },
+        { status: 404 }
+      )
+    }
     console.error("DELETE /api/admin/testimonials error:", error)
     return NextResponse.json(
       { error: "Gagal menghapus testimoni" },

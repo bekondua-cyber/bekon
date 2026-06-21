@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { requireAdmin } from "@/lib/api-admin"
+import { requireAdmin, isPrismaErrorCode } from "@/lib/api-admin"
+
+export const dynamic = "force-dynamic"
 
 const leadUpdateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -68,6 +70,12 @@ export async function PUT(request: NextRequest) {
     })
     return NextResponse.json({ data: item })
   } catch (error) {
+    if (isPrismaErrorCode(error, "P2025")) {
+      return NextResponse.json(
+        { error: "Lead tidak ditemukan" },
+        { status: 404 }
+      )
+    }
     console.error("PUT /api/admin/leads error:", error)
     return NextResponse.json(
       { error: "Gagal mengupdate lead" },
@@ -94,6 +102,12 @@ export async function DELETE(request: NextRequest) {
     await prisma.lead.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (isPrismaErrorCode(error, "P2025")) {
+      return NextResponse.json(
+        { error: "Lead tidak ditemukan" },
+        { status: 404 }
+      )
+    }
     console.error("DELETE /api/admin/leads error:", error)
     return NextResponse.json(
       { error: "Gagal menghapus lead" },

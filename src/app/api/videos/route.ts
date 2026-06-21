@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -27,7 +29,9 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ data: items })
+    return NextResponse.json({ data: items }, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    })
   } catch (error) {
     console.error("GET /api/videos error:", error)
     return NextResponse.json(

@@ -14,7 +14,9 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ data: result })
+    return NextResponse.json({ data: result }, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    })
   } catch (error) {
     console.error("GET /api/settings error:", error)
     return NextResponse.json(

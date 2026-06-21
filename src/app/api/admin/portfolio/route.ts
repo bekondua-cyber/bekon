@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { requireAdmin } from "@/lib/api-admin"
+import { requireAdmin, isPrismaErrorCode } from "@/lib/api-admin"
 
 export const dynamic = "force-dynamic"
-
-function isPrismaErrorCode(error: unknown, code: string): boolean {
-  return typeof error === "object" && error !== null && "code" in error && (error as { code: unknown }).code === code
-}
 
 const portfolioCreateSchema = z.object({
   title: z.string().min(1, "Judul wajib diisi"),
@@ -174,6 +170,12 @@ export async function DELETE(request: NextRequest) {
       { status: 400 }
     )
   } catch (error) {
+    if (isPrismaErrorCode(error, "P2025")) {
+      return NextResponse.json(
+        { error: "Portfolio tidak ditemukan" },
+        { status: 404 }
+      )
+    }
     console.error("DELETE /api/admin/portfolio error:", error)
     return NextResponse.json(
       { error: "Gagal menghapus portfolio" },

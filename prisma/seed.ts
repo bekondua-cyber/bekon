@@ -7,18 +7,23 @@ import { hashSync } from "bcryptjs"
 const prisma = new PrismaClient()
 
 async function main() {
-  const defaultPassword = process.env.SEED_ADMIN_PASSWORD || "admin123"
-  const password = hashSync(defaultPassword, 12)
+  const existingAdmin = await prisma.user.findUnique({ where: { email: "admin@bekon.com" } })
 
-  await prisma.user.upsert({
-    where: { email: "admin@bekon.com" },
-    update: { password },
-    create: {
-      email: "admin@bekon.com",
-      password,
-      name: "Admin",
-    },
-  })
+  if (existingAdmin) {
+    console.log("Seed: admin user already exists, password left untouched")
+  } else {
+    const defaultPassword = process.env.SEED_ADMIN_PASSWORD || "admin123"
+    const password = hashSync(defaultPassword, 12)
+
+    await prisma.user.create({
+      data: {
+        email: "admin@bekon.com",
+        password,
+        name: "Admin",
+      },
+    })
+    console.log("Seed: admin user created")
+  }
 
   const existingCount = await prisma.heroSlide.count()
   if (existingCount === 0) {

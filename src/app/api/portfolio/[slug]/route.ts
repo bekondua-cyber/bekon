@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: { slug: string } }
@@ -17,7 +19,9 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ data: item })
+    return NextResponse.json({ data: item }, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    })
   } catch (error) {
     console.error("GET /api/portfolio/[slug] error:", error)
     return NextResponse.json(

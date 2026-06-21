@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import DOMPurify from "isomorphic-dompurify";
 
 interface Props {
   params: { slug: string };
@@ -131,7 +132,7 @@ export default async function BlogDetailPage({ params }: Props) {
 
           <div
             className="prose prose-gray max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.content ?? "" }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content ?? "") }}
           />
         </div>
       </article>

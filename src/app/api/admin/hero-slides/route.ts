@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { requireAdmin } from "@/lib/api-admin"
+import { requireAdmin, isPrismaErrorCode } from "@/lib/api-admin"
 
 export const dynamic = "force-dynamic"
 
@@ -45,10 +45,6 @@ function validationErrorResponse(error: z.ZodError) {
     },
     { status: 400 }
   )
-}
-
-function isPrismaErrorCode(error: unknown, code: string): boolean {
-  return typeof error === "object" && error !== null && "code" in error && (error as { code: unknown }).code === code
 }
 
 export async function GET(request: NextRequest) {
