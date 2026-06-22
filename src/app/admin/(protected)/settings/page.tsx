@@ -1,16 +1,19 @@
 "use client"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { ImageUploader } from "@/components/admin/ImageUploader"
+import type { WhyBekonItem } from "@/data/why-bekon"
 
 type SettingsData = Record<string, string>
 
-const tabs = ["Perusahaan", "WhatsApp & Kontak", "SEO Global"]
+const tabs = ["Perusahaan", "WhatsApp & Kontak", "SEO Global", "Tentang"]
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SettingsData>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState("Perusahaan")
+  const [tentangItems, setTentangItems] = useState<WhyBekonItem[]>([])
 
   useEffect(() => {
     fetchSettings()
@@ -20,7 +23,17 @@ export default function AdminSettingsPage() {
     try {
       const res = await fetch("/api/settings", { credentials: "include" })
       const json = await res.json()
-      setSettings(json.data || {})
+      const data = json.data || {}
+      setSettings(data)
+
+      const raw = data["tentang_items"]
+      if (raw) {
+        try {
+          setTentangItems(JSON.parse(raw))
+        } catch {
+          setTentangItems([])
+        }
+      }
     } catch {
       toast.error("Gagal memuat settings")
     } finally {
@@ -33,15 +46,17 @@ export default function AdminSettingsPage() {
   }
 
   async function handleSave() {
+    const payload = { ...settings, tentang_items: JSON.stringify(tentangItems) }
     setSaving(true)
     try {
       const res = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
         credentials: "include",
       })
       if (res.ok) {
+        setSettings(payload)
         toast.success("Settings berhasil disimpan")
       } else {
         toast.error("Gagal menyimpan settings")
@@ -51,6 +66,23 @@ export default function AdminSettingsPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  function addItem() {
+    const id = crypto.randomUUID?.() || Date.now().toString()
+    setTentangItems(prev => [...prev, { id, title: "", description: "" }])
+  }
+
+  function removeItem(index: number) {
+    setTentangItems(prev => prev.filter((_, i) => i !== index))
+  }
+
+  function updateItem(index: number, field: "title" | "description", value: string) {
+    setTentangItems(prev => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], [field]: value }
+      return updated
+    })
   }
 
   if (loading) {
@@ -129,6 +161,69 @@ export default function AdminSettingsPage() {
               />
             </div>
             <Field label="Google Analytics ID" value={getSetting(settings, "google_analytics_id")} onChange={(v) => updateSetting("google_analytics_id", v)} />
+          </>
+        )}
+
+        {activeTab === "Tentang" && (
+          <>
+            <h2 className="font-semibold text-gray-900">Header</h2>
+            <Field label="Label (teks kecil di atas judul)" value={getSetting(settings, "tentang_label")} onChange={(v) => updateSetting("tentang_label", v)} />
+            <Field label="Judul Section" value={getSetting(settings, "tentang_judul")} onChange={(v) => updateSetting("tentang_judul", v)} />
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Gambar</label>
+              <ImageUploader value={getSetting(settings, "tentang_gambar")} onChange={(v) => updateSetting("tentang_gambar", v)} />
+            </div>
+
+            <hr className="border-gray-200" />
+
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-gray-900">Poin Keunggulan</h2>
+              <button
+                onClick={addItem}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-bekon-gold border border-bekon-gold/30 rounded-lg hover:bg-bekon-gold/5 transition-colors"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Tambah Poin
+              </button>
+            </div>
+
+            {tentangItems.length === 0 && (
+              <p className="text-sm text-gray-400 italic">Belum ada poin. Klik "Tambah Poin" untuk menambahkan.</p>
+            )}
+
+            {tentangItems.map((item, i) => (
+              <div key={item.id} className="flex gap-3 p-4 border border-gray-200 rounded-lg">
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="text"
+                    value={item.title}
+                    onChange={(e) => updateItem(i, "title", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none"
+                    placeholder="Judul poin (contoh: Berpengalaman Sejak 2009)"
+                  />
+                  <textarea
+                    value={item.description}
+                    onChange={(e) => updateItem(i, "description", e.target.value)}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold focus:border-bekon-gold outline-none resize-y"
+                    placeholder="Deskripsi poin"
+                  />
+                </div>
+                <button
+                  onClick={() => removeItem(i)}
+                  className="shrink-0 mt-2 text-gray-400 hover:text-red-500 transition-colors"
+                  title="Hapus poin"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </button>
+              </div>
+            ))}
           </>
         )}
 

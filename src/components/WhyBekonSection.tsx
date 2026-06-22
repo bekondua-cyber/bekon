@@ -2,10 +2,21 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { whyBekon } from "@/data/why-bekon";
+import { whyBekon, type WhyBekonItem } from "@/data/why-bekon";
 import { siteConfig } from "@/data/site-config";
 
-export function WhyBekonSection() {
+interface WhyBekonSectionProps {
+  label?: string;
+  title?: string;
+  image?: string;
+  items?: WhyBekonItem[];
+}
+
+export function WhyBekonSection({ label, title, image, items }: WhyBekonSectionProps = {}) {
+  const displayLabel = label || "Keunggulan";
+  const displayTitle = title || "Mengapa Memilih BEKON?";
+  const displayImage = image || "https://images.unsplash.com/photo-1608387371413-f2566ac510e0?w=800&q=80";
+  const displayItems = (items && items.length > 0) ? items : whyBekon;
   return (
     <section
       id="tentang"
@@ -24,7 +35,7 @@ export function WhyBekonSection() {
           >
             <div className="relative aspect-[4/5] rounded-xl overflow-hidden">
               <Image
-                src="https://images.unsplash.com/photo-1608387371413-f2566ac510e0?w=800&q=80"
+                src={displayImage}
                 alt="Tim profesional BEKON"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -48,13 +59,13 @@ export function WhyBekonSection() {
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.7, ease: [0, 0, 0.2, 1], delay: 0.2 }}
           >
-            <span className="section-label">Keunggulan</span>
+            <span className="section-label">{displayLabel}</span>
             <h2 className="font-display text-[clamp(28px,3.5vw,42px)] text-bekon-near-black mt-5 mb-6">
-              Mengapa Memilih BEKON?
+              {displayTitle}
             </h2>
 
             <div className="space-y-5">
-              {whyBekon.map((item, i) => (
+              {displayItems.map((item, i) => (
                 <motion.div
                   key={item.id}
                   initial={{ opacity: 0, y: 20 }}

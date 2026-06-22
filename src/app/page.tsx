@@ -4,6 +4,8 @@ import type { PortfolioItem } from "@/components/PortfolioSection";
 import type { Testimonial } from "@/components/TestimoniColumns";
 import type { VideoItem } from "@/components/VideoSection";
 import type { ArticleItem } from "@/components/BlogSection";
+import type { WhyBekonItem } from "@/data/why-bekon";
+import type { TeamMember } from "@/components/TeamSection";
 import { Footer } from "@/components/Footer";
 import { siteConfig } from "@/data/site-config";
 import dynamic from "next/dynamic";
@@ -25,6 +27,11 @@ const PortfolioSection = dynamic(
 
 const WhyBekonSection = dynamic(
   () => import("@/components/WhyBekonSection").then(m => ({ default: m.WhyBekonSection })),
+  {}  
+);
+
+const TeamSection = dynamic(
+  () => import("@/components/TeamSection").then(m => ({ default: m.TeamSection })),
   {}  
 );
 
@@ -93,13 +100,14 @@ function extractObject(res: unknown): Record<string, string> {
 }
 
 export default async function HomePage() {
-  const [portfolioRes, testimonialsRes, videosRes, articlesRes, settingsRes] =
+  const [portfolioRes, testimonialsRes, videosRes, articlesRes, settingsRes, teamRes] =
     await Promise.all([
       fetchJSON(`${API_BASE}/api/portfolio`),
       fetchJSON(`${API_BASE}/api/testimonials`),
       fetchJSON(`${API_BASE}/api/videos`),
       fetchJSON(`${API_BASE}/api/articles`),
       fetchJSON(`${API_BASE}/api/settings`),
+      fetchJSON(`${API_BASE}/api/team`),
     ]);
 
   const portfolioData = extractArray(portfolioRes);
@@ -110,6 +118,22 @@ export default async function HomePage() {
   const articlesData = extractArray(articlesRes);
 
   const settings = extractObject(settingsRes);
+
+  const tentangLabel = settings.tentang_label;
+  const tentangTitle = settings.tentang_judul;
+  const tentangImage = settings.tentang_gambar;
+  let tentangItems: WhyBekonItem[] | undefined;
+  try {
+    const raw = settings.tentang_items;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        tentangItems = parsed;
+      }
+    }
+  } catch {}
+
+  const teamData = extractArray(teamRes) as TeamMember[];
 
   const stats = [
     { value: settings.stat_proyek || "200", label: "Proyek Selesai", suffix: "+" },
@@ -187,7 +211,8 @@ export default async function HomePage() {
         <SocialProofBar stats={stats} />
         <ServicesSection />
         <PortfolioSection items={portfolioData as PortfolioItem[]} />
-        <WhyBekonSection />
+        <WhyBekonSection label={tentangLabel} title={tentangTitle} image={tentangImage} items={tentangItems} />
+        <TeamSection items={teamData} />
         <ProcessSection />
         <TestimoniColumns items={testimonialsData as Testimonial[]} />
         <VideoSection items={videosData as VideoItem[]} />

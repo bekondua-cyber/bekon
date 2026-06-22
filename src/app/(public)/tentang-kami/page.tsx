@@ -3,6 +3,16 @@ import Image from "next/image";
 import { siteConfig } from "@/data/site-config";
 import { teamMembers } from "@/data/team";
 import { whyBekon } from "@/data/why-bekon";
+import { prisma } from "@/lib/prisma";
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export const metadata: Metadata = {
   title: "Tentang Kami",
@@ -10,7 +20,30 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tentang-kami" },
 };
 
-export default function TentangKamiPage() {
+interface DisplayTeamMember {
+  id: string; name: string; role: string; bio: string; photo?: string; initials: string;
+}
+
+export default async function TentangKamiPage() {
+  let teamFromDb: Array<{ id: string; name: string; role: string | null; bio: string | null; photo: string | null }> = [];
+  try {
+    teamFromDb = await prisma.teamMember.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      select: { id: true, name: true, role: true, bio: true, photo: true },
+    });
+  } catch {}
+
+  const displayTeam: DisplayTeamMember[] = teamFromDb.length > 0
+    ? teamFromDb.map((m) => ({
+        id: m.id,
+        name: m.name,
+        role: m.role || "",
+        bio: m.bio || "",
+        photo: m.photo ?? undefined,
+        initials: getInitials(m.name),
+      }))
+    : teamMembers;
   return (
     <div className="min-h-screen bg-bekon-off-white">
       <div className="max-w-container mx-auto px-6 lg:px-20 pt-32 pb-20">
@@ -117,14 +150,26 @@ export default function TentangKamiPage() {
             Tim Kami
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {teamMembers.map((member) => (
+            {displayTeam.map((member) => (
               <div
                 key={member.id}
                 className="bg-white rounded-xl p-6 border border-bekon-border text-center"
               >
-                <div className="w-20 h-20 rounded-full bg-bekon-gold/10 flex items-center justify-center text-bekon-gold font-display text-2xl font-semibold mx-auto mb-4">
-                  {member.initials}
-                </div>
+                {member.photo ? (
+                  <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 relative">
+                    <Image
+                      src={member.photo}
+                      alt={member.name}
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-bekon-gold/10 flex items-center justify-center text-bekon-gold font-display text-2xl font-semibold mx-auto mb-4">
+                    {member.initials}
+                  </div>
+                )}
                 <h3 className="font-semibold text-bekon-near-black">
                   {member.name}
                 </h3>
