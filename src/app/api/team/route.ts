@@ -10,7 +10,9 @@ export async function GET() {
       orderBy: { sortOrder: "asc" },
       select: { id: true, name: true, role: true, bio: true, photo: true },
     });
-    return NextResponse.json({ data: team });
+    return NextResponse.json({ data: team }, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    });
   } catch (error) {
     console.error("GET /api/team error:", error);
     return NextResponse.json(
