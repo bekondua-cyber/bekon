@@ -10,13 +10,15 @@ interface WhyBekonSectionProps {
   title?: string;
   image?: string;
   items?: WhyBekonItem[];
+  since?: number;
 }
 
-export function WhyBekonSection({ label, title, image, items }: WhyBekonSectionProps = {}) {
+export function WhyBekonSection({ label, title, image, items, since }: WhyBekonSectionProps = {}) {
   const displayLabel = label || "Keunggulan";
   const displayTitle = title || "Mengapa Memilih BEKON?";
   const displayImage = image || "https://images.unsplash.com/photo-1608387371413-f2566ac510e0?w=800&q=80";
   const displayItems = (items && items.length > 0) ? items : whyBekon;
+  const displaySince = (typeof since === "number" && !isNaN(since)) ? since : siteConfig.since;
   return (
     <section
       id="tentang"
@@ -44,7 +46,7 @@ export function WhyBekonSection({ label, title, image, items }: WhyBekonSectionP
             </div>
             <div className="absolute -bottom-4 -right-4 bg-bekon-gold text-white px-6 py-4 rounded-xl shadow-lg">
               <div className="font-display text-3xl font-semibold">
-                {new Date().getFullYear() - siteConfig.since}+
+                {new Date().getFullYear() - displaySince}+
               </div>
               <div className="text-white/80 text-xs uppercase tracking-wider font-medium">
                 Tahun Pengalaman

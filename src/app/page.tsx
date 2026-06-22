@@ -211,7 +211,7 @@ export default async function HomePage() {
         <SocialProofBar stats={stats} />
         <ServicesSection />
         <PortfolioSection items={portfolioData as PortfolioItem[]} />
-        <WhyBekonSection label={tentangLabel} title={tentangTitle} image={tentangImage} items={tentangItems} />
+        <WhyBekonSection label={tentangLabel} title={tentangTitle} image={tentangImage} items={tentangItems} since={settings.tahun_berdiri ? Number(settings.tahun_berdiri) : undefined} />
         <TeamSection items={teamData} />
         <ProcessSection />
         <TestimoniColumns items={testimonialsData as Testimonial[]} />
