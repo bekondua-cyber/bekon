@@ -5,6 +5,7 @@ import type { Testimonial } from "@/components/TestimoniColumns";
 import type { VideoItem } from "@/components/VideoSection";
 import type { ArticleItem } from "@/components/BlogSection";
 import type { WhyBekonItem } from "@/data/why-bekon";
+import { teamMembers as fallbackTeam } from "@/data/team";
 import type { TeamMember } from "@/components/TeamSection";
 import { Footer } from "@/components/Footer";
 import { siteConfig } from "@/data/site-config";
@@ -127,13 +128,19 @@ export default async function HomePage() {
     const raw = settings.tentang_items;
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        tentangItems = parsed;
+      if (Array.isArray(parsed)) {
+        const valid = parsed.filter((item: any) => item.title?.trim());
+        if (valid.length > 0) {
+          tentangItems = valid;
+        }
       }
     }
   } catch {}
 
-  const teamData = extractArray(teamRes) as TeamMember[];
+  const apiTeam = extractArray(teamRes) as TeamMember[];
+  const teamData: TeamMember[] = apiTeam.length > 0
+    ? apiTeam
+    : fallbackTeam.map(m => ({ id: m.id, name: m.name, role: m.role, bio: m.bio, photo: m.photo ?? null }));
 
   const stats = [
     { value: settings.stat_proyek || "200", label: "Proyek Selesai", suffix: "+" },

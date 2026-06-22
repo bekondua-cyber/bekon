@@ -71,8 +71,11 @@ export default async function TentangKamiPage() {
     const raw = settings.tentang_items;
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        tentangItems = parsed;
+      if (Array.isArray(parsed)) {
+        const valid = parsed.filter((item: any) => item.title?.trim());
+        if (valid.length > 0) {
+          tentangItems = valid;
+        }
       }
     }
   } catch {}
