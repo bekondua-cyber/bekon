@@ -129,7 +129,7 @@ export default async function HomePage() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        const valid = parsed.filter((item: any) => item.title?.trim());
+        const valid = parsed.filter((item: WhyBekonItem) => item.title?.trim());
         if (valid.length > 0) {
           tentangItems = valid;
         }

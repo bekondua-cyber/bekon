@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { siteConfig } from "@/data/site-config";
 import { teamMembers } from "@/data/team";
-import { whyBekon } from "@/data/why-bekon";
+import { whyBekon, type WhyBekonItem } from "@/data/why-bekon";
 import { prisma } from "@/lib/prisma";
 
 function getInitials(name: string): string {
@@ -72,7 +72,7 @@ export default async function TentangKamiPage() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        const valid = parsed.filter((item: any) => item.title?.trim());
+        const valid = parsed.filter((item: WhyBekonItem) => item.title?.trim());
         if (valid.length > 0) {
           tentangItems = valid;
         }
