@@ -191,7 +191,7 @@ export default function AdminSettingsPage() {
             </div>
 
             {tentangItems.length === 0 && (
-              <p className="text-sm text-gray-400 italic">Belum ada poin. Klik "Tambah Poin" untuk menambahkan.</p>
+              <p className="text-sm text-gray-400 italic">Belum ada poin. Klik &quot;Tambah Poin&quot; untuk menambahkan.</p>
             )}
 
             {tentangItems.map((item, i) => (
