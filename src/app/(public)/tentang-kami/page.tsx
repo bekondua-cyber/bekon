@@ -24,14 +24,28 @@ interface DisplayTeamMember {
   id: string; name: string; role: string; bio: string; photo?: string; initials: string;
 }
 
+function getSettingsMap(rows: { key: string; value: string | null }[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const r of rows) {
+    if (r.value !== null) map[r.key] = r.value;
+  }
+  return map;
+}
+
 export default async function TentangKamiPage() {
   let teamFromDb: Array<{ id: string; name: string; role: string | null; bio: string | null; photo: string | null }> = [];
+  let settings: Record<string, string> = {};
   try {
-    teamFromDb = await prisma.teamMember.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: "asc" },
-      select: { id: true, name: true, role: true, bio: true, photo: true },
-    });
+    const [teamRows, settingsRows] = await Promise.all([
+      prisma.teamMember.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, name: true, role: true, bio: true, photo: true },
+      }),
+      prisma.setting.findMany(),
+    ]);
+    teamFromDb = teamRows;
+    settings = getSettingsMap(settingsRows);
   } catch {}
 
   const displayTeam: DisplayTeamMember[] = teamFromDb.length > 0
@@ -44,6 +58,25 @@ export default async function TentangKamiPage() {
         initials: getInitials(m.name),
       }))
     : teamMembers;
+
+  const companyName = settings.nama_perusahaan || siteConfig.fullName;
+  const deskripsi = settings.deskripsi || "";
+  const tahunBerdiri = settings.tahun_berdiri ? parseInt(settings.tahun_berdiri) : siteConfig.since;
+  const statProyek = settings.stat_proyek || "200";
+
+  const tentangLabel = settings.tentang_label || "Keunggulan";
+  const tentangJudul = settings.tentang_judul || "Mengapa Memilih BEKON?";
+  const tentangGambar = settings.tentang_gambar || "https://images.unsplash.com/photo-1608387371413-f2566ac510e0?w=800&q=80";
+  let tentangItems = whyBekon;
+  try {
+    const raw = settings.tentang_items;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        tentangItems = parsed;
+      }
+    }
+  } catch {}
   return (
     <div className="min-h-screen bg-bekon-off-white">
       <div className="max-w-container mx-auto px-6 lg:px-20 pt-32 pb-20">
@@ -61,24 +94,34 @@ export default async function TentangKamiPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 mb-20 items-center">
           <div className="order-2 lg:order-1">
             <h2 className="text-2xl font-bold text-bekon-near-black mb-4">
-              {siteConfig.fullName}
+              {companyName}
             </h2>
-            <p className="text-bekon-text-muted leading-relaxed mb-4">
-              BEKON berdiri sejak 2009 dan telah melayani ratusan klien di
-              Serang, Cilegon, Banten, dan sekitarnya. Kami adalah mitra jangka
-              panjang yang mewujudkan investasi hunian berkualitas dengan
-              transparansi, estetika, dan ketepatan.
-            </p>
-            <p className="text-bekon-text-muted leading-relaxed mb-6">
-              Dengan tim profesional yang berpengalaman, kami melayani jasa
-              desain eksterior, interior, bangun rumah, renovasi, hingga
-              pembangunan kost dan ruko. Layanan online kami menjangkau seluruh
-              Indonesia dan luar negeri.
-            </p>
+            {deskripsi ? (
+              deskripsi.split("\n").filter(Boolean).map((p, i) => (
+                <p key={i} className="text-bekon-text-muted leading-relaxed mb-4 last:mb-6">
+                  {p}
+                </p>
+              ))
+            ) : (
+              <>
+                <p className="text-bekon-text-muted leading-relaxed mb-4">
+                  BEKON berdiri sejak 2009 dan telah melayani ratusan klien di
+                  Serang, Cilegon, Banten, dan sekitarnya. Kami adalah mitra jangka
+                  panjang yang mewujudkan investasi hunian berkualitas dengan
+                  transparansi, estetika, dan ketepatan.
+                </p>
+                <p className="text-bekon-text-muted leading-relaxed mb-6">
+                  Dengan tim profesional yang berpengalaman, kami melayani jasa
+                  desain eksterior, interior, bangun rumah, renovasi, hingga
+                  pembangunan kost dan ruko. Layanan online kami menjangkau seluruh
+                  Indonesia dan luar negeri.
+                </p>
+              </>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white rounded-xl p-4 border border-bekon-border text-center">
                 <div className="font-display text-3xl font-semibold text-bekon-gold">
-                  {new Date().getFullYear() - siteConfig.since}+
+                  {new Date().getFullYear() - tahunBerdiri}+
                 </div>
                 <div className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium mt-1">
                   Tahun Pengalaman
@@ -86,7 +129,7 @@ export default async function TentangKamiPage() {
               </div>
               <div className="bg-white rounded-xl p-4 border border-bekon-border text-center">
                 <div className="font-display text-3xl font-semibold text-bekon-gold">
-                  200+
+                  {statProyek}+
                 </div>
                 <div className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium mt-1">
                   Proyek Selesai
@@ -97,7 +140,7 @@ export default async function TentangKamiPage() {
           <div className="order-1 lg:order-2">
             <div className="relative aspect-[4/5] rounded-xl overflow-hidden">
               <Image
-                src="https://images.unsplash.com/photo-1608387371413-f2566ac510e0?w=800&q=80"
+                src={tentangGambar}
                 alt="Tim BEKON"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -110,10 +153,10 @@ export default async function TentangKamiPage() {
         {/* Why BEKON */}
         <div className="mb-20" id="keunggulan">
           <h2 className="text-2xl font-bold text-bekon-near-black mb-8">
-            Mengapa Memilih BEKON?
+            {tentangJudul}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {whyBekon.map((item) => (
+            {tentangItems.map((item) => (
               <div
                 key={item.id}
                 className="bg-white rounded-xl p-6 border border-bekon-border"
