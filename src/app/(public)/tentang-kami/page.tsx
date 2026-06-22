@@ -64,7 +64,6 @@ export default async function TentangKamiPage() {
   const tahunBerdiri = settings.tahun_berdiri ? parseInt(settings.tahun_berdiri) : siteConfig.since;
   const statProyek = settings.stat_proyek || "200";
 
-  const tentangLabel = settings.tentang_label || "Keunggulan";
   const tentangJudul = settings.tentang_judul || "Mengapa Memilih BEKON?";
   const tentangGambar = settings.tentang_gambar || "https://images.unsplash.com/photo-1608387371413-f2566ac510e0?w=800&q=80";
   let tentangItems = whyBekon;
