@@ -92,7 +92,7 @@ export function PortfolioGrid({ items, initialCategory }: { items: PortfolioItem
                 <h2 className="text-white text-base font-bold">
                   {item.title}
                 </h2>
-                <p className="text-white/70 text-xs mt-1">
+                <p className="text-white/70 text-xs mt-1 capitalize">
                   {item.category && item.category.replace("-", " & ")} &middot;{" "}
                   {item.location && item.location}
                   {item.year && <> &middot; {item.year}</>}
