@@ -1,32 +1,38 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const category = searchParams.get("category")
+    const { searchParams } = new URL(request.url);
+    const categoryParam = searchParams.get("category");
+    const categories = categoryParam
+      ? categoryParam.split(",").map((c) => c.trim()).filter(Boolean)
+      : null;
 
-    const where: Record<string, unknown> = { isPublished: true }
+    const where: Record<string, unknown> = { isPublished: true };
 
-    if (category) {
-      where.category = category
+    if (categories && categories.length === 1) {
+      where.category = categories[0];
+    } else if (categories && categories.length > 1) {
+      where.category = { in: categories };
     }
 
     const items = await prisma.article.findMany({
       where,
       orderBy: { publishedAt: "desc" },
-    })
+    });
 
-    return NextResponse.json({ data: items }, {
-      headers: { "Cache-Control": "no-store, max-age=0" },
-    })
+    return NextResponse.json(
+      { data: items },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
+    );
   } catch (error) {
-    console.error("GET /api/articles error:", error)
+    console.error("GET /api/articles error:", error);
     return NextResponse.json(
       { error: "Gagal mengambil data artikel" },
       { status: 500 }
-    )
+    );
   }
 }

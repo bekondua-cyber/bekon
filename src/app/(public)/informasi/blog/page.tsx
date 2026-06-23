@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import BlogFilterDropdown from "@/components/BlogFilterDropdown";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -9,7 +10,15 @@ export const metadata: Metadata = {
   alternates: { canonical: "/informasi/blog" },
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  "http://localhost:3000";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  eksterior: "Eksterior",
+  interior: "Interior",
+  umum: "Umum",
+};
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "";
@@ -24,7 +33,15 @@ function formatDate(dateStr: string | null | undefined): string {
   }
 }
 
-export default async function BlogPage() {
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: { filter?: string };
+}) {
+  const filter = searchParams.filter || "semua";
+  const categoryParam =
+    filter === "semua" ? "eksterior,interior,umum" : filter;
+
   let articles: Array<{
     id: string;
     title: string;
@@ -36,9 +53,10 @@ export default async function BlogPage() {
   }> = [];
 
   try {
-    const res = await fetch(`${API_BASE}/api/articles?category=blog`, {
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${API_BASE}/api/articles?category=${categoryParam}`,
+      { cache: "no-store" }
+    );
     if (res.ok) {
       const json = await res.json();
       if (
@@ -57,7 +75,7 @@ export default async function BlogPage() {
   return (
     <div className="min-h-screen bg-bekon-cream">
       <div className="max-w-container mx-auto px-6 lg:px-20 pt-32 pb-20">
-        <div className="text-center mb-14">
+        <div className="text-center mb-10">
           <h1 className="font-display text-[clamp(32px,4vw,48px)] text-bekon-near-black">
             Blog
           </h1>
@@ -65,6 +83,8 @@ export default async function BlogPage() {
             Tips & Inspirasi Rumah
           </p>
         </div>
+
+        <BlogFilterDropdown current={filter} />
 
         {articles.length === 0 ? (
           <p className="text-center text-bekon-text-muted">
@@ -89,7 +109,7 @@ export default async function BlogPage() {
                 </div>
                 <div className="p-5">
                   <span className="inline-block px-3 py-1 rounded-full bg-bekon-gold/10 text-bekon-gold text-[11px] font-semibold uppercase tracking-wider mb-3">
-                    {article.category?.replace(/-/g, " ") ?? ""}
+                    {CATEGORY_LABELS[article.category ?? ""] ?? article.category ?? ""}
                   </span>
                   <h2 className="text-bekon-near-black font-semibold text-base leading-snug mb-2 line-clamp-2 group-hover:text-bekon-gold transition-colors">
                     {article.title}
