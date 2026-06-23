@@ -107,16 +107,29 @@ export default async function TentangKamiPage() {
             ) : (
               <>
                 <p className="text-bekon-text-muted leading-relaxed mb-4">
-                  BEKON berdiri sejak 2009 dan telah melayani ratusan klien di
-                  Serang, Cilegon, Banten, dan sekitarnya. Kami adalah mitra jangka
-                  panjang yang mewujudkan investasi hunian berkualitas dengan
-                  transparansi, estetika, dan ketepatan.
+                  Bangun Eka Konstruksi (BEKON) yang berdiri tahun 2009 adalah perusahaan
+                  yang bergerak di bidang jasa konstruksi pekerjaan bangunan seperti;
+                  rumah tinggal pribadi, perumahan, kantor, toko/kios, ruko, infrastruktur, dll.
+                </p>
+                <p className="text-bekon-text-muted leading-relaxed mb-4">
+                  Perusahaan kami juga mengerjakan proyek konstruksi mulai dari tahap
+                  perencanaan sampai dengan pelaksanaan.
+                </p>
+                <p className="text-bekon-text-muted leading-relaxed mb-4">
+                  – Perencanaan meliputi; pembuatan gambar kerja, gambar 3 dimensi,
+                  site plan, RAB (Rencana Anggaran Biaya).
+                </p>
+                <p className="text-bekon-text-muted leading-relaxed mb-4">
+                  – Pelaksanaan meliputi; pekerjaan bangunan baru, renovasi, penambahan
+                  lantai/tingkat, pagar, teras, tangga, penggantian keramik, plafond,
+                  pengecatan ulang, pembuatan dan pemasangan kusen pintu &amp; jendela
+                  kayu, aluminium, dll.
                 </p>
                 <p className="text-bekon-text-muted leading-relaxed mb-6">
-                  Dengan tim profesional yang berpengalaman, kami melayani jasa
-                  desain eksterior, interior, bangun rumah, renovasi, hingga
-                  pembangunan kost dan ruko. Layanan online kami menjangkau seluruh
-                  Indonesia dan luar negeri.
+                  Kami selalu berusaha untuk terus mengembangkan diri dan meningkatkan
+                  kualitas pekerjaan dan hasil kerja sehingga suatu saat diharapkan dapat
+                  ikut serta memberi sumbangsih hasil karya terbaik untuk kemajuan bangsa
+                  Indonesia dalam bidang desain, konstruksi dan pengembangan perumahan.
                 </p>
               </>
             )}
@@ -148,6 +161,60 @@ export default async function TentangKamiPage() {
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Visi & Misi */}
+        <div className="mb-20" id="visi-misi">
+          <h2 className="text-2xl font-bold text-bekon-near-black mb-8">
+            Visi &amp; Misi
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Visi */}
+            <div className="bg-white rounded-xl p-6 border border-bekon-border">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-bekon-gold flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-sm">V</span>
+                </div>
+                <h3 className="text-lg font-bold text-bekon-near-black">Visi</h3>
+              </div>
+              <p className="text-bekon-text-muted leading-relaxed">
+                Meningkatkan, mengembangkan kemampuan keteknikan dalam bidang desain,
+                konstruksi dan pengembangan perumahan untuk memenuhi kebutuhan dan
+                bermanfaat bagi masyarakat pengguna.
+              </p>
+            </div>
+            {/* Misi */}
+            <div className="bg-white rounded-xl p-6 border border-bekon-border">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-bekon-gold flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-sm">M</span>
+                </div>
+                <h3 className="text-lg font-bold text-bekon-near-black">Misi</h3>
+              </div>
+              <p className="text-bekon-text-muted leading-relaxed mb-3">
+                Membangun, mengembangkan Sumber Daya Manusia dan teknologi untuk
+                menjadi yang terbaik dengan:
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-bekon-text-muted">
+                  <span className="text-bekon-gold font-bold mt-0.5">–</span>
+                  <span>Meningkatkan kemampuan SDM secara berkesinambungan</span>
+                </li>
+                <li className="flex items-start gap-2 text-bekon-text-muted">
+                  <span className="text-bekon-gold font-bold mt-0.5">–</span>
+                  <span>Mengembangkan sistem manajemen secara konsisten</span>
+                </li>
+                <li className="flex items-start gap-2 text-bekon-text-muted">
+                  <span className="text-bekon-gold font-bold mt-0.5">–</span>
+                  <span>Inovasi teknologi di bidang konstruksi</span>
+                </li>
+                <li className="flex items-start gap-2 text-bekon-text-muted">
+                  <span className="text-bekon-gold font-bold mt-0.5">–</span>
+                  <span>Memperluas jaringan dengan industri dan masyarakat pengguna</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
