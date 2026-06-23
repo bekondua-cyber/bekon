@@ -118,7 +118,7 @@ export function PortfolioSection({ items }: { items: PortfolioItem[] }) {
       </div>
 
       <div className="w-screen relative left-1/2 -translate-x-1/2 mt-2 md:mt-4 px-2 md:px-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 lg:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 lg:gap-4">
             {items.map((item) => {
               const isActive = activeItem.id === item.id;
               return (
