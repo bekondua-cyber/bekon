@@ -24,7 +24,11 @@ model Portfolio {
   slug         String   @unique
   category     String?
   location     String?
+  landSqm      Float?
   areaSqm      Float?
+  floors       Int?
+  bedrooms     Int?
+  bathrooms    Int?
   year         Int?
   description  String?
   isFeatured   Boolean  @default(false)

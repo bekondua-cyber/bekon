@@ -16,7 +16,11 @@ interface PortfolioDetail {
   slug: string;
   category?: string;
   location?: string;
+  landSqm?: number;
   areaSqm?: number;
+  floors?: number;
+  bedrooms?: number;
+  bathrooms?: number;
   year?: number;
   description?: string;
   coverImage?: string;
@@ -55,8 +59,24 @@ export default async function PortfolioDetailPage({ params }: Props) {
   const item = await fetchPortfolio(params.slug);
   if (!item) notFound();
 
+  const allImages = [
+    ...(item.coverImage ? [item.coverImage] : []),
+    ...item.images,
+  ];
+
+  const hasSpecs =
+    item.category ||
+    item.location ||
+    item.year ||
+    item.landSqm ||
+    item.areaSqm ||
+    item.floors ||
+    item.bedrooms ||
+    item.bathrooms;
+
   return (
     <div className="min-h-screen bg-bekon-off-white">
+
       {/* Hero Image */}
       <section className="relative h-[50vh] min-h-[400px]">
         {item.coverImage && (
@@ -75,7 +95,7 @@ export default async function PortfolioDetailPage({ params }: Props) {
             href="/portfolio"
             className="text-bekon-gold text-sm mb-3 inline-block hover:text-bekon-gold-light transition-colors"
           >
-            &larr; Portfolio
+            ← Portfolio
           </Link>
           <h1 className="font-display text-[clamp(28px,4vw,48px)] text-white mt-1">
             {item.title}
@@ -83,88 +103,21 @@ export default async function PortfolioDetailPage({ params }: Props) {
         </div>
       </section>
 
-      {/* Info Bar */}
-      <section className="border-b border-bekon-border bg-white">
-        <div className="max-w-container mx-auto px-6 lg:px-20 py-6">
-          <div className="flex flex-wrap gap-8">
-            {item.category && (
-              <div>
-                <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
-                  Kategori
-                </p>
-                <p className="text-bekon-near-black font-medium text-sm capitalize mt-1">
-                  {item.category.replace("-", " & ")}
-                </p>
-              </div>
-            )}
-            {item.location && (
-              <div>
-                <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
-                  Lokasi
-                </p>
-                <p className="text-bekon-near-black font-medium text-sm mt-1">
-                  {item.location}
-                </p>
-              </div>
-            )}
-            {item.areaSqm && (
-              <div>
-                <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
-                  Luas
-                </p>
-                <p className="text-bekon-near-black font-medium text-sm mt-1">
-                  {item.areaSqm} m&sup2;
-                </p>
-              </div>
-            )}
-            {item.year && (
-              <div>
-                <p className="text-bekon-text-muted text-xs uppercase tracking-wider font-medium">
-                  Tahun
-                </p>
-                <p className="text-bekon-near-black font-medium text-sm mt-1">
-                  {item.year}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Description */}
-      {item.description && (
-        <section className="py-12 md:py-16">
-          <div className="max-w-container mx-auto px-6 lg:px-20">
-            <div className="max-w-2xl">
-              <h2 className="text-xl font-bold text-bekon-near-black mb-4">
-                Tentang Proyek
-              </h2>
-              <p className="text-bekon-text-muted leading-relaxed">
-                {item.description}
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Gallery */}
-      {item.images && item.images.length > 1 && (
-        <section className="pb-16">
-          <div className="max-w-container mx-auto px-6 lg:px-20">
-            <h2 className="text-xl font-bold text-bekon-near-black mb-6">
-              Galeri
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {item.images.map((img, i) => (
+      {/* Gallery Strip */}
+      {allImages.length > 1 && (
+        <section className="border-b border-bekon-border bg-white">
+          <div className="max-w-container mx-auto px-6 lg:px-20 py-4">
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {allImages.map((img, i) => (
                 <div
                   key={i}
-                  className="relative aspect-[4/3] rounded-xl overflow-hidden"
+                  className="relative w-28 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100"
                 >
                   <Image
                     src={img}
-                    alt={`${item.title} - ${i + 1}`}
+                    alt={`${item.title} ${i + 1}`}
                     fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="112px"
                     className="object-cover"
                   />
                 </div>
@@ -174,7 +127,139 @@ export default async function PortfolioDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* CTA */}
+      {/* Main Content */}
+      <section className="py-12 md:py-16">
+        <div className="max-w-container mx-auto px-6 lg:px-20">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+            {/* Left: Description + Gallery */}
+            <div className="lg:col-span-2 space-y-10">
+              {item.description && (
+                <div>
+                  <h2 className="text-xl font-bold text-bekon-near-black mb-4">
+                    Tentang Proyek
+                  </h2>
+                  <p className="text-bekon-text-muted leading-relaxed whitespace-pre-line">
+                    {item.description}
+                  </p>
+                </div>
+              )}
+
+              {item.images && item.images.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-bold text-bekon-near-black mb-4">
+                    Galeri Foto
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {item.images.map((img, i) => (
+                      <div
+                        key={i}
+                        className="relative aspect-[4/3] rounded-xl overflow-hidden"
+                      >
+                        <Image
+                          src={img}
+                          alt={`${item.title} - ${i + 1}`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          className="object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Specs Sidebar */}
+            {hasSpecs && (
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-xl border border-bekon-border p-6 sticky top-24">
+                  <h3 className="font-bold text-bekon-near-black mb-4 pb-3 border-b border-bekon-border">
+                    Detail Proyek
+                  </h3>
+                  <div className="divide-y divide-bekon-border">
+                    {item.category && (
+                      <div className="flex justify-between py-3 text-sm">
+                        <span className="text-bekon-text-muted">Kategori</span>
+                        <span className="text-bekon-near-black font-medium capitalize text-right">
+                          {item.category.replace("-", " & ")}
+                        </span>
+                      </div>
+                    )}
+                    {item.location && (
+                      <div className="flex justify-between py-3 text-sm">
+                        <span className="text-bekon-text-muted">Lokasi</span>
+                        <span className="text-bekon-near-black font-medium text-right">
+                          {item.location}
+                        </span>
+                      </div>
+                    )}
+                    {item.year && (
+                      <div className="flex justify-between py-3 text-sm">
+                        <span className="text-bekon-text-muted">Tahun</span>
+                        <span className="text-bekon-near-black font-medium">
+                          {item.year}
+                        </span>
+                      </div>
+                    )}
+                    {item.landSqm && (
+                      <div className="flex justify-between py-3 text-sm">
+                        <span className="text-bekon-text-muted">Luas Tanah</span>
+                        <span className="text-bekon-near-black font-medium">
+                          {item.landSqm} m²
+                        </span>
+                      </div>
+                    )}
+                    {item.areaSqm && (
+                      <div className="flex justify-between py-3 text-sm">
+                        <span className="text-bekon-text-muted">Luas Bangunan</span>
+                        <span className="text-bekon-near-black font-medium">
+                          {item.areaSqm} m²
+                        </span>
+                      </div>
+                    )}
+                    {item.floors && (
+                      <div className="flex justify-between py-3 text-sm">
+                        <span className="text-bekon-text-muted">Jumlah Lantai</span>
+                        <span className="text-bekon-near-black font-medium">
+                          {item.floors} Lantai
+                        </span>
+                      </div>
+                    )}
+                    {item.bedrooms && (
+                      <div className="flex justify-between py-3 text-sm">
+                        <span className="text-bekon-text-muted">Kamar Tidur</span>
+                        <span className="text-bekon-near-black font-medium">
+                          {item.bedrooms} Kamar
+                        </span>
+                      </div>
+                    )}
+                    {item.bathrooms && (
+                      <div className="flex justify-between py-3 text-sm">
+                        <span className="text-bekon-text-muted">Kamar Mandi</span>
+                        <span className="text-bekon-near-black font-medium">
+                          {item.bathrooms} Kamar
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <a
+                    href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20tertarik%20dengan%20proyek%20${encodeURIComponent(item.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-5 w-full flex items-center justify-center gap-2 px-4 py-3 bg-bekon-gold text-white rounded-lg text-sm font-semibold hover:bg-bekon-gold/90 transition-colors"
+                  >
+                    Konsultasi Gratis
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Banner */}
       <section className="bg-bekon-gold py-16">
         <div className="max-w-container mx-auto px-6 lg:px-20 text-center">
           <h2 className="font-display text-[clamp(28px,3vw,36px)] text-white font-light mb-4">

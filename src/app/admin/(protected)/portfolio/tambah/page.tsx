@@ -19,7 +19,11 @@ export default function AdminPortfolioTambahPage() {
     slug: "",
     category: "",
     location: "",
+    landSqm: "",
     areaSqm: "",
+    floors: "",
+    bedrooms: "",
+    bathrooms: "",
     year: "",
     description: "",
     isFeatured: false,
@@ -98,7 +102,11 @@ export default function AdminPortfolioTambahPage() {
     try {
       const payload = {
         ...form,
+        landSqm: form.landSqm ? parseFloat(form.landSqm) : null,
         areaSqm: form.areaSqm ? parseFloat(form.areaSqm) : null,
+        floors: form.floors ? parseInt(form.floors) : null,
+        bedrooms: form.bedrooms ? parseInt(form.bedrooms) : null,
+        bathrooms: form.bathrooms ? parseInt(form.bathrooms) : null,
         year: form.year ? parseInt(form.year) : null,
       }
 
@@ -192,7 +200,16 @@ export default function AdminPortfolioTambahPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Luas (m²)</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Luas Tanah (m²)</label>
+              <input
+                type="number"
+                value={form.landSqm}
+                onChange={(e) => setForm((f) => ({ ...f, landSqm: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Luas Bangunan (m²)</label>
               <input
                 type="number"
                 value={form.areaSqm}
@@ -200,16 +217,46 @@ export default function AdminPortfolioTambahPage() {
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Tahun</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Jumlah Lantai</label>
               <input
                 type="number"
-                value={form.year}
-                onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))}
+                value={form.floors}
+                onChange={(e) => setForm((f) => ({ ...f, floors: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Kamar Tidur</label>
+              <input
+                type="number"
+                value={form.bedrooms}
+                onChange={(e) => setForm((f) => ({ ...f, bedrooms: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Kamar Mandi</label>
+              <input
+                type="number"
+                value={form.bathrooms}
+                onChange={(e) => setForm((f) => ({ ...f, bathrooms: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Tahun</label>
+            <input
+              type="number"
+              value={form.year}
+              onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
+            />
           </div>
 
           <div>
