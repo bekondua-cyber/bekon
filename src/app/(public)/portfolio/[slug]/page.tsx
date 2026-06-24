@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/data/site-config";
-import PortfolioGallery from "@/components/PortfolioGallery";
+import PortfolioHeroCarousel from "@/components/PortfolioHeroCarousel";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
@@ -119,43 +119,8 @@ export default async function PortfolioDetailPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-bekon-off-white">
 
-      {/* Hero */}
-      <section className="relative h-[50vh] min-h-[400px]">
-        {item.coverImage && (
-          <Image
-            src={item.coverImage}
-            alt={item.title}
-            fill
-            sizes="100vw"
-            className="object-cover"
-            priority
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-bekon-near-black/80 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-20 max-w-container mx-auto">
-          <Link
-            href="/portfolio"
-            className="text-bekon-gold text-sm mb-3 inline-block hover:text-bekon-gold-light transition-colors"
-          >
-            ← Portfolio
-          </Link>
-          <h1 className="font-display text-[clamp(28px,4vw,48px)] text-white mt-1">
-            {item.title}
-          </h1>
-        </div>
-      </section>
-
-      {/* Gallery */}
-      {allImages.length > 0 && (
-        <section className="py-10">
-          <div className="max-w-container mx-auto px-6 lg:px-20">
-            <h2 className="text-xl font-bold text-bekon-near-black mb-5">
-              Galeri Foto
-            </h2>
-            <PortfolioGallery images={allImages} title={item.title} />
-          </div>
-        </section>
-      )}
+      {/* Hero Carousel + Thumbnail Strip */}
+      <PortfolioHeroCarousel images={allImages} title={item.title} />
 
       {/* Main Content */}
       <section className="pb-16">
