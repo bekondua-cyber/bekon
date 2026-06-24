@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get("featured")
     const category = searchParams.get("category")
     const all = searchParams.get("all")
+    const exclude = searchParams.get("exclude")
+    const takeParam = searchParams.get("take")
 
     const where: Record<string, unknown> = { isPublished: true }
 
@@ -20,10 +22,14 @@ export async function GET(request: NextRequest) {
       where.category = category
     }
 
+    if (exclude) {
+      where.NOT = { slug: exclude }
+    }
+
     const items = await prisma.portfolio.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      ...(all !== "true" ? { take: 8 } : {}),
+      ...(all !== "true" ? { take: takeParam ? parseInt(takeParam) : 8 } : {}),
       select: {
         id: true,
         title: true,
