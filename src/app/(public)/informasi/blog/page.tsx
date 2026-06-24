@@ -36,9 +36,10 @@ function formatDate(dateStr: string | null | undefined): string {
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams: { filter?: string };
+  searchParams: { filter?: string; q?: string };
 }) {
   const filter = searchParams.filter || "semua";
+  const q = searchParams.q || "";
   const categoryParam =
     filter === "semua" ? "eksterior,interior,umum" : filter;
 
@@ -54,7 +55,7 @@ export default async function BlogPage({
 
   try {
     const res = await fetch(
-      `${API_BASE}/api/articles?category=${categoryParam}`,
+      `${API_BASE}/api/articles?category=${categoryParam}${q ? `&q=${encodeURIComponent(q)}` : ""}`,
       { cache: "no-store" }
     );
     if (res.ok) {
@@ -84,7 +85,7 @@ export default async function BlogPage({
           </p>
         </div>
 
-        <BlogFilterDropdown current={filter} />
+        <BlogFilterDropdown current={filter} currentQ={q} />
 
         {articles.length === 0 ? (
           <p className="text-center text-bekon-text-muted">
