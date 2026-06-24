@@ -10,7 +10,11 @@ const portfolioCreateSchema = z.object({
   slug: z.string().min(1, "Slug wajib diisi"),
   category: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
+  landSqm: z.number().optional().nullable(),
   areaSqm: z.number().optional().nullable(),
+  floors: z.number().int().optional().nullable(),
+  bedrooms: z.number().int().optional().nullable(),
+  bathrooms: z.number().int().optional().nullable(),
   year: z.number().int().optional().nullable(),
   description: z.string().optional().nullable(),
   isFeatured: z.boolean().optional(),
@@ -55,7 +59,7 @@ export async function GET(request: NextRequest) {
     }
 
     const items = await prisma.portfolio.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     })
     return NextResponse.json({ data: items })
   } catch (error) {
@@ -179,6 +183,37 @@ export async function DELETE(request: NextRequest) {
     console.error("DELETE /api/admin/portfolio error:", error)
     return NextResponse.json(
       { error: "Gagal menghapus portfolio" },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  const unauthorized = await requireAdmin()
+  if (unauthorized) return unauthorized
+
+  try {
+    const body = await request.json()
+    const { items } = body
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json(
+        { error: "Items wajib diisi" },
+        { status: 400 }
+      )
+    }
+
+    await Promise.all(
+      items.map(({ id, sortOrder }: { id: string; sortOrder: number }) =>
+        prisma.portfolio.update({ where: { id }, data: { sortOrder } })
+      )
+    )
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("PATCH /api/admin/portfolio error:", error)
+    return NextResponse.json(
+      { error: "Gagal menyimpan urutan" },
       { status: 500 }
     )
   }

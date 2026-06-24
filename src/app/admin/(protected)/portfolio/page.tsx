@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { toast } from "sonner"
-import { Edit, Trash2, Eye } from "lucide-react"
+import { Edit, Trash2, Eye, GripVertical } from "lucide-react"
 import { AdminSearch } from "@/components/admin/AdminSearch"
 import { TableSkeleton } from "@/components/admin/AdminSkeleton"
 
@@ -15,6 +15,7 @@ interface PortfolioItem {
   location: string | null
   coverImage: string | null
   isPublished: boolean
+  sortOrder: number
 }
 
 export default function AdminPortfolioPage() {
@@ -22,17 +23,19 @@ export default function AdminPortfolioPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [selected, setSelected] = useState<string[]>([])
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [orderChanged, setOrderChanged] = useState(false)
+  const [saving, setSaving] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    fetchItems()
-  }, [])
+  useEffect(() => { fetchItems() }, [])
 
   async function fetchItems() {
     try {
       const res = await fetch("/api/admin/portfolio", { credentials: "include" })
       const json = await res.json()
       setItems(json.data || [])
+      setOrderChanged(false)
     } catch (error) {
       toast.error(`Gagal memuat portfolio: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
@@ -48,18 +51,11 @@ export default function AdminPortfolioPage() {
     if (!confirm("Yakin ingin menghapus portfolio ini?")) return
     try {
       const res = await fetch(`/api/admin/portfolio?id=${id}`, {
-        method: "DELETE",
-        credentials: "include",
+        method: "DELETE", credentials: "include",
       })
-      if (res.ok) {
-        toast.success("Portfolio berhasil dihapus")
-        fetchItems()
-      } else {
-        toast.error("Gagal menghapus portfolio")
-      }
-    } catch (error) {
-      toastErr("Gagal menghapus portfolio")(error)
-    }
+      if (res.ok) { toast.success("Portfolio berhasil dihapus"); fetchItems() }
+      else toast.error("Gagal menghapus portfolio")
+    } catch (error) { toastErr("Gagal menghapus portfolio")(error) }
   }
 
   async function handleBulkDelete() {
@@ -74,14 +70,9 @@ export default function AdminPortfolioPage() {
       })
       if (res.ok) {
         toast.success(`${selected.length} portfolio berhasil dihapus`)
-        setSelected([])
-        fetchItems()
-      } else {
-        toast.error("Gagal menghapus portfolio")
-      }
-    } catch (error) {
-      toastErr("Gagal menghapus portfolio")(error)
-    }
+        setSelected([]); fetchItems()
+      } else toast.error("Gagal menghapus portfolio")
+    } catch (error) { toastErr("Gagal menghapus portfolio")(error) }
   }
 
   async function handleTogglePublished(item: PortfolioItem) {
@@ -95,12 +86,44 @@ export default function AdminPortfolioPage() {
       if (res.ok) {
         toast.success(item.isPublished ? "Portfolio di-unpublish" : "Portfolio dipublish")
         fetchItems()
-      } else {
-        toast.error("Gagal mengubah status")
-      }
-    } catch (error) {
-      toastErr("Gagal mengubah status")(error)
-    }
+      } else toast.error("Gagal mengubah status")
+    } catch (error) { toastErr("Gagal mengubah status")(error) }
+  }
+
+  function handleDragStart(index: number) {
+    setDragIndex(index)
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault()
+    if (dragIndex === null || dragIndex === index) return
+    const newItems = [...items]
+    const [moved] = newItems.splice(dragIndex, 1)
+    newItems.splice(index, 0, moved)
+    setItems(newItems)
+    setDragIndex(index)
+    setOrderChanged(true)
+  }
+
+  function handleDrop() { setDragIndex(null) }
+
+  async function handleSaveOrder() {
+    setSaving(true)
+    try {
+      const payload = items.map((item, index) => ({ id: item.id, sortOrder: index }))
+      const res = await fetch("/api/admin/portfolio", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: payload }),
+        credentials: "include",
+      })
+      if (res.ok) {
+        toast.success("Urutan portfolio berhasil disimpan")
+        setOrderChanged(false)
+        fetchItems()
+      } else toast.error("Gagal menyimpan urutan")
+    } catch (error) { toastErr("Gagal menyimpan urutan")(error) }
+    finally { setSaving(false) }
   }
 
   function toggleAll(checked: boolean) {
@@ -114,6 +137,7 @@ export default function AdminPortfolioPage() {
   const q = search.toLowerCase()
   const filtered = items.filter((item) => item.title.toLowerCase().includes(q))
   const allSelected = filtered.length > 0 && selected.length === filtered.length
+  const isDraggable = !search
 
   if (loading) return <LoadingState />
 
@@ -122,6 +146,15 @@ export default function AdminPortfolioPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Portfolio</h1>
         <div className="flex items-center gap-3">
+          {orderChanged && (
+            <button
+              onClick={handleSaveOrder}
+              disabled={saving}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              {saving ? "Menyimpan..." : "💾 Simpan Urutan"}
+            </button>
+          )}
           <AdminSearch value={search} onChange={setSearch} placeholder="Cari project..." />
           <Link
             href="/admin/portfolio/tambah"
@@ -131,6 +164,13 @@ export default function AdminPortfolioPage() {
           </Link>
         </div>
       </div>
+
+      {isDraggable && (
+        <p className="text-xs text-gray-400 mb-3 flex items-center gap-1">
+          <GripVertical className="w-3 h-3 inline" />
+          Drag baris untuk mengatur urutan tampil di homepage. Klik "Simpan Urutan" setelah selesai.
+        </p>
+      )}
 
       {selected.length > 0 && (
         <div className="mb-4 flex items-center gap-3">
@@ -154,6 +194,7 @@ export default function AdminPortfolioPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
+              <th className="px-2 py-3 w-8"></th>
               <th className="px-4 py-3 w-10">
                 <input
                   type="checkbox"
@@ -174,13 +215,25 @@ export default function AdminPortfolioPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-gray-500">
+                <td colSpan={8} className="text-center py-8 text-gray-500">
                   {search ? "Tidak ada project yang cocok" : "Belum ada portfolio"}
                 </td>
               </tr>
             ) : (
-              filtered.map((item) => (
-                <tr key={item.id} className="border-b border-gray-100">
+              filtered.map((item, i) => (
+                <tr
+                  key={item.id}
+                  draggable={isDraggable}
+                  onDragStart={() => handleDragStart(i)}
+                  onDragOver={(e) => handleDragOver(e, i)}
+                  onDrop={handleDrop}
+                  className={`border-b border-gray-100 transition-opacity ${
+                    dragIndex === i ? "opacity-40 bg-bekon-gold/5" : ""
+                  }`}
+                >
+                  <td className={`px-2 py-3 text-gray-300 ${isDraggable ? "cursor-grab active:cursor-grabbing" : ""}`}>
+                    <GripVertical className="w-4 h-4" />
+                  </td>
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"

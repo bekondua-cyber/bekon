@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const items = await prisma.portfolio.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       ...(all !== "true" ? { take: takeParam ? parseInt(takeParam) : 8 } : {}),
       select: {
         id: true,
