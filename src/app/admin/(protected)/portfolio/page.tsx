@@ -168,7 +168,7 @@ export default function AdminPortfolioPage() {
       {isDraggable && (
         <p className="text-xs text-gray-400 mb-3 flex items-center gap-1">
           <GripVertical className="w-3 h-3 inline" />
-          Drag baris untuk mengatur urutan tampil di homepage. Klik "Simpan Urutan" setelah selesai.
+          Drag baris untuk mengatur urutan tampil di homepage. Klik &quot;Simpan Urutan&quot; setelah selesai.
         </p>
       )}
 
