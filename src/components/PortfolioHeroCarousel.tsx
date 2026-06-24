@@ -40,7 +40,7 @@ export default function PortfolioHeroCarousel({ images, title }: Props) {
   return (
     <>
       {/* HERO: Foto Besar */}
-      <section className="relative h-[calc(55vh+80px)] min-h-[500px] bg-black pt-20">
+      <section className="relative h-[calc(80vh+80px)] min-h-[600px] bg-black pt-20">
         <Image
           src={images[activeIndex]}
           alt={`${title} - ${activeIndex + 1}`}
