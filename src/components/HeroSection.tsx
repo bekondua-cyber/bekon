@@ -148,7 +148,7 @@ function DesktopContent() {
       transition={{ duration: 0.9, ease: [0, 0, 0.2, 1], delay: 0.2 }}
       className="flex flex-col gap-5 pb-16 sm:pb-0"
     >
-      <span className="text-bekon-gold text-xs font-semibold uppercase tracking-[0.15em]">
+      <span className="self-start bg-black/40 backdrop-blur-md px-3 py-1.5 rounded text-bekon-gold text-xs font-semibold uppercase tracking-[0.15em]">
         {STATIC_CONTENT.label}
       </span>
 
