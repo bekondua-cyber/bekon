@@ -9,6 +9,7 @@ import { teamMembers as fallbackTeam } from "@/data/team";
 import type { TeamMember } from "@/components/TeamSection";
 import { Footer } from "@/components/Footer";
 import { siteConfig } from "@/data/site-config";
+import { prisma } from "@/lib/prisma";
 import dynamic from "next/dynamic";
 
 const HeroSection = dynamic(
@@ -92,23 +93,15 @@ function extractArray(res: unknown): unknown[] {
   return [];
 }
 
-function extractObject(res: unknown): Record<string, string> {
-  if (res && typeof res === "object" && "data" in res) {
-    const d = (res as { data: unknown }).data;
-    if (d && typeof d === "object" && !Array.isArray(d)) return d as Record<string, string>;
-  }
-  return {};
-}
-
 export default async function HomePage() {
-  const [portfolioRes, testimonialsRes, videosRes, articlesRes, settingsRes, teamRes] =
+  const [portfolioRes, testimonialsRes, videosRes, articlesRes, teamRes, dbSettings] =
     await Promise.all([
       fetchJSON(`${API_BASE}/api/portfolio`),
       fetchJSON(`${API_BASE}/api/testimonials`),
       fetchJSON(`${API_BASE}/api/videos`),
       fetchJSON(`${API_BASE}/api/articles`),
-      fetchJSON(`${API_BASE}/api/settings`),
       fetchJSON(`${API_BASE}/api/team`),
+      prisma.setting.findMany(),
     ]);
 
   const portfolioData = extractArray(portfolioRes);
@@ -118,7 +111,10 @@ export default async function HomePage() {
 
   const articlesData = extractArray(articlesRes);
 
-  const settings = extractObject(settingsRes);
+  const settings: Record<string, string> = {}
+  for (const s of dbSettings) {
+    if (s.value !== null) settings[s.key] = s.value
+  }
 
   const tentangLabel = settings.tentang_label;
   const tentangTitle = settings.tentang_judul;
@@ -225,7 +221,7 @@ export default async function HomePage() {
         <VideoSection items={videosData as VideoItem[]} />
         <BlogSection items={articlesData as ArticleItem[]} />
         <CTASection />
-        <ContactSection />
+        <ContactSection settings={settings} />
       </main>
       <Footer />
       <FloatingWhatsApp />

@@ -5,7 +5,13 @@ import { motion } from "framer-motion";
 import { MapPin, Phone, Mail } from "lucide-react";
 import { siteConfig } from "@/data/site-config";
 
-export function ContactSection() {
+interface ContactSectionProps {
+  settings?: Record<string, string>;
+}
+
+export function ContactSection({ settings = {} }: ContactSectionProps) {
+  const s = (key: string, fallback: string) => settings[key] || fallback;
+
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -38,7 +44,7 @@ export function ContactSection() {
     setSubmitting(true);
     const text = `Halo BEKON, saya ${form.name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${form.service || "Belum ditentukan"}\nPesan: ${form.message || "Saya ingin konsultasi"}`;
     window.open(
-      `https://wa.me/${siteConfig.whatsapp1}?text=${encodeURIComponent(text)}`,
+      `https://wa.me/${s("wa_admin_1", siteConfig.whatsapp1)}?text=${encodeURIComponent(text)}`,
       "_blank"
     );
     setTimeout(() => setSubmitting(false), 2000);
@@ -74,7 +80,7 @@ export function ContactSection() {
                     Alamat
                   </p>
                   <p className="text-bekon-text-muted text-sm mt-0.5">
-                    {siteConfig.address}
+                    {s("alamat", siteConfig.address)}
                   </p>
                 </div>
               </div>
@@ -88,9 +94,9 @@ export function ContactSection() {
                     Telepon
                   </p>
                   <p className="text-bekon-text-muted text-sm mt-0.5">
-                    {siteConfig.phone1}
+                    {s("telepon", siteConfig.phone1)}
                     <br />
-                    {siteConfig.phone2}
+                    {s("telepon_2", siteConfig.phone2)}
                   </p>
                 </div>
               </div>
@@ -104,7 +110,7 @@ export function ContactSection() {
                     Email
                   </p>
                   <p className="text-bekon-text-muted text-sm mt-0.5">
-                    {siteConfig.email}
+                    {s("email", siteConfig.email)}
                   </p>
                 </div>
               </div>
@@ -112,26 +118,26 @@ export function ContactSection() {
 
             <div className="flex flex-wrap gap-3">
               <a
-                href={`https://wa.me/${siteConfig.whatsapp1}`}
+                href={`https://wa.me/${s("wa_admin_1", siteConfig.whatsapp1)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-bekon-whatsapp text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
               >
-                {siteConfig.whatsapp1_name}
+                {s("wa_admin_1_name", siteConfig.whatsapp1_name)}
               </a>
               <a
-                href={`https://wa.me/${siteConfig.whatsapp2}`}
+                href={`https://wa.me/${s("wa_admin_2", siteConfig.whatsapp2)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-bekon-whatsapp text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
               >
-                {siteConfig.whatsapp2_name}
+                {s("wa_admin_2_name", siteConfig.whatsapp2_name)}
               </a>
             </div>
 
             <div className="flex gap-4 mt-6">
               <a
-                href={siteConfig.social.instagram}
+                href={s("instagram", siteConfig.social.instagram)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-bekon-text-muted hover:text-bekon-gold transition-colors"
@@ -142,7 +148,7 @@ export function ContactSection() {
                 </svg>
               </a>
               <a
-                href={siteConfig.social.youtube}
+                href={s("youtube", siteConfig.social.youtube)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-bekon-text-muted hover:text-bekon-gold transition-colors"
@@ -153,7 +159,7 @@ export function ContactSection() {
                 </svg>
               </a>
               <a
-                href={siteConfig.social.tiktok}
+                href={s("tiktok", siteConfig.social.tiktok)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-bekon-text-muted hover:text-bekon-gold transition-colors"
