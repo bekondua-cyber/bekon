@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { ContactForm } from "./contact-form";
 import { MapPin, Phone, Mail } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Kontak",
   description:
@@ -131,7 +133,7 @@ export default async function KontakPage() {
           </div>
 
           {/* Contact Form */}
-          <ContactForm />
+          <ContactForm settings={settings} />
         </div>
       </div>
     </div>

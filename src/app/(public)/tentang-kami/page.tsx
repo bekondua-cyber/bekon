@@ -5,6 +5,8 @@ import { teamMembers } from "@/data/team";
 import { whyBekon, type WhyBekonItem } from "@/data/why-bekon";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 function getInitials(name: string): string {
   return name
     .split(" ")
