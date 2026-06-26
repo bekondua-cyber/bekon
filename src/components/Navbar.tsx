@@ -24,10 +24,18 @@ const videoDropdown = [
   { label: "3D Desain", href: "/video#3d-desain" },
 ];
 
+const blogDropdown = [
+  { label: "Semua Blog", href: "/informasi/blog" },
+  { label: "Eksterior", href: "/informasi/blog?category=eksterior" },
+  { label: "Interior", href: "/informasi/blog?category=interior" },
+  { label: "Umum", href: "/informasi/blog?category=umum" },
+];
+
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [portfolioOpen, setPortfolioOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
+  const [blogOpen, setBlogOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const pathname = usePathname();
 
@@ -191,6 +199,58 @@ export function Navbar() {
                     </div>
                   );
                 }
+                if (link.href === "/informasi/blog") {
+                  return (
+                    <div
+                      key={link.href}
+                      className="relative"
+                      onMouseEnter={() => setBlogOpen(true)}
+                      onMouseLeave={() => setBlogOpen(false)}
+                    >
+                      <button
+                        className={cn(
+                          "flex items-center gap-1 text-sm transition-colors text-white/90 hover:text-bekon-gold px-2 py-1",
+                          (isActive("/informasi/blog") || blogOpen) && "text-bekon-gold"
+                        )}
+                      >
+                        Blog
+                        <ChevronDown
+                          size={14}
+                          className={cn(
+                            "transition-transform duration-200",
+                            blogOpen && "rotate-180"
+                          )}
+                        />
+                      </button>
+                      <AnimatePresence>
+                        {blogOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute top-full left-0 mt-2 w-56 bg-black/90 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden shadow-xl z-50"
+                          >
+                            {blogDropdown.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className={cn(
+                                  "block px-4 py-3 text-sm transition-colors border-b border-white/5 last:border-0",
+                                  isActive(item.href)
+                                    ? "text-bekon-gold bg-white/5"
+                                    : "text-white/80 hover:text-bekon-gold hover:bg-white/5"
+                                )}
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                }
                 return (
                   <Link
                     key={link.href}
@@ -306,6 +366,45 @@ export function Navbar() {
                       </span>
                       <div className="mt-4 flex flex-col items-center gap-3">
                         {videoDropdown.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setMenuOpen(false)}
+                            className={cn(
+                              "text-sm transition-colors",
+                              isActive(item.href)
+                                ? "text-bekon-gold"
+                                : "text-white/60 hover:text-bekon-gold"
+                            )}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  );
+                }
+                if (link.href === "/informasi/blog") {
+                  return (
+                    <motion.div
+                      key={link.href}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.06, duration: 0.3 }}
+                      className="text-center"
+                    >
+                      <span
+                        className={cn(
+                          "font-display text-[36px] font-light transition-colors",
+                          isActive("/informasi/blog")
+                            ? "text-bekon-gold"
+                            : "text-white/90"
+                        )}
+                      >
+                        Blog
+                      </span>
+                      <div className="mt-4 flex flex-col items-center gap-3">
+                        {blogDropdown.map((item) => (
                           <Link
                             key={item.href}
                             href={item.href}
