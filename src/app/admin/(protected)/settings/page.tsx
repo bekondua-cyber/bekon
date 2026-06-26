@@ -59,10 +59,11 @@ export default function AdminSettingsPage() {
         setSettings(payload)
         toast.success("Settings berhasil disimpan")
       } else {
-        toast.error("Gagal menyimpan settings")
+        const err = await res.json().catch(() => ({ error: "Gagal menyimpan settings" }))
+        toast.error(err.error || "Gagal menyimpan settings")
       }
-    } catch {
-      toast.error("Gagal menyimpan settings")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Gagal menyimpan settings")
     } finally {
       setSaving(false)
     }
