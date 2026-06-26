@@ -8,6 +8,7 @@ const VIDEO_TABS = [
   { value: "semua", label: "Semua" },
   { value: "hometour", label: "Home Tour" },
   { value: "3d-desain", label: "3D Desain" },
+  { value: "behind-the-build", label: "Behind the Build" },
 ];
 
 function tabFromHash(): string {
@@ -15,6 +16,7 @@ function tabFromHash(): string {
   const hash = window.location.hash.replace("#", "");
   if (hash === "hometour") return "hometour";
   if (hash === "3d-desain") return "3d-desain";
+  if (hash === "behind-the-build") return "behind-the-build";
   return "semua";
 }
 

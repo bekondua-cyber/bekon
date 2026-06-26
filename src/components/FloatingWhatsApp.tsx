@@ -5,12 +5,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { siteConfig } from "@/data/site-config";
 
-export function FloatingWhatsApp() {
+export function FloatingWhatsApp({ settings: initialSettings }: { settings?: Record<string, string> }) {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  const [settings, setSettings] = useState<Record<string, string>>(initialSettings || {});
+
+  useEffect(() => {
+    if (initialSettings) return;
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data) setSettings(json.data);
+      })
+      .catch(() => {});
+  }, [initialSettings]);
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 2500);
@@ -54,17 +66,17 @@ export function FloatingWhatsApp() {
                   </p>
                   <div className="space-y-2">
                     <a
-                      href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
+                      href={`https://wa.me/${settings.wa_admin_1 || siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 hover:border-bekon-gold/30 transition-colors"
                     >
                       <div className="w-8 h-8 rounded-full bg-bekon-gold/10 flex items-center justify-center text-bekon-gold font-semibold text-xs">
-                        {siteConfig.whatsapp1_name[0]}
+                        {(settings.wa_admin_1_name || siteConfig.whatsapp1_name)[0]}
                       </div>
                       <div className="text-left">
                         <p className="text-sm font-medium text-bekon-near-black">
-                          {siteConfig.whatsapp1_name}
+                          {settings.wa_admin_1_name || siteConfig.whatsapp1_name}
                         </p>
                         <p className="text-xs text-bekon-text-muted">
                           Chat via WhatsApp
@@ -72,17 +84,17 @@ export function FloatingWhatsApp() {
                       </div>
                     </a>
                     <a
-                      href={`https://wa.me/${siteConfig.whatsapp2}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
+                      href={`https://wa.me/${settings.wa_admin_2 || siteConfig.whatsapp2}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 hover:border-bekon-gold/30 transition-colors"
                     >
                       <div className="w-8 h-8 rounded-full bg-bekon-sage/10 flex items-center justify-center text-bekon-sage font-semibold text-xs">
-                        {siteConfig.whatsapp2_name[0]}
+                        {(settings.wa_admin_2_name || siteConfig.whatsapp2_name)[0]}
                       </div>
                       <div className="text-left">
                         <p className="text-sm font-medium text-bekon-near-black">
-                          {siteConfig.whatsapp2_name}
+                          {settings.wa_admin_2_name || siteConfig.whatsapp2_name}
                         </p>
                         <p className="text-xs text-bekon-text-muted">
                           Chat via WhatsApp

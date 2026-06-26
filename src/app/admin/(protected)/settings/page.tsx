@@ -120,6 +120,7 @@ export default function AdminSettingsPage() {
             <Field label="Nama Perusahaan" value={getSetting(settings, "nama_perusahaan")} onChange={(v) => updateSetting("nama_perusahaan", v)} />
             <Field label="Alamat" value={getSetting(settings, "alamat")} onChange={(v) => updateSetting("alamat", v)} />
             <Field label="Telepon" value={getSetting(settings, "telepon")} onChange={(v) => updateSetting("telepon", v)} />
+            <Field label="Telepon 2" value={getSetting(settings, "telepon_2")} onChange={(v) => updateSetting("telepon_2", v)} />
             <Field label="Email" value={getSetting(settings, "email")} onChange={(v) => updateSetting("email", v)} />
             <Field label="Tahun Berdiri" value={getSetting(settings, "tahun_berdiri")} onChange={(v) => updateSetting("tahun_berdiri", v)} />
             <div>
@@ -131,6 +132,12 @@ export default function AdminSettingsPage() {
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none resize-y"
               />
             </div>
+            <hr className="border-gray-200 my-2" />
+            <h2 className="font-semibold text-gray-900">Statistik Homepage</h2>
+            <Field label="Proyek Selesai (angka)" value={getSetting(settings, "stat_proyek")} onChange={(v) => updateSetting("stat_proyek", v)} />
+            <Field label="Tahun Pengalaman (angka)" value={getSetting(settings, "stat_pengalaman")} onChange={(v) => updateSetting("stat_pengalaman", v)} />
+            <Field label="Kota Terlayani (angka)" value={getSetting(settings, "stat_kota")} onChange={(v) => updateSetting("stat_kota", v)} />
+            <Field label="Kepuasan Klien (angka)" value={getSetting(settings, "stat_kepuasan")} onChange={(v) => updateSetting("stat_kepuasan", v)} />
           </>
         )}
 
@@ -144,6 +151,13 @@ export default function AdminSettingsPage() {
             <Field label="Instagram" value={getSetting(settings, "instagram")} onChange={(v) => updateSetting("instagram", v)} />
             <Field label="YouTube" value={getSetting(settings, "youtube")} onChange={(v) => updateSetting("youtube", v)} />
             <Field label="TikTok" value={getSetting(settings, "tiktok")} onChange={(v) => updateSetting("tiktok", v)} />
+            <hr className="border-gray-200 my-2" />
+            <h2 className="font-semibold text-gray-900">Layanan Form</h2>
+            <Field label="Opsi Layanan (pisahkan dengan |)" value={getSetting(settings, "form_services")} onChange={(v) => updateSetting("form_services", v)} />
+            <p className="text-xs text-gray-400 mt-1">Gunakan pipe (|) untuk memisahkan opsi. Contoh: Desain Eksterior|Desain Interior|Bangun Rumah</p>
+            <hr className="border-gray-200 my-2" />
+            <h2 className="font-semibold text-gray-900">Google Maps</h2>
+            <Field label="Google Maps URL" value={getSetting(settings, "maps_url")} onChange={(v) => updateSetting("maps_url", v)} />
           </>
         )}
 

@@ -138,7 +138,7 @@ export async function Footer() {
               </li>
               <li className="pt-2">
                 <a
-                  href={siteConfig.maps_url}
+                  href={s("maps_url", siteConfig.maps_url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-bekon-gold hover:text-bekon-gold-light transition-colors text-sm underline underline-offset-2"

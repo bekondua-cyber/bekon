@@ -24,7 +24,8 @@ const STATIC_CONTENT = {
   },
 }
 
-export function HeroSection() {
+export function HeroSection({ heroLabel }: { heroLabel?: string }) {
+  const label = heroLabel || STATIC_CONTENT.label
   const [slides, setSlides] = useState<HeroSlide[]>([])
   const [current, setCurrent] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -58,7 +59,9 @@ export function HeroSection() {
   }, [slides.length])
 
   if (loading) return <HeroSkeleton />
-  if (slides.length === 0) return null
+  if (slides.length === 0) {
+    return <HeroFallback />;
+  }
 
   const activeSlides = slides.filter((s) => s.isActive)
   const displaySlides = activeSlides.length > 0 ? activeSlides : slides
@@ -101,7 +104,7 @@ export function HeroSection() {
 
       {/* Content overlay - STATIS, TIDAK BERGANTI */}
       <div className="absolute inset-0 flex flex-col justify-center px-8 lg:px-24 gap-5">
-        <DesktopContent />
+        <DesktopContent label={label} />
       </div>
 
       {/* Dot Navigator */}
@@ -140,7 +143,59 @@ export function HeroSection() {
   )
 }
 
-function DesktopContent() {
+function HeroFallback() {
+  return (
+    <section
+      id="beranda"
+      aria-label="Hero BEKON - Jasa Bangun Rumah Serang"
+      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-bekon-near-black to-gray-800"
+    >
+      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/25 to-black/10" />
+      <div className="absolute inset-0 flex flex-col justify-center px-8 lg:px-24 gap-5">
+        <div className="flex flex-col gap-5 pb-16 sm:pb-0">
+          <span className="self-start bg-black text-white px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-[0.15em]">
+            {STATIC_CONTENT.label}
+          </span>
+          <div className="self-start max-w-3xl">
+            <h1
+              className="font-display text-5xl lg:text-[64px] xl:text-[72px] font-light leading-[1.05] text-white"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
+            >
+              {STATIC_CONTENT.title}
+            </h1>
+          </div>
+          <div className="w-16 h-px bg-bekon-gold self-start ml-1" />
+          <div className="self-start max-w-md">
+            <p
+              className="text-white text-[16px] leading-relaxed"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8)" }}
+            >
+              {STATIC_CONTENT.subtitle}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 self-start">
+            <a
+              href={STATIC_CONTENT.ctaPrimary.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
+            >
+              {STATIC_CONTENT.ctaPrimary.text}
+            </a>
+            <Link
+              href={STATIC_CONTENT.ctaSecondary.link}
+              className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border-2 border-bekon-gold text-bekon-gold rounded-full transition-all duration-200 hover:bg-bekon-gold hover:text-white text-sm font-medium"
+            >
+              {STATIC_CONTENT.ctaSecondary.text} →
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DesktopContent({ label }: { label: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -149,7 +204,7 @@ function DesktopContent() {
       className="flex flex-col gap-5 pb-16 sm:pb-0"
     >
       <span className="self-start bg-black text-white px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-[0.15em]">
-        {STATIC_CONTENT.label}
+        {label}
       </span>
 
       <div className="self-start max-w-3xl">

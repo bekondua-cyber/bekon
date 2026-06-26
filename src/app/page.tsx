@@ -210,7 +210,7 @@ export default async function HomePage() {
       />
       <Navbar />
       <main id="main">
-        <HeroSection />
+        <HeroSection heroLabel={settings.hero_label} />
         <SocialProofBar stats={stats} />
         <ServicesSection />
         <PortfolioSection items={portfolioData} />
@@ -220,11 +220,11 @@ export default async function HomePage() {
         <TestimoniColumns items={testimonialsData} />
         <VideoSection items={videosData} />
         <BlogSection items={articlesData} />
-        <CTASection />
+        <CTASection settings={settings} />
         <ContactSection settings={settings} />
       </main>
       <Footer />
-      <FloatingWhatsApp />
+      <FloatingWhatsApp settings={settings} />
     </>
   );
 }

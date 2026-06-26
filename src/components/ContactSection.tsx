@@ -35,7 +35,7 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
 
   const phoneRegex = /^(\+62|62|0)8[1-9][0-9]{6,11}$/;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
     setPhoneError("");
@@ -45,6 +45,22 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
       return;
     }
     setSubmitting(true);
+
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name || "Calon Klien",
+          phone: phone || "-",
+          service: form.service || "",
+          message: form.message || "Tertarik dengan layanan BEKON",
+        }),
+      });
+    } catch {
+      // If saving fails, still allow WhatsApp (don't block user)
+    }
+
     const text = `Halo BEKON, saya ${form.name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${form.service || "Belum ditentukan"}\nPesan: ${form.message || "Saya ingin konsultasi"}`;
     window.open(
       `https://wa.me/${s("wa_admin_1", siteConfig.whatsapp1)}?text=${encodeURIComponent(text)}`,
@@ -176,7 +192,7 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
 
             <div className="mt-6">
               <a
-                href={siteConfig.maps_url}
+                href={s("maps_url", siteConfig.maps_url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-bekon-gold text-sm font-medium hover:text-bekon-gold-dark transition-colors"

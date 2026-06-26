@@ -178,8 +178,9 @@ export default function AdminArtikelEditPage() {
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
             >
               <option value="">Pilih kategori</option>
-              <option value="blog">Blog</option>
-              <option value="berita">Berita</option>
+              <option value="eksterior">Eksterior</option>
+              <option value="interior">Interior</option>
+              <option value="umum">Umum</option>
             </select>
           </div>
 
