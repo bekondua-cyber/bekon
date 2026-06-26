@@ -81,7 +81,7 @@ export function HeroSection() {
             src={imageUrl}
             alt={STATIC_CONTENT.title}
             fill
-            sizes="(max-width: 768px) 100vw, 100vw"
+            sizes="100vw"
             quality={50}
             className="object-cover"
             priority={i === 0}

@@ -12,6 +12,18 @@ interface ContactSectionProps {
 export function ContactSection({ settings = {} }: ContactSectionProps) {
   const s = (key: string, fallback: string) => settings[key] || fallback;
 
+  const servicesRaw = s("form_services", "");
+  const services = servicesRaw
+    ? servicesRaw.split("|").map((svc) => svc.trim()).filter(Boolean)
+    : [
+        "Desain Eksterior",
+        "Desain Interior",
+        "Bangun Rumah",
+        "Renovasi Rumah",
+        "Interior Rumah",
+        "Bangun Kost & Ruko",
+      ];
+
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -20,15 +32,6 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
   });
   const [phoneError, setPhoneError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  const services = [
-    "Desain Eksterior",
-    "Desain Interior",
-    "Bangun Rumah",
-    "Renovasi Rumah",
-    "Interior Rumah",
-    "Bangun Kost & Ruko",
-  ];
 
   const phoneRegex = /^(\+62|62|0)8[1-9][0-9]{6,11}$/;
 

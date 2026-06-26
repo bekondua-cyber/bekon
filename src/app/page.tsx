@@ -85,10 +85,10 @@ async function fetchJSON<T>(url: string): Promise<T | null> {
   }
 }
 
-function extractArray(res: unknown): unknown[] {
+function extractArray<T = unknown>(res: unknown): T[] {
   if (res && typeof res === "object" && "data" in res) {
     const d = (res as { data: unknown }).data;
-    if (Array.isArray(d)) return d;
+    if (Array.isArray(d)) return d as T[];
   }
   return [];
 }
@@ -104,12 +104,12 @@ export default async function HomePage() {
       prisma.setting.findMany(),
     ]);
 
-  const portfolioData = extractArray(portfolioRes);
-  const testimonialsData = extractArray(testimonialsRes);
+  const portfolioData = extractArray<PortfolioItem>(portfolioRes);
+  const testimonialsData = extractArray<Testimonial>(testimonialsRes);
 
-  const videosData = extractArray(videosRes);
+  const videosData = extractArray<VideoItem>(videosRes);
 
-  const articlesData = extractArray(articlesRes);
+  const articlesData = extractArray<ArticleItem>(articlesRes);
 
   const settings: Record<string, string> = {}
   for (const s of dbSettings) {
@@ -133,7 +133,7 @@ export default async function HomePage() {
     }
   } catch {}
 
-  const apiTeam = extractArray(teamRes) as TeamMember[];
+  const apiTeam = extractArray<TeamMember>(teamRes);
   const teamData: TeamMember[] = apiTeam.length > 0
     ? apiTeam
     : fallbackTeam.map(m => ({ id: m.id, name: m.name, role: m.role, bio: m.bio, photo: m.photo ?? null }));
@@ -213,13 +213,13 @@ export default async function HomePage() {
         <HeroSection />
         <SocialProofBar stats={stats} />
         <ServicesSection />
-        <PortfolioSection items={portfolioData as PortfolioItem[]} />
+        <PortfolioSection items={portfolioData} />
         <WhyBekonSection label={tentangLabel} title={tentangTitle} image={tentangImage} items={tentangItems} since={settings.tahun_berdiri ? Number(settings.tahun_berdiri) : undefined} />
         <TeamSection items={teamData} />
         <ProcessSection />
-        <TestimoniColumns items={testimonialsData as Testimonial[]} />
-        <VideoSection items={videosData as VideoItem[]} />
-        <BlogSection items={articlesData as ArticleItem[]} />
+        <TestimoniColumns items={testimonialsData} />
+        <VideoSection items={videosData} />
+        <BlogSection items={articlesData} />
         <CTASection />
         <ContactSection settings={settings} />
       </main>

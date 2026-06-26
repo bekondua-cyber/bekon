@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export type Testimonial = {
   id: string;
@@ -24,7 +25,7 @@ const TestimonialCard = ({ item }: { item: Testimonial }) => {
       </p>
       <div className="flex items-center gap-3">
         {item.photo ? (
-          <img src={item.photo} alt={item.clientName} className="w-10 h-10 rounded-full object-cover" />
+          <Image src={item.photo} alt={item.clientName} width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
         ) : (
           <div className="w-10 h-10 rounded-full bg-bekon-near-black flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
             {initials}

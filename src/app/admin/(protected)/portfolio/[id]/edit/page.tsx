@@ -28,7 +28,7 @@ interface PortfolioForm {
 export default function AdminPortfolioEditPage() {
   const params = useParams()
   const router = useRouter()
-  const id = params.id as string
+  const id = String(params.id)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)

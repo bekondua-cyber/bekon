@@ -27,7 +27,8 @@ async function fetchVideos(): Promise<VideoItem[]> {
     const res = await fetch(`${API_BASE}/api/videos`, { cache: "no-store" });
     if (!res.ok) return [];
     const json = await res.json();
-    if (json && Array.isArray(json.data)) return json.data as VideoItem[];
+    const data = json.data;
+    if (Array.isArray(data)) return data as VideoItem[];
     return [];
   } catch {
     return [];
