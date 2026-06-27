@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { siteConfig } from "@/data/site-config";
+import { normalizeWA } from "@/lib/utils";
 
 export function CTASection({ settings: initialSettings }: { settings?: Record<string, string> }) {
   const [settings, setSettings] = useState<Record<string, string>>(initialSettings || {});
@@ -30,7 +31,7 @@ export function CTASection({ settings: initialSettings }: { settings?: Record<st
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <a
-            href={`https://wa.me/${settings.wa_admin_1 || siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
+            href={`https://wa.me/${normalizeWA(settings.wa_admin_1 || siteConfig.whatsapp1)}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-bekon-gold text-bekon-near-black rounded-full text-sm font-semibold transition-all duration-200 hover:bg-white hover:text-bekon-near-black"
@@ -47,7 +48,7 @@ export function CTASection({ settings: initialSettings }: { settings?: Record<st
             {settings.wa_admin_1_name || siteConfig.whatsapp1_name}
           </a>
           <a
-            href={`https://wa.me/${settings.wa_admin_2 || siteConfig.whatsapp2}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
+            href={`https://wa.me/${normalizeWA(settings.wa_admin_2 || siteConfig.whatsapp2)}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-bekon-gold text-bekon-near-black rounded-full text-sm font-semibold transition-all duration-200 hover:bg-white hover:text-bekon-near-black"

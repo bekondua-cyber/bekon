@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail } from "lucide-react";
 import { siteConfig } from "@/data/site-config";
+import { normalizeWA } from "@/lib/utils";
 
 interface ContactSectionProps {
   settings?: Record<string, string>;
@@ -63,7 +64,7 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
 
     const text = `Halo BEKON, saya ${form.name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${form.service || "Belum ditentukan"}\nPesan: ${form.message || "Saya ingin konsultasi"}`;
     window.open(
-      `https://wa.me/${s("wa_admin_1", siteConfig.whatsapp1)}?text=${encodeURIComponent(text)}`,
+      `https://wa.me/${normalizeWA(s("wa_admin_1", siteConfig.whatsapp1))}?text=${encodeURIComponent(text)}`,
       "_blank"
     );
     setTimeout(() => setSubmitting(false), 2000);
@@ -137,7 +138,7 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
 
             <div className="flex flex-wrap gap-3">
               <a
-                href={`https://wa.me/${s("wa_admin_1", siteConfig.whatsapp1)}`}
+                href={`https://wa.me/${normalizeWA(s("wa_admin_1", siteConfig.whatsapp1))}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-bekon-whatsapp text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
@@ -145,7 +146,7 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
                 {s("wa_admin_1_name", siteConfig.whatsapp1_name)}
               </a>
               <a
-                href={`https://wa.me/${s("wa_admin_2", siteConfig.whatsapp2)}`}
+                href={`https://wa.me/${normalizeWA(s("wa_admin_2", siteConfig.whatsapp2))}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-bekon-whatsapp text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"

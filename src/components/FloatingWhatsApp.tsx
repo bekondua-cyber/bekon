@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { siteConfig } from "@/data/site-config";
+import { normalizeWA } from "@/lib/utils";
 
 export function FloatingWhatsApp({ settings: initialSettings }: { settings?: Record<string, string> }) {
   const [mounted, setMounted] = useState(false);
@@ -66,7 +67,7 @@ export function FloatingWhatsApp({ settings: initialSettings }: { settings?: Rec
                   </p>
                   <div className="space-y-2">
                     <a
-                      href={`https://wa.me/${settings.wa_admin_1 || siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
+                      href={`https://wa.me/${normalizeWA(settings.wa_admin_1 || siteConfig.whatsapp1)}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 hover:border-bekon-gold/30 transition-colors"
@@ -84,7 +85,7 @@ export function FloatingWhatsApp({ settings: initialSettings }: { settings?: Rec
                       </div>
                     </a>
                     <a
-                      href={`https://wa.me/${settings.wa_admin_2 || siteConfig.whatsapp2}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
+                      href={`https://wa.me/${normalizeWA(settings.wa_admin_2 || siteConfig.whatsapp2)}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 hover:border-bekon-gold/30 transition-colors"
