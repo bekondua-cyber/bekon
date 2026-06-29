@@ -47,6 +47,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: "https://res.cloudinary.com/dfkmge5kg/image/upload/v1782705092/logo_y3spfe.webp",
+  },
 };
 
 const criticalCSS = `
