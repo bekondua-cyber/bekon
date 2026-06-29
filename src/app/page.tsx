@@ -7,6 +7,7 @@ import type { ArticleItem } from "@/components/BlogSection";
 import type { WhyBekonItem } from "@/data/why-bekon";
 import { teamMembers as fallbackTeam } from "@/data/team";
 import type { TeamMember } from "@/components/TeamSection";
+import type { HeroSlide } from "@/types/hero";
 import { Footer } from "@/components/Footer";
 import { siteConfig } from "@/data/site-config";
 import { prisma } from "@/lib/prisma";
@@ -94,15 +95,18 @@ function extractArray<T = unknown>(res: unknown): T[] {
 }
 
 export default async function HomePage() {
-  const [portfolioRes, testimonialsRes, videosRes, articlesRes, teamRes, dbSettings] =
+  const [portfolioRes, testimonialsRes, videosRes, articlesRes, teamRes, heroRes, dbSettings] =
     await Promise.all([
       fetchJSON(`${API_BASE}/api/portfolio`),
       fetchJSON(`${API_BASE}/api/testimonials`),
       fetchJSON(`${API_BASE}/api/videos`),
       fetchJSON(`${API_BASE}/api/articles`),
       fetchJSON(`${API_BASE}/api/team`),
+      fetchJSON(`${API_BASE}/api/hero-slides`),
       prisma.setting.findMany(),
     ]);
+
+  const heroSlides = extractArray<HeroSlide>(heroRes);
 
   const portfolioData = extractArray<PortfolioItem>(portfolioRes);
   const testimonialsData = extractArray<Testimonial>(testimonialsRes);
@@ -210,7 +214,7 @@ export default async function HomePage() {
       />
       <Navbar />
       <main id="main">
-        <HeroSection heroLabel={settings.hero_label} />
+        <HeroSection initialSlides={heroSlides} heroLabel={settings.hero_label} />
         <SocialProofBar stats={stats} />
         <ServicesSection />
         <PortfolioSection items={portfolioData} />
