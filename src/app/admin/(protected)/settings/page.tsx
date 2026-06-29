@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ImageUploader } from "@/components/admin/ImageUploader"
 import type { WhyBekonItem } from "@/data/why-bekon"
+import type { SocialLink } from "@/components/SocialLinksRenderer"
 
 type SettingsData = Record<string, string>
 
@@ -14,6 +15,7 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState("Perusahaan")
   const [tentangItems, setTentangItems] = useState<WhyBekonItem[]>([])
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
 
   useEffect(() => {
     fetchSettings()
@@ -34,6 +36,21 @@ export default function AdminSettingsPage() {
           setTentangItems([])
         }
       }
+
+      const rawSocial = data["social_links"]
+      if (rawSocial) {
+        try {
+          setSocialLinks(JSON.parse(rawSocial))
+        } catch {
+          setSocialLinks([])
+        }
+      } else {
+        const migrated: SocialLink[] = []
+        if (data["instagram"]) migrated.push({ id: "instagram", platform: "Instagram", url: data["instagram"] })
+        if (data["youtube"]) migrated.push({ id: "youtube", platform: "YouTube", url: data["youtube"] })
+        if (data["tiktok"]) migrated.push({ id: "tiktok", platform: "TikTok", url: data["tiktok"] })
+        setSocialLinks(migrated)
+      }
     } catch {
       toast.error("Gagal memuat settings")
     } finally {
@@ -46,7 +63,11 @@ export default function AdminSettingsPage() {
   }
 
   async function handleSave() {
-    const payload = { ...settings, tentang_items: JSON.stringify(tentangItems) }
+    const payload = {
+      ...settings,
+      tentang_items: JSON.stringify(tentangItems),
+      social_links: JSON.stringify(socialLinks),
+    }
     setSaving(true)
     try {
       const res = await fetch("/api/admin/settings", {
@@ -149,9 +170,72 @@ export default function AdminSettingsPage() {
             <Field label="WA Admin 1 (nama)" value={getSetting(settings, "wa_admin_1_name")} onChange={(v) => updateSetting("wa_admin_1_name", v)} />
             <Field label="WA Admin 2 (nomor)" value={getSetting(settings, "wa_admin_2")} onChange={(v) => updateSetting("wa_admin_2", v)} />
             <Field label="WA Admin 2 (nama)" value={getSetting(settings, "wa_admin_2_name")} onChange={(v) => updateSetting("wa_admin_2_name", v)} />
-            <Field label="Instagram" value={getSetting(settings, "instagram")} onChange={(v) => updateSetting("instagram", v)} />
-            <Field label="YouTube" value={getSetting(settings, "youtube")} onChange={(v) => updateSetting("youtube", v)} />
-            <Field label="TikTok" value={getSetting(settings, "tiktok")} onChange={(v) => updateSetting("tiktok", v)} />
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700">Media Sosial</label>
+                <button
+                  type="button"
+                  onClick={() => setSocialLinks(prev => [...prev, {
+                    id: crypto.randomUUID?.() || Date.now().toString(),
+                    platform: "Instagram",
+                    url: ""
+                  }])}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-bekon-gold border border-bekon-gold/30 rounded-lg hover:bg-bekon-gold/5 transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Tambah Sosmed
+                </button>
+              </div>
+
+              {socialLinks.length === 0 && (
+                <p className="text-sm text-gray-400 italic mb-2">Belum ada sosial media. Klik &quot;Tambah Sosmed&quot; untuk menambahkan.</p>
+              )}
+
+              <div className="space-y-3">
+                {socialLinks.map((link, i) => (
+                  <div key={link.id} className="flex gap-2 items-center p-3 border border-gray-200 rounded-lg">
+                    <select
+                      value={link.platform}
+                      onChange={(e) => setSocialLinks(prev => {
+                        const updated = [...prev]
+                        updated[i] = { ...updated[i], platform: e.target.value }
+                        return updated
+                      })}
+                      className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none bg-white w-36 flex-shrink-0"
+                    >
+                      {["Instagram","YouTube","TikTok","Facebook","Twitter","LinkedIn","WhatsApp"].map(p => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={link.url}
+                      onChange={(e) => setSocialLinks(prev => {
+                        const updated = [...prev]
+                        updated[i] = { ...updated[i], url: e.target.value }
+                        return updated
+                      })}
+                      placeholder="https://..."
+                      className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSocialLinks(prev => prev.filter((_, idx) => idx !== i))}
+                      className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                      title="Hapus"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
             <hr className="border-gray-200 my-2" />
             <h2 className="font-semibold text-gray-900">Layanan Form</h2>
             <Field label="Opsi Layanan (pisahkan dengan |)" value={getSetting(settings, "form_services")} onChange={(v) => updateSetting("form_services", v)} />
