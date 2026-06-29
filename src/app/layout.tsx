@@ -32,11 +32,11 @@ export const metadata: Metadata = {
     siteName: "BEKON",
     locale: "id_ID",
     type: "website",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    images: [{ url: "https://res.cloudinary.com/dfkmge5kg/image/upload/v1782705092/logo_y3spfe.webp", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og-image.jpg"],
+    images: ["https://res.cloudinary.com/dfkmge5kg/image/upload/v1782705092/logo_y3spfe.webp"],
   },
   robots: {
     index: true,
