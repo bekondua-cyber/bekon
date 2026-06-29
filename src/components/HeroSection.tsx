@@ -227,29 +227,3 @@ function DesktopContent({ label }: { label: string }) {
   )
 }
 
-function HeroSkeleton() {
-  return (
-    <section className="relative min-h-screen bg-gray-900 overflow-hidden" aria-label="Loading">
-      <div className="absolute inset-0 bg-gray-800 animate-pulse" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/25 to-black/10" />
-      <div className="absolute inset-0 flex flex-col justify-center px-8 lg:px-24 gap-5">
-        <div className="self-start">
-          <div className="h-3 w-64 bg-gray-700 rounded animate-pulse" />
-        </div>
-        <div className="self-start max-w-3xl space-y-3">
-          <div className="h-16 w-96 bg-gray-700 rounded animate-pulse" />
-          <div className="h-16 w-80 bg-gray-700 rounded animate-pulse" />
-        </div>
-        <div className="w-16 h-px bg-gray-700 self-start ml-1 animate-pulse" />
-        <div className="self-start max-w-md">
-          <div className="h-4 w-full bg-gray-700 rounded animate-pulse" />
-          <div className="h-4 w-3/4 bg-gray-700 rounded animate-pulse mt-2" />
-        </div>
-        <div className="flex gap-4 self-start">
-          <div className="h-12 w-44 bg-gray-700 rounded-full animate-pulse" />
-          <div className="h-12 w-44 bg-gray-700 rounded-full animate-pulse" />
-        </div>
-      </div>
-    </section>
-  )
-}
