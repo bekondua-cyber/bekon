@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     title: "BEKON — Bangun Eka Konstruksi",
     description:
       "Wujudkan Hunian Impian Anda bersama kontraktor profesional sejak 2009.",
-    url: "https://bekon.co.id",
+    url: "https://bangunrumahbekon.com",
     siteName: "BEKON",
     locale: "id_ID",
     type: "website",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
-  metadataBase: new URL("https://bekon.co.id"),
+  metadataBase: new URL("https://bangunrumahbekon.com"),
   alternates: {
     canonical: "/",
   },

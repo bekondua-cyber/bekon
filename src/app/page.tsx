@@ -155,10 +155,10 @@ export default async function HomePage() {
     name: siteConfig.fullName,
     alternateName: siteConfig.name,
     description: siteConfig.description,
-    url: "https://bekon.co.id",
+      url: "https://bangunrumahbekon.com",
     telephone: [siteConfig.phone1, siteConfig.phone2],
     email: siteConfig.email,
-    image: "https://bekon.co.id/og-image.jpg",
+            image: "https://bangunrumahbekon.com/og-image.jpg",
     address: {
       "@type": "PostalAddress",
       streetAddress: siteConfig.address,

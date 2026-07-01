@@ -1,18 +1,42 @@
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const store = new Map<string, { count: number; resetAt: number }>()
 
-export function rateLimit(identifier: string, maxRequests = 10, windowMs = 60000) {
-  const now = Date.now();
-  const record = rateLimitMap.get(identifier);
+const CLEANUP_INTERVAL = 5 * 60 * 1000
 
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(identifier, { count: 1, resetTime: now + windowMs });
-    return { allowed: true, remaining: maxRequests - 1 };
+let lastCleanup = Date.now()
+
+function cleanup() {
+  const now = Date.now()
+  if (now - lastCleanup < CLEANUP_INTERVAL) return
+  lastCleanup = now
+  store.forEach((val, key) => {
+    if (now > val.resetAt) store.delete(key)
+  })
+}
+
+export function rateLimit(
+  identifier: string,
+  maxRequests: number,
+  windowMs: number
+): { allowed: boolean; remaining: number; resetAt: number } {
+  cleanup()
+
+  const now = Date.now()
+  const existing = store.get(identifier)
+
+  if (!existing || now > existing.resetAt) {
+    const resetAt = now + windowMs
+    store.set(identifier, { count: 1, resetAt })
+    return { allowed: true, remaining: maxRequests - 1, resetAt }
   }
 
-  if (record.count >= maxRequests) {
-    return { allowed: false, remaining: 0 };
+  if (existing.count >= maxRequests) {
+    return { allowed: false, remaining: 0, resetAt: existing.resetAt }
   }
 
-  record.count++;
-  return { allowed: true, remaining: maxRequests - record.count };
+  existing.count++
+  return {
+    allowed: true,
+    remaining: maxRequests - existing.count,
+    resetAt: existing.resetAt,
+  }
 }
