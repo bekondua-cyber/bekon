@@ -114,7 +114,6 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
           className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8"
         >
           {data
-            .filter((v) => v.id !== activeVideo?.id || !playing)
             .slice(0, 3)
             .map((video) => (
               <button
@@ -123,7 +122,11 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
                   setActiveVideo(video);
                   setPlaying(true);
                 }}
-                className="group relative aspect-video rounded-lg overflow-hidden bg-bekon-near-black"
+                className={`group relative aspect-video rounded-lg overflow-hidden bg-bekon-near-black ${
+                  activeVideo?.id === video.id && playing
+                    ? "ring-2 ring-bekon-gold ring-offset-1"
+                    : ""
+                }`}
               >
                 <Image
                   src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}

@@ -69,12 +69,17 @@ export function VideoPageClient({ items }: { items: VideoItem[] }) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {filtered
-          .filter((v) => v.id !== activeVideo.id)
-          .map((video) => (
+          .map((video) => {
+            const isActive = video.id === activeVideo.id;
+            return (
             <button
               key={video.id}
               onClick={() => setActiveVideo(video)}
-              className="group relative aspect-video rounded-lg overflow-hidden bg-bekon-near-black text-left"
+              className={`group relative aspect-video rounded-lg overflow-hidden bg-bekon-near-black text-left transition-all ${
+                isActive
+                  ? "ring-2 ring-bekon-gold ring-offset-2"
+                  : ""
+              }`}
             >
               <Image
                 src={`https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`}
@@ -83,18 +88,31 @@ export function VideoPageClient({ items }: { items: VideoItem[] }) {
                 sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-bekon-near-black/40 flex items-center justify-center">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="white" className="opacity-80 group-hover:opacity-100 transition-opacity">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
+              {isActive ? (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-bekon-gold flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                </div>
+              ) : (
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg className="w-4 h-4 text-bekon-near-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                </div>
+              )}
               <div className="absolute bottom-2 left-2 right-2">
                 <p className="text-white text-xs font-medium truncate">
                   {video.title}
                 </p>
               </div>
             </button>
-          ))}
+            );
+          })}
       </div>
     </section>
   );
