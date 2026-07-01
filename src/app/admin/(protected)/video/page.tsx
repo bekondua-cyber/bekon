@@ -52,15 +52,17 @@ export default function AdminVideoPage() {
 
   function extractYoutubeId(url: string): string {
     const patterns = [
-      /(?:youtube\.com\/watch\?v=)([^&]+)/,
-      /(?:youtu\.be\/)([^?]+)/,
-      /(?:youtube\.com\/embed\/)([^/?]+)/,
+      /(?:youtube\.com\/watch\?v=)([^&\s]+)/,
+      /(?:youtu\.be\/)([^?\s]+)/,
+      /(?:youtube\.com\/embed\/)([^/?\s]+)/,
+      /(?:youtube\.com\/shorts\/)([^/?\s]+)/,
+      /(?:youtube\.com\/live\/)([^/?\s]+)/,
     ]
     for (const p of patterns) {
       const match = url.match(p)
       if (match) return match[1]
     }
-    return url
+    return ""
   }
 
   function openAddForm() {
