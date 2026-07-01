@@ -1,6 +1,5 @@
 "use client"
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
 import Image from "next/image"
 import { ChevronDown } from "lucide-react"
 import { WhatsAppIcon } from "@/components/Icons"
@@ -8,7 +7,6 @@ import Link from "next/link"
 import { siteConfig } from "@/data/site-config"
 import type { HeroSlide } from "@/types/hero"
 
-const MotionImage = motion.create(Image)
 
 const STATIC_CONTENT = {
   label: "Jasa Konstruksi & Desain — Serang, Banten",
@@ -58,22 +56,19 @@ export function HeroSection({ heroLabel, initialSlides = [] }: { heroLabel?: str
           ? s.portfolio.coverImage
           : s.image
         return (
-          <MotionImage
+          <Image
             key={s.id}
             src={imageUrl}
             alt={STATIC_CONTENT.title}
             fill
             sizes="100vw"
             quality={50}
-            className="object-cover"
+            className={`object-cover transition-opacity transition-transform duration-700 ease-in-out ${
+              isActive ? "opacity-100 scale-100" : "opacity-0 scale-105"
+            }`}
             priority={i === 0}
             fetchPriority={i === 0 ? "high" : "auto"}
             {...(i !== 0 ? { loading: "lazy" } : {})}
-            animate={{
-              opacity: isActive ? 1 : 0,
-              scale: isActive ? 1 : 1.05,
-            }}
-            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
           />
         )
       })}
@@ -105,19 +100,16 @@ export function HeroSection({ heroLabel, initialSlides = [] }: { heroLabel?: str
       )}
 
       {/* Scroll indicator */}
-      <motion.a
+      <a
         href="#stats"
-        initial={false}
-        animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-8 right-12 hidden lg:flex flex-col items-center gap-2 cursor-pointer"
+        className="absolute bottom-8 right-12 hidden lg:flex flex-col items-center gap-2 cursor-pointer animate-bounce"
         aria-label="Scroll ke bawah"
       >
         <span className="text-bekon-text-muted uppercase text-[11px] font-medium tracking-[0.1em]">
           Scroll
         </span>
         <ChevronDown className="text-bekon-gold" size={18} />
-      </motion.a>
+      </a>
     </section>
   )
 }
@@ -176,12 +168,7 @@ function HeroFallback() {
 
 function DesktopContent({ label }: { label: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.9, ease: [0, 0, 0.2, 1], delay: 0.2 }}
-      className="flex flex-col gap-5 pb-16 sm:pb-0"
-    >
+    <div className="flex flex-col gap-5 pb-16 sm:pb-0 animate-fade-in-up">
       <span className="self-start bg-black text-white px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-[0.15em]">
         {label}
       </span>
@@ -223,7 +210,7 @@ function DesktopContent({ label }: { label: string }) {
           {STATIC_CONTENT.ctaSecondary.text} →
         </Link>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
