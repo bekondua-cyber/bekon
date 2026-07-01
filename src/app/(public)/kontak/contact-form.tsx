@@ -47,7 +47,7 @@ export function ContactForm({ settings = {} }: ContactFormProps) {
           message: message || "Tertarik dengan layanan BEKON",
         }),
       });
-    } catch {}
+    } catch (err) { console.error("Contact form error:", err) }
 
     const text = `Halo BEKON, saya ${name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${service || "Belum ditentukan"}\nPesan: ${message || "Saya ingin konsultasi"}`;
     window.open(

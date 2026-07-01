@@ -86,21 +86,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  console.log("[Hero API] === POST /api/admin/hero-slides ===")
-
   const unauthorized = await requireAdmin()
   if (unauthorized) {
-    console.log("[Hero API] Unauthorized access")
     return unauthorized
   }
 
   try {
     const body = await request.json()
-    console.log("[Hero API] Request body:", JSON.stringify({
-      ...body,
-      image: body.image ? `${body.image.slice(0, 60)}...` : "KOSONG",
-    }))
-
     const validation = heroSlideCreateSchema.safeParse(body)
     if (!validation.success) {
       console.error("[Hero API] Validation failed:", validation.error.issues)
@@ -109,10 +101,8 @@ export async function POST(request: NextRequest) {
 
     const { image, sourceType, portfolioId, isActive } = validation.data
 
-    console.log("[Hero API] Validation passed, querying max order...")
     const maxOrder = await prisma.heroSlide.aggregate({ _max: { order: true } })
     const nextOrder = (maxOrder._max.order ?? -1) + 1
-    console.log("[Hero API] Max order:", maxOrder._max.order, "next:", nextOrder)
 
     const data = {
       image: image || "",
@@ -121,9 +111,6 @@ export async function POST(request: NextRequest) {
       sourceType: sourceType || "custom",
       portfolioId: portfolioId || null,
     }
-    console.log("[Hero API] Prisma create data:", { ...data, image: data.image ? `${data.image.slice(0, 60)}...` : "KOSONG" })
-
-    console.log("[Hero API] Executing Prisma create...")
     const slide = await prisma.heroSlide.create({
       data,
       include: {
@@ -133,8 +120,6 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    console.log("[Hero API] Prisma create SUCCESS, slide ID:", slide.id)
-    console.log("[Hero API] Return 201 to client")
     return NextResponse.json({ data: slide }, { status: 201 })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error"
@@ -157,8 +142,6 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json()
-    console.log("[Hero Slides API] PUT received:", JSON.stringify(body))
-
     // Bulk reorder
     if (body.slides && Array.isArray(body.slides)) {
       const reorderValidation = reorderSchema.safeParse(body)
@@ -166,7 +149,6 @@ export async function PUT(request: NextRequest) {
         return validationErrorResponse(reorderValidation.error)
       }
 
-      console.log("[Hero Slides API] Bulk reorder:", reorderValidation.data.slides.length, "slides")
       const updates = reorderValidation.data.slides.map((s) =>
         prisma.heroSlide.update({
           where: { id: s.id },
@@ -188,10 +170,8 @@ export async function PUT(request: NextRequest) {
     }
     const { image, order, isActive, sourceType, portfolioId } = validation.data
 
-    console.log("[Hero Slides API] Updating slide:", id)
     const existing = await prisma.heroSlide.findUnique({ where: { id } })
     if (!existing) {
-      console.log("[Hero Slides API] Slide not found:", id)
       return NextResponse.json({ error: "Hero slide not found" }, { status: 404 })
     }
 
@@ -225,10 +205,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")
-    console.log("[Hero Slides API] DELETE received, id:", id)
-
     if (id) {
-      console.log("[Hero Slides API] Deleting single slide:", id)
       try {
         await prisma.heroSlide.delete({ where: { id } })
       } catch (deleteError) {
@@ -245,7 +222,6 @@ export async function DELETE(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}))
     const ids = body.ids
-    console.log("[Hero Slides API] Bulk delete, ids:", ids)
     if (ids && Array.isArray(ids) && ids.length > 0) {
       await prisma.heroSlide.deleteMany({ where: { id: { in: ids } } })
       return NextResponse.json({ success: true })

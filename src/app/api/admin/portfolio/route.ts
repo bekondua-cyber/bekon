@@ -82,9 +82,7 @@ export async function POST(request: NextRequest) {
       return validationErrorResponse(validation.error)
     }
 
-    console.log("[Portfolio API] POST received:", JSON.stringify({ ...body, images: `${(body.images || []).length} images` }))
     const item = await prisma.portfolio.create({ data: validation.data })
-    console.log("[Portfolio API] Created portfolio:", item.id)
     return NextResponse.json({ data: item })
   } catch (error) {
     if (isPrismaErrorCode(error, "P2002")) {
@@ -107,7 +105,6 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json()
-    console.log("[Portfolio API] PUT received, id:", body.id)
     const { id, ...data } = body
 
     if (!id) {
@@ -122,12 +119,10 @@ export async function PUT(request: NextRequest) {
       return validationErrorResponse(validation.error)
     }
 
-    console.log("[Portfolio API] Updating portfolio:", id)
     const item = await prisma.portfolio.update({
       where: { id },
       data: validation.data,
     })
-    console.log("[Portfolio API] Updated portfolio:", item.id)
     return NextResponse.json({ data: item })
   } catch (error) {
     if (isPrismaErrorCode(error, "P2002")) {

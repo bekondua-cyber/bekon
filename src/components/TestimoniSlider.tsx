@@ -12,99 +12,6 @@ export interface TestimonialSliderItem {
   rating: number;
 }
 
-const dummyTestimonials: TestimonialSliderItem[] = [
-  {
-    id: "1",
-    clientName: "Ira Elisa Widuri",
-    projectType: "Bangun Ruko",
-    location: "Serang, Banten",
-    content:
-      "Terimakasih Bangun Rumah Bekon sudah wujudkan ruko impian, saya suka hasil nya dan tim sangat profesional dan komunikatif.",
-    rating: 5,
-  },
-  {
-    id: "2",
-    clientName: "Lidya Yusnita",
-    projectType: "Bangun Rumah",
-    location: "Cilegon, Banten",
-    content:
-      "Alhamdulillah rumahnya udah selesai. Terima kasih team bangun rumah Bekon yang sudah bekerja dengan baik dan tepat waktu.",
-    rating: 5,
-  },
-  {
-    id: "3",
-    clientName: "Widi Sakti",
-    projectType: "Bangun Rumah",
-    location: "Serang, Banten",
-    content:
-      "Alhamdulillah rumah idaman kami selesai tepat waktu. Terimakasih team Bangun Eka Konstruksi, hasilnya sangat memuaskan.",
-    rating: 5,
-  },
-  {
-    id: "4",
-    clientName: "Mulia Almahdi",
-    projectType: "Bangun Rumah",
-    location: "Banten",
-    content:
-      "Hasilnya sangat memuaskan. Pengerjaan cepat, rapi, segi pelayanan yang baik. Pokoknya recommended banget!",
-    rating: 5,
-  },
-  {
-    id: "5",
-    clientName: "Syamsul",
-    projectType: "Bangun Rumah",
-    location: "Serang, Banten",
-    content:
-      "Hasil pekerjaan rapi, bagus, dan melebihi dari ekspektasi. Pemilihan material bangunannya juga berkualitas.",
-    rating: 5,
-  },
-  {
-    id: "6",
-    clientName: "Roni Setyawan",
-    projectType: "Renovasi Rumah",
-    location: "Cilegon, Banten",
-    content:
-      "Alhamdulillah rumah bergaya scandinavian sudah terwujud. Terimakasih tim Bangun Eka Konstruksi!",
-    rating: 5,
-  },
-  {
-    id: "7",
-    clientName: "Ikoh Rofikoh",
-    projectType: "Bangun Rumah",
-    location: "Serang, Banten",
-    content:
-      "Terimakasih bangun eka konstruksi, hasil yang memuaskan dan tim yang ramah serta profesional.",
-    rating: 5,
-  },
-  {
-    id: "8",
-    clientName: "Imron Tsaluji",
-    projectType: "Bangun Rumah",
-    location: "Banten",
-    content:
-      "Terima kasih untuk Bangun Eka Konstruksi atas jasa pembangunannya, rumah saya sekarang sangat nyaman dan indah.",
-    rating: 5,
-  },
-  {
-    id: "9",
-    clientName: "Nabila Azra",
-    projectType: "Desain & Bangun",
-    location: "Serang, Banten",
-    content:
-      "Desain rumahnya bagus, modern. Hasil jasa bangun rumahnya juga sesuai apa yang diinginkan. Sangat puas!",
-    rating: 5,
-  },
-  {
-    id: "10",
-    clientName: "Farid Y. Kurniawan",
-    projectType: "Bangun Rumah",
-    location: "Cilegon, Banten",
-    content:
-      "Terimakasih untuk tim Bekon. Pelayanan yang diberikan bagus, komunikatif, dan tepat waktu. Highly recommended!",
-    rating: 5,
-  },
-];
-
 const AVATAR_COLORS = [
   "#B8963E", // gold
   "#4A7C3F", // sage
@@ -132,7 +39,7 @@ interface TestimoniSliderProps {
 }
 
 export function TestimoniSlider({ items = [] }: TestimoniSliderProps) {
-  const displayItems = items.length > 0 ? items : dummyTestimonials;
+  const displayItems = items;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);

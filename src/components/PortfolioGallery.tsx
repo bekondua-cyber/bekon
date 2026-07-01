@@ -194,7 +194,7 @@ export default function PortfolioGallery({ images, title }: PortfolioGalleryProp
                         : "border-transparent opacity-50 hover:opacity-80"
                     }`}
                   >
-                    <Image src={img} alt="" fill sizes="64px" className="object-cover" />
+                    <Image src={img} alt={`Thumbnail ${i + 1}`} fill sizes="64px" className="object-cover" />
                   </button>
                 ))}
               </div>

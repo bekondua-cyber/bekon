@@ -127,7 +127,7 @@ export function VideoSection({ items }: { items: VideoItem[] }) {
               >
                 <Image
                   src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
-                  alt=""
+                  alt={video.title}
                   fill
                   sizes="(max-width: 768px) 50vw, 33vw"
                   className="object-cover transition-transform duration-300 group-hover:scale-105"

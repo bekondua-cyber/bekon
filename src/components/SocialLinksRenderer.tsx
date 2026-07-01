@@ -83,7 +83,7 @@ export function parseSocialLinks(
     try {
       const parsed = JSON.parse(raw)
       if (Array.isArray(parsed) && parsed.length > 0) return parsed
-    } catch {}
+    } catch { /* invalid JSON, use fallback */ }
   }
   const result: SocialLink[] = []
   if (fallback?.instagram) result.push({ id: "instagram", platform: "Instagram", url: fallback.instagram })

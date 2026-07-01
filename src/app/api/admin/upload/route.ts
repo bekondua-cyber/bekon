@@ -8,23 +8,16 @@ export async function POST(request: NextRequest) {
   if (unauthorized) return unauthorized
 
   try {
-    console.log("[Upload API] POST /api/admin/upload received")
     const formData = await request.formData()
     const file = formData.get("file") as File | null
     if (!file) {
-      console.log("[Upload API] No file in request")
       return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 })
     }
-
-    console.log("[Upload API] File received:", file.name, `(${(file.size / 1024 / 1024).toFixed(2)}MB)`, "type:", file.type)
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    console.log("[Upload API] File converted to buffer, size:", buffer.length)
-    console.log("[Upload API] Starting Cloudinary upload...")
     const result = await uploadImage(buffer, "bekon")
-    console.log("[Upload API] Cloudinary upload success:", result.url, "public_id:", result.public_id)
 
     const media = await prisma.media.create({
       data: {
