@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         thumbnail: true,
         category: true,
         isFeatured: true,
+        isPublished: true,
         sortOrder: true,
       },
     })
