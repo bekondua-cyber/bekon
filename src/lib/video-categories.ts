@@ -2,6 +2,7 @@ export interface VideoCategory {
   id: string
   label: string
   description: string
+  icon: string
   structures: string[]
   styles: string[]
   usesCharacter: "optional" | "recommended" | "rare"
@@ -13,6 +14,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     id: "timelapse",
     label: "Timelapse Konstruksi",
     description: "Tanah kosong berubah jadi rumah mewah, aktivitas proyek bergerak cepat",
+    icon: "Building2",
     structures: ["Progres Bertahap (lahan → pondasi → struktur → finishing)"],
     styles: ["Cinematic Timelapse", "Drone Aerial", "Time-blur Pekerja"],
     usesCharacter: "rare",
@@ -22,6 +24,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     id: "tips",
     label: "Tips & Edukasi",
     description: "Karakter menjelaskan tips seputar renovasi, desain, atau bangun rumah",
+    icon: "Mic2",
     structures: ["Hook - Body - CTA", "Problem - Solution - CTA"],
     styles: ["Vlog Biasa (kamera statis/tripod)", "Vlog Tongsis (selfie stick, talking to camera)", "Cinematic B-roll + Voiceover"],
     usesCharacter: "recommended",
@@ -31,6 +34,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     id: "before-after",
     label: "Before–After Renovasi",
     description: "Transisi dramatis kondisi lama vs hasil renovasi",
+    icon: "RefreshCw",
     structures: ["Before - After - CTA", "Hook - Body - CTA"],
     styles: ["Cinematic Reveal", "Split-screen Comparison", "Vlog Walkthrough"],
     usesCharacter: "optional",
@@ -40,6 +44,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     id: "house-tour",
     label: "House Tour / Showcase",
     description: "Walkthrough sinematik properti hasil kerja BEKON",
+    icon: "Home",
     structures: ["Hook - Body - CTA"],
     styles: ["Cinematic Walkthrough", "Drone Aerial Establishing + Interior Walkthrough", "Vlog Tongsis Tour"],
     usesCharacter: "optional",
@@ -49,6 +54,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     id: "testimoni",
     label: "Testimoni Klien",
     description: "Dramatisasi ulasan/testimoni klien jadi adegan video",
+    icon: "MessageCircleHeart",
     structures: ["Hook - Body - CTA"],
     styles: ["Talking Head Interview Style", "Vlog Natural"],
     usesCharacter: "recommended",
@@ -58,6 +64,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     id: "bts",
     label: "Behind The Scenes",
     description: "Aktivitas proyek sehari-hari, tim kerja BEKON",
+    icon: "Users",
     structures: ["Hook - Body - CTA", "Progres Bertahap (lahan → pondasi → struktur → finishing)"],
     styles: ["Vlog Tongsis Dokumenter", "Cinematic Observational", "Fast-cut Montage"],
     usesCharacter: "optional",

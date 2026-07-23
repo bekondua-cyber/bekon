@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { uploadFile } from "@/lib/upload-client"
+import { VideoPromptTabs } from "@/components/admin/VideoPromptTabs"
 
 interface MaterialItem {
   id: string
@@ -113,7 +114,9 @@ export default function VideoMaterialsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-1">Bahan Referensi Video</h1>
-      <p className="text-gray-500 text-sm mb-6">Foto referensi visual (gaya, lokasi, objek) untuk AI Video Prompt Generator</p>
+      <p className="text-gray-500 text-sm mb-4">Foto referensi visual (gaya, lokasi, objek) untuk AI Video Prompt Generator</p>
+
+      <VideoPromptTabs active="/admin/video-prompt/materials" />
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 mb-6 space-y-4 max-w-xl">
         <h2 className="font-semibold text-gray-900">Tambah Bahan</h2>

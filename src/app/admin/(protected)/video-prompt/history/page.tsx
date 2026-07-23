@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react"
 import { AdminSearch } from "@/components/admin/AdminSearch"
 import { TableSkeleton } from "@/components/admin/AdminSkeleton"
 import { getCategory } from "@/lib/video-categories"
+import { VideoPromptTabs } from "@/components/admin/VideoPromptTabs"
 
 interface HistoryItem {
   id: string
@@ -94,6 +95,8 @@ export default function VideoPromptHistoryPage() {
           </Link>
         </div>
       </div>
+
+      <VideoPromptTabs active="/admin/video-prompt/history" />
 
       <div className="space-y-3">
         {filtered.length === 0 ? (
