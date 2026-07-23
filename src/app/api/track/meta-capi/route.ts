@@ -40,9 +40,10 @@ export async function POST(request: NextRequest) {
 
     const { eventName, eventId, eventSourceUrl, phone, email } = validation.data
 
-    const userData: Record<string, string[]> = {
-      client_ip_address: [identifier].filter((v) => v !== "unknown"),
-    }
+    const userData: Record<string, string | string[]> = {}
+    if (identifier !== "unknown") userData.client_ip_address = identifier
+    const userAgent = request.headers.get("user-agent")
+    if (userAgent) userData.client_user_agent = userAgent
     if (phone) userData.ph = [sha256(phone)]
     if (email) userData.em = [sha256(email)]
 
