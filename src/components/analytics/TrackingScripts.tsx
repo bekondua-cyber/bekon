@@ -5,8 +5,11 @@ import { usePathname } from "next/navigation";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 const TIKTOK_PIXEL_ID = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
+
+const GTAG_LOADER_ID = GA4_ID || GOOGLE_ADS_ID;
 
 export function TrackingScripts() {
   const pathname = usePathname();
@@ -30,17 +33,18 @@ export function TrackingScripts() {
         </>
       )}
 
-      {GA4_ID && (
+      {GTAG_LOADER_ID && (
         <>
           <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}
+            src={`https://www.googletagmanager.com/gtag/js?id=${GTAG_LOADER_ID}`}
             strategy="afterInteractive"
           />
-          <Script id="ga4-init" strategy="afterInteractive">
+          <Script id="gtag-init" strategy="afterInteractive">
             {`window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${GA4_ID}');`}
+              ${GA4_ID ? `gtag('config', '${GA4_ID}');` : ""}
+              ${GOOGLE_ADS_ID ? `gtag('config', '${GOOGLE_ADS_ID}');` : ""}`}
           </Script>
         </>
       )}

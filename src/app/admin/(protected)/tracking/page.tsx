@@ -59,6 +59,10 @@ export default function TrackingPage() {
               desc="Buat container di tagmanager.google.com, salin Container ID (format GTM-XXXXXXX) ke env NEXT_PUBLIC_GTM_ID."
             />
             <ChecklistItem
+              title="Google Ads"
+              desc="ID konversi (format AW-XXXXXXXXX) diisi ke env NEXT_PUBLIC_GOOGLE_ADS_ID. Untuk melacak konversi spesifik (leads/WA klik), buat 'Conversion Action' di Google Ads > Goals, salin conversion label-nya ke env NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL."
+            />
+            <ChecklistItem
               title="Meta Pixel + Conversions API"
               desc="Buat Pixel di Meta Business Manager (business.facebook.com), salin Pixel ID ke NEXT_PUBLIC_META_PIXEL_ID. Buat System User dengan akses Pixel, generate Access Token, isi ke META_PIXEL_ID dan META_CAPI_ACCESS_TOKEN (server-only)."
             />
