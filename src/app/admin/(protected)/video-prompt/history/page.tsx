@@ -5,10 +5,12 @@ import { toast } from "sonner"
 import { Trash2 } from "lucide-react"
 import { AdminSearch } from "@/components/admin/AdminSearch"
 import { TableSkeleton } from "@/components/admin/AdminSkeleton"
+import { getCategory } from "@/lib/video-categories"
 
 interface HistoryItem {
   id: string
   title: string
+  category: string
   aspectRatio: string
   sceneCount: number
   platform: string
@@ -105,7 +107,7 @@ export default function VideoPromptHistoryPage() {
                 <div>
                   <p className="font-medium text-gray-900">{item.title}</p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {item.platform} · {item.aspectRatio} · {item.sceneCount} scene · {new Date(item.createdAt).toLocaleDateString("id-ID")}
+                    {getCategory(item.category).label} · {item.platform} · {item.aspectRatio} · {item.sceneCount} scene · {new Date(item.createdAt).toLocaleDateString("id-ID")}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">

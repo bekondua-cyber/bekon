@@ -4,11 +4,14 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
+import { getCategory } from "@/lib/video-categories"
 
 export const dynamic = "force-dynamic"
 
 const requestSchema = z.object({
+  category: z.string().min(1),
   portfolioId: z.string().optional(),
+  characterId: z.string().optional(),
   seedTopic: z.string().max(300).optional(),
 })
 
@@ -33,13 +36,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Data tidak valid" }, { status: 400 })
     }
 
-    const { portfolioId, seedTopic } = validation.data
+    const { category, portfolioId, characterId, seedTopic } = validation.data
+    const categoryInfo = getCategory(category)
 
     let portfolioContext = ""
     if (portfolioId) {
       const portfolio = await prisma.portfolio.findUnique({ where: { id: portfolioId } })
       if (portfolio) {
         portfolioContext = `Proyek referensi: ${portfolio.title} (${portfolio.category || "umum"}, ${portfolio.location || "-"}). ${portfolio.description || ""}`
+      }
+    }
+
+    let characterContext = ""
+    if (characterId) {
+      const character = await prisma.videoCharacter.findUnique({ where: { id: characterId } })
+      if (character) {
+        characterContext = `Karakter yang akan tampil: ${character.name} (${character.gender || "-"}, ${character.age ? `${character.age} tahun` : "usia tidak diketahui"}).`
       }
     }
 
@@ -50,14 +62,17 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `Kamu adalah sutradara konten & prompt engineer untuk BEKON, kontraktor dan arsitek di Serang, Banten sejak 2009, spesialis desain eksterior, interior, bangun rumah, renovasi, kost & ruko. Tugasmu mengusulkan ide konten video pendek (TikTok/Reels/Shorts) yang relevan dengan niche konstruksi & properti ini.
+          content: `Kamu adalah sutradara konten & prompt engineer untuk BEKON, kontraktor dan arsitek di Serang, Banten sejak 2009, spesialis desain eksterior, interior, bangun rumah, renovasi, kost & ruko.
+
+Kategori video yang diminta: "${categoryInfo.label}" — ${categoryInfo.description}
+Panduan konsep kategori ini: ${categoryInfo.promptGuidance}
 
 Kembalikan HANYA JSON valid: { "ideas": ["ide 1", "ide 2", "ide 3", "ide 4", "ide 5"] }
-Setiap ide singkat (1 kalimat), spesifik, dan menarik untuk audiens yang tertarik bangun/renovasi rumah.`,
+Setiap ide singkat (1 kalimat), spesifik, sesuai kategori di atas, dan menarik untuk audiens yang tertarik bangun/renovasi rumah.`,
         },
         {
           role: "user",
-          content: `${portfolioContext}\n${seedTopic ? `Topik/arahan: ${seedTopic}` : "Berikan ide konten video umum untuk BEKON."}`,
+          content: `${portfolioContext}\n${characterContext}\n${seedTopic ? `Topik/arahan: ${seedTopic}` : "Berikan ide konten video sesuai kategori di atas."}`,
         },
       ],
     })

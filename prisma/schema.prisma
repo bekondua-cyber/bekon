@@ -166,10 +166,34 @@ model KnowledgeEntry {
   @@map("knowledge_entry")
 }
 
+model VideoCharacter {
+  id        String   @id @default(cuid())
+  name      String
+  gender    String?
+  age       Int?
+  photoUrl  String
+  createdAt DateTime @default(now())
+
+  @@map("video_character")
+}
+
+model VideoMaterial {
+  id          String   @id @default(cuid())
+  label       String
+  description String?
+  photoUrl    String
+  createdAt   DateTime @default(now())
+
+  @@map("video_material")
+}
+
 model VideoPromptHistory {
   id             String   @id @default(cuid())
   title          String
+  category       String   @default("umum")
   portfolioId    String?
+  characterId    String?
+  materialIds    String[] @default([])
   ideaPrompt     String
   aspectRatio    String
   sceneCount     Int

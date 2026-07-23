@@ -2,10 +2,25 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { VIDEO_CATEGORIES, DURATION_OPTIONS, ASPECT_RATIO_OPTIONS, TONE_OPTIONS, PLATFORM_OPTIONS, getCategory } from "@/lib/video-categories"
 
 interface PortfolioOption {
   id: string
   title: string
+}
+
+interface CharacterOption {
+  id: string
+  name: string
+  gender: string | null
+  age: number | null
+  photoUrl: string
+}
+
+interface MaterialOption {
+  id: string
+  label: string
+  photoUrl: string
 }
 
 interface Scene {
@@ -21,26 +36,31 @@ interface GeneratedResult {
   resultJson: string
 }
 
-const ASPECT_RATIOS = ["9:16", "16:9", "1:1", "4:5"]
-const STRUCTURES = ["Hook - Body - CTA", "Problem - Solution - CTA", "Before - After - CTA"]
-const TONES = ["Profesional", "Santai & Ramah", "Inspiratif", "Edukatif"]
-const PLATFORMS = ["TikTok", "Instagram Reels", "YouTube Shorts"]
-
 export default function VideoPromptPage() {
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
+
+  const [category, setCategory] = useState(VIDEO_CATEGORIES[0].id)
+  const categoryInfo = getCategory(category)
+
+  const [characters, setCharacters] = useState<CharacterOption[]>([])
+  const [materials, setMaterials] = useState<MaterialOption[]>([])
   const [portfolios, setPortfolios] = useState<PortfolioOption[]>([])
+  const [characterId, setCharacterId] = useState<string>("")
+  const [materialIds, setMaterialIds] = useState<string[]>([])
   const [portfolioId, setPortfolioId] = useState("")
   const [seedTopic, setSeedTopic] = useState("")
+
   const [ideas, setIdeas] = useState<string[]>([])
   const [selectedIdea, setSelectedIdea] = useState("")
   const [loadingIdeas, setLoadingIdeas] = useState(false)
 
-  const [aspectRatio, setAspectRatio] = useState(ASPECT_RATIOS[0])
+  const [aspectRatio, setAspectRatio] = useState(ASPECT_RATIO_OPTIONS[0])
   const [sceneCount, setSceneCount] = useState(5)
-  const [durationPerScene, setDurationPerScene] = useState(5)
-  const [structure, setStructure] = useState(STRUCTURES[0])
-  const [tone, setTone] = useState(TONES[0])
-  const [platform, setPlatform] = useState(PLATFORMS[0])
+  const [durationPerScene, setDurationPerScene] = useState(DURATION_OPTIONS[0])
+  const [structure, setStructure] = useState(categoryInfo.structures[0])
+  const [style, setStyle] = useState(categoryInfo.styles[0])
+  const [tone, setTone] = useState(TONE_OPTIONS[0])
+  const [platform, setPlatform] = useState(PLATFORM_OPTIONS[0])
   const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState<GeneratedResult | null>(null)
 
@@ -49,7 +69,24 @@ export default function VideoPromptPage() {
       .then((res) => res.json())
       .then((json) => setPortfolios(json.data || []))
       .catch(() => {})
+    fetch("/api/admin/video-characters", { credentials: "include" })
+      .then((res) => res.json())
+      .then((json) => setCharacters(json.data || []))
+      .catch(() => {})
+    fetch("/api/admin/video-materials", { credentials: "include" })
+      .then((res) => res.json())
+      .then((json) => setMaterials(json.data || []))
+      .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    setStructure(categoryInfo.structures[0])
+    setStyle(categoryInfo.styles[0])
+  }, [category])
+
+  function toggleMaterial(id: string) {
+    setMaterialIds((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]))
+  }
 
   async function handleGetIdeas() {
     setLoadingIdeas(true)
@@ -58,7 +95,12 @@ export default function VideoPromptPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ portfolioId: portfolioId || undefined, seedTopic: seedTopic || undefined }),
+        body: JSON.stringify({
+          category,
+          portfolioId: portfolioId || undefined,
+          characterId: characterId || undefined,
+          seedTopic: seedTopic || undefined,
+        }),
       })
       const json = await res.json()
       if (!res.ok) {
@@ -75,7 +117,7 @@ export default function VideoPromptPage() {
 
   function handleApproveIdea(idea: string) {
     setSelectedIdea(idea)
-    setStep(2)
+    setStep(3)
   }
 
   async function handleGenerate() {
@@ -86,6 +128,7 @@ export default function VideoPromptPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
+          category,
           idea: selectedIdea,
           aspectRatio,
           sceneCount,
@@ -93,7 +136,10 @@ export default function VideoPromptPage() {
           structure,
           tone,
           platform,
+          style,
           portfolioId: portfolioId || undefined,
+          characterId: characterId || undefined,
+          materialIds,
         }),
       })
       const json = await res.json()
@@ -102,7 +148,7 @@ export default function VideoPromptPage() {
         return
       }
       setResult(json.data)
-      setStep(3)
+      setStep(4)
       toast.success("Prompt video berhasil digenerate")
     } catch {
       toast.error("Gagal generate prompt")
@@ -117,7 +163,17 @@ export default function VideoPromptPage() {
     toast.success("JSON disalin ke clipboard")
   }
 
+  function resetAll() {
+    setStep(1)
+    setIdeas([])
+    setSelectedIdea("")
+    setResult(null)
+    setCharacterId("")
+    setMaterialIds([])
+  }
+
   const scenes: Scene[] = result ? JSON.parse(result.resultJson).scenes : []
+  const selectedCharacter = characters.find((c) => c.id === characterId)
 
   return (
     <div>
@@ -126,18 +182,100 @@ export default function VideoPromptPage() {
           <h1 className="text-2xl font-bold text-gray-900">AI Video Prompt Generator</h1>
           <p className="text-gray-500 text-sm mt-1">Generate prompt JSON untuk AI video generator (Google Flow, dsb)</p>
         </div>
-        <Link
-          href="/admin/video-prompt/history"
-          className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-        >
-          Lihat Riwayat
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/video-prompt/characters" className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            Karakter
+          </Link>
+          <Link href="/admin/video-prompt/materials" className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            Bahan
+          </Link>
+          <Link href="/admin/video-prompt/history" className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            Riwayat
+          </Link>
+        </div>
       </div>
 
       <div className="max-w-2xl bg-white rounded-xl border border-gray-200 p-6">
         {step === 1 && (
-          <div className="space-y-4">
-            <h2 className="font-semibold text-gray-900">Langkah 1: Ide Konten</h2>
+          <div className="space-y-5">
+            <h2 className="font-semibold text-gray-900">Langkah 1: Jenis Video &amp; Karakter</h2>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">Pilih Jenis Video</label>
+              <div className="grid grid-cols-2 gap-2">
+                {VIDEO_CATEGORIES.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCategory(c.id)}
+                    className={`text-left px-3 py-2.5 rounded-lg border text-sm transition-colors ${
+                      category === c.id
+                        ? "border-bekon-gold bg-bekon-gold/10 text-bekon-near-black"
+                        : "border-gray-200 hover:border-gray-300 text-gray-600"
+                    }`}
+                  >
+                    <p className="font-medium">{c.label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{c.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {categoryInfo.usesCharacter !== "rare" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Karakter (opsional)</label>
+                {characters.length === 0 ? (
+                  <p className="text-xs text-gray-400">
+                    Belum ada karakter. <Link href="/admin/video-prompt/characters" className="text-bekon-gold hover:underline">Tambah karakter</Link>
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                    {characters.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCharacterId(characterId === c.id ? "" : c.id)}
+                        className={`rounded-lg overflow-hidden border-2 transition-colors ${
+                          characterId === c.id ? "border-bekon-gold" : "border-transparent hover:border-gray-200"
+                        }`}
+                      >
+                        <div className="aspect-square bg-gray-100">
+                          <img src={c.photoUrl} alt={c.name} className="w-full h-full object-cover" />
+                        </div>
+                        <p className="text-[10px] text-gray-600 truncate px-1 py-0.5">{c.name}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-gray-400 mt-2">
+                  {characterId ? `Karakter dipilih: ${selectedCharacter?.name}` : "Tanpa karakter (default)"}
+                </p>
+              </div>
+            )}
+
+            {materials.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Bahan Referensi (opsional, bisa pilih lebih dari satu)</label>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  {materials.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => toggleMaterial(m.id)}
+                      className={`rounded-lg overflow-hidden border-2 transition-colors ${
+                        materialIds.includes(m.id) ? "border-bekon-gold" : "border-transparent hover:border-gray-200"
+                      }`}
+                    >
+                      <div className="aspect-square bg-gray-100">
+                        <img src={m.photoUrl} alt={m.label} className="w-full h-full object-cover" />
+                      </div>
+                      <p className="text-[10px] text-gray-600 truncate px-1 py-0.5">{m.label}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Referensi Portfolio (opsional)</label>
               <select
@@ -161,17 +299,26 @@ export default function VideoPromptPage() {
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
               />
             </div>
+
             <button
-              onClick={handleGetIdeas}
+              onClick={() => { handleGetIdeas(); setStep(2) }}
               disabled={loadingIdeas}
               className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors disabled:opacity-50"
             >
-              {loadingIdeas ? "Menggenerate ide..." : "Generate Ide Konten"}
+              Generate Ide Konten
             </button>
+          </div>
+        )}
 
-            {ideas.length > 0 && (
-              <div className="space-y-2 pt-2">
-                <p className="text-sm font-medium text-gray-600">Pilih salah satu ide:</p>
+        {step === 2 && (
+          <div className="space-y-4">
+            <h2 className="font-semibold text-gray-900">Langkah 2: Pilih Ide Konten</h2>
+            <p className="text-xs text-gray-500">Kategori: {categoryInfo.label}{selectedCharacter ? ` · Karakter: ${selectedCharacter.name}` : ""}</p>
+
+            {loadingIdeas ? (
+              <p className="text-sm text-gray-500">Menggenerate ide...</p>
+            ) : ideas.length > 0 ? (
+              <div className="space-y-2">
                 {ideas.map((idea, i) => (
                   <button
                     key={i}
@@ -182,26 +329,37 @@ export default function VideoPromptPage() {
                   </button>
                 ))}
               </div>
+            ) : (
+              <p className="text-sm text-gray-500">Belum ada ide.</p>
             )}
+
+            <div className="flex gap-3">
+              <button onClick={handleGetIdeas} disabled={loadingIdeas} className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50">
+                Generate Ulang
+              </button>
+              <button onClick={() => setStep(1)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                Kembali
+              </button>
+            </div>
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="space-y-4">
-            <h2 className="font-semibold text-gray-900">Langkah 2: Parameter Video</h2>
+            <h2 className="font-semibold text-gray-900">Langkah 3: Parameter Video</h2>
             <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700">{selectedIdea}</div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Aspect Ratio</label>
                 <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none">
-                  {ASPECT_RATIOS.map((r) => <option key={r} value={r}>{r}</option>)}
+                  {ASPECT_RATIO_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Platform</label>
                 <select value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none">
-                  {PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}
+                  {PLATFORM_OPTIONS.map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div>
@@ -209,19 +367,27 @@ export default function VideoPromptPage() {
                 <input type="number" min={1} max={20} value={sceneCount} onChange={(e) => setSceneCount(Number(e.target.value))} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Durasi per Scene (detik)</label>
-                <input type="number" min={1} max={120} value={durationPerScene} onChange={(e) => setDurationPerScene(Number(e.target.value))} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none" />
+                <label className="block text-sm font-medium text-gray-600 mb-1">Durasi per Scene</label>
+                <select value={durationPerScene} onChange={(e) => setDurationPerScene(Number(e.target.value))} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none">
+                  {DURATION_OPTIONS.map((d) => <option key={d} value={d}>{d} detik</option>)}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Struktur</label>
                 <select value={structure} onChange={(e) => setStructure(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none">
-                  {STRUCTURES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {categoryInfo.structures.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Gaya Visual</label>
+                <select value={style} onChange={(e) => setStyle(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none">
+                  {categoryInfo.styles.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-600 mb-1">Tone</label>
                 <select value={tone} onChange={(e) => setTone(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none">
-                  {TONES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  {TONE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
             </div>
@@ -234,17 +400,14 @@ export default function VideoPromptPage() {
               >
                 {generating ? "Menggenerate..." : "Generate Prompt JSON"}
               </button>
-              <button
-                onClick={() => setStep(1)}
-                className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-              >
+              <button onClick={() => setStep(2)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
                 Kembali
               </button>
             </div>
           </div>
         )}
 
-        {step === 3 && result && (
+        {step === 4 && result && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-gray-900">{result.title}</h2>
@@ -263,10 +426,7 @@ export default function VideoPromptPage() {
                 </div>
               ))}
             </div>
-            <button
-              onClick={() => { setStep(1); setIdeas([]); setSelectedIdea(""); setResult(null) }}
-              className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-            >
+            <button onClick={resetAll} className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
               Buat Baru
             </button>
           </div>
