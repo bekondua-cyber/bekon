@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { siteConfig } from "@/data/site-config";
+import { trackConversion } from "@/lib/track-client";
 
 interface ContactFormProps {
   settings?: Record<string, string>;
@@ -48,6 +49,8 @@ export function ContactForm({ settings = {} }: ContactFormProps) {
         }),
       });
     } catch (err) { console.error("Contact form error:", err) }
+
+    trackConversion("Lead", { phone: phone || undefined });
 
     const text = `Halo BEKON, saya ${name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${service || "Belum ditentukan"}\nPesan: ${message || "Saya ingin konsultasi"}`;
     window.open(

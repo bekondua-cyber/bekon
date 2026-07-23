@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
+import { TrackingScripts } from "@/components/analytics/TrackingScripts";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -70,6 +71,7 @@ export default function RootLayout({
         <style dangerouslySetInnerHTML={{ __html: criticalCSS }} />
       </head>
       <body className="antialiased">
+        <TrackingScripts />
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-bekon-gold focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
           Langsung ke konten utama
         </a>

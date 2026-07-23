@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { toast } from "sonner"
 import { RichTextEditor } from "@/components/admin/RichTextEditor"
+import { AiGenerateArticleModal } from "@/components/admin/AiGenerateArticleModal"
 import { uploadFile } from "@/lib/upload-client"
 
 export default function AdminArtikelTambahPage() {
@@ -19,6 +20,8 @@ export default function AdminArtikelTambahPage() {
     content: "",
     thumbnail: "",
     isPublished: false,
+    metaTitle: "",
+    metaDesc: "",
   })
 
   function generateSlug(title: string) {
@@ -89,7 +92,20 @@ export default function AdminArtikelTambahPage() {
         <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700">
           ← Kembali
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Tambah Artikel</h1>
+        <h1 className="text-2xl font-bold text-gray-900 flex-1">Tambah Artikel</h1>
+        <AiGenerateArticleModal
+          onGenerated={(result) =>
+            setForm((f) => ({
+              ...f,
+              title: result.title,
+              slug: result.slug,
+              excerpt: result.excerpt,
+              content: result.contentHtml,
+              metaTitle: result.metaTitle,
+              metaDesc: result.metaDesc,
+            }))
+          }
+        />
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
@@ -184,6 +200,28 @@ export default function AdminArtikelTambahPage() {
             ) : (
               <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="text-sm" />
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Meta Title (SEO)</label>
+            <input
+              type="text"
+              value={form.metaTitle}
+              onChange={(e) => setForm((f) => ({ ...f, metaTitle: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none"
+              maxLength={60}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Meta Description (SEO)</label>
+            <textarea
+              value={form.metaDesc}
+              onChange={(e) => setForm((f) => ({ ...f, metaDesc: e.target.value }))}
+              rows={2}
+              maxLength={160}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none resize-y"
+            />
           </div>
 
           <label className="flex items-center gap-2 text-sm">

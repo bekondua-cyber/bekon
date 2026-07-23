@@ -152,6 +152,37 @@ model Setting {
   @@map("setting")
 }
 
+model KnowledgeEntry {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String
+  category    String?
+  isPublished Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, category])
+  @@map("knowledge_entry")
+}
+
+model VideoPromptHistory {
+  id             String   @id @default(cuid())
+  title          String
+  portfolioId    String?
+  ideaPrompt     String
+  aspectRatio    String
+  sceneCount     Int
+  durationPerSec Int
+  structure      String
+  tone           String
+  platform       String
+  resultJson     String
+  createdAt      DateTime @default(now())
+
+  @@map("video_prompt_history")
+}
+
 model HeroSlide {
   id          String   @id @default(cuid())
   image       String

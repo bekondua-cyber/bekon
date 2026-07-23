@@ -1,3 +1,8 @@
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -39,11 +44,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://analytics.tiktok.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://res.cloudinary.com https://img.youtube.com https://images.unsplash.com",
-              "connect-src 'self' https://api.anthropic.com https://www.google-analytics.com",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://img.youtube.com https://images.unsplash.com https://www.google-analytics.com https://www.facebook.com https://analytics.tiktok.com",
+              "connect-src 'self' https://api.anthropic.com https://www.google-analytics.com https://www.facebook.com https://analytics.tiktok.com",
               "frame-src https://www.youtube.com https://youtube.com",
               "media-src 'self' https://res.cloudinary.com",
               "object-src 'none'",
@@ -62,6 +67,7 @@ const nextConfig = {
 
   experimental: {
     optimizePackageImports: ['framer-motion', 'lucide-react'],
+    outputFileTracingRoot: __dirname,
   },
 
   webpack: (config, { dev, isServer }) => {

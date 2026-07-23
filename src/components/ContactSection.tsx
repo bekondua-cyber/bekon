@@ -6,6 +6,7 @@ import { MapPin, Phone, Mail } from "lucide-react";
 import { siteConfig } from "@/data/site-config";
 import { normalizeWA } from "@/lib/utils";
 import { SocialLinksRenderer, parseSocialLinks } from "@/components/SocialLinksRenderer";
+import { trackConversion } from "@/lib/track-client";
 
 interface ContactSectionProps {
   settings?: Record<string, string>;
@@ -67,6 +68,8 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
     } catch {
       // If saving fails, still allow WhatsApp (don't block user)
     }
+
+    trackConversion("Lead", { phone: phone || undefined });
 
     const text = `Halo BEKON, saya ${form.name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${form.service || "Belum ditentukan"}\nPesan: ${form.message || "Saya ingin konsultasi"}`;
     window.open(
