@@ -1,11 +1,13 @@
 "use client"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { Users, Eye, TrendingDown, Clock } from "lucide-react"
 import {
   AreaChart,
   Area,
-  BarChart,
-  Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,9 +32,25 @@ interface DashboardStats {
 }
 
 interface Ga4Report {
-  rows: { date: string; sessions: number; pageviews: number; conversions: number }[]
-  topPages: { path: string; views: number }[]
-  totals: { sessions: number; pageviews: number; conversions: number }
+  totals: {
+    users: number
+    pageviews: number
+    bounceRate: number
+    avgSessionDuration: number
+    conversions: number
+  }
+  trend: { date: string; users: number }[]
+  bounceTrend: { date: string; bounceRate: number }[]
+  genderBreakdown: { gender: string; users: number }[]
+  topPages: { path: string; pageviews: number; bounceRate: number; avgSessionDuration: number }[]
+}
+
+const GENDER_COLORS = ["#B8963E", "#4A7C3F"]
+
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = Math.round(seconds % 60)
+  return m > 0 ? `${m}m ${s}dtk` : `${s}dtk`
 }
 
 export default function AdminDashboardPage() {
@@ -198,47 +216,115 @@ export default function AdminDashboardPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <GaStatCard title="Sessions" value={ga4Report?.totals.sessions ?? 0} accent="text-bekon-gold" />
-            <GaStatCard title="Pageviews" value={ga4Report?.totals.pageviews ?? 0} accent="text-blue-600" />
-            <GaStatCard title="Konversi" value={ga4Report?.totals.conversions ?? 0} accent="text-green-600" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <GaStatCard icon={Users} label="Pengguna" value={(ga4Report?.totals.users ?? 0).toLocaleString("id-ID")} accent="bekon-gold" />
+            <GaStatCard icon={Eye} label="Pageviews" value={(ga4Report?.totals.pageviews ?? 0).toLocaleString("id-ID")} accent="bekon-sage" />
+            <GaStatCard icon={TrendingDown} label="Bounce Rate" value={`${(ga4Report?.totals.bounceRate ?? 0).toFixed(1)}%`} accent="bekon-gold" />
+            <GaStatCard icon={Clock} label="Durasi Sesi" value={formatDuration(ga4Report?.totals.avgSessionDuration ?? 0)} accent="bekon-sage" />
+          </div>
+
+          <div className={`grid grid-cols-1 ${ga4Report && ga4Report.genderBreakdown.length > 0 ? "lg:grid-cols-3" : ""} gap-6 mb-8`}>
+            <div className={`bg-white rounded-xl border border-gray-200 p-6 ${ga4Report && ga4Report.genderBreakdown.length > 0 ? "lg:col-span-2" : ""}`}>
+              <h3 className="font-semibold text-gray-900 mb-1">Pengguna (30 hari)</h3>
+              <p className="text-xs text-gray-400 mb-4">Total pengguna unik per hari</p>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={ga4Report?.trend || []}>
+                  <defs>
+                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#B8963E" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#B8963E" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={32} />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="users" name="Pengguna" stroke="#B8963E" fill="url(#colorUsers)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            {ga4Report && ga4Report.genderBreakdown.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Pengguna Berdasarkan Gender</h3>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={ga4Report.genderBreakdown}
+                      dataKey="users"
+                      nameKey="gender"
+                      innerRadius={55}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      label={(props: unknown) => {
+                        const p = props as { gender?: string; percent?: number }
+                        return `${p.gender} ${((p.percent || 0) * 100).toFixed(0)}%`
+                      }}
+                      labelLine={false}
+                    >
+                      {ga4Report.genderBreakdown.map((_, i) => (
+                        <Cell key={i} fill={GENDER_COLORS[i % GENDER_COLORS.length]} stroke="#fff" strokeWidth={2} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex justify-center gap-4 mt-2">
+                  {ga4Report.genderBreakdown.map((g, i) => (
+                    <div key={g.gender} className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: GENDER_COLORS[i % GENDER_COLORS.length] }} />
+                      {g.gender}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-            <h3 className="font-semibold text-gray-900 mb-4">Sessions &amp; Pageviews (30 hari)</h3>
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={ga4Report?.rows || []}>
+            <h3 className="font-semibold text-gray-900 mb-1">Bounce Rate (30 hari)</h3>
+            <p className="text-xs text-gray-400 mb-4">Persentase kunjungan tanpa interaksi lanjutan</p>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={ga4Report?.bounceTrend || []}>
                 <defs>
-                  <linearGradient id="colorSessions" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#C9A15B" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#C9A15B" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                  <linearGradient id="colorBounce" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4A7C3F" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#4A7C3F" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Area type="monotone" dataKey="sessions" stroke="#C9A15B" fill="url(#colorSessions)" strokeWidth={2} />
-                <Area type="monotone" dataKey="pageviews" stroke="#3B82F6" fill="url(#colorViews)" strokeWidth={2} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={40} unit="%" />
+                <Tooltip formatter={(v) => [`${Number(v).toFixed(1)}%`, "Bounce Rate"]} />
+                <Area type="monotone" dataKey="bounceRate" name="Bounce Rate" stroke="#4A7C3F" fill="url(#colorBounce)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Halaman Teratas</h3>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={ga4Report?.topPages || []} layout="vertical" margin={{ left: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis type="category" dataKey="path" tick={{ fontSize: 11 }} width={200} />
-                <Tooltip />
-                <Bar dataKey="views" fill="#C9A15B" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <h3 className="font-semibold text-gray-900 px-6 pt-6 mb-4">Halaman Teratas</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="text-left px-6 py-3 font-medium text-gray-600">Halaman</th>
+                    <th className="text-right px-4 py-3 font-medium text-gray-600">Pageviews</th>
+                    <th className="text-right px-4 py-3 font-medium text-gray-600">Bounce Rate</th>
+                    <th className="text-right px-6 py-3 font-medium text-gray-600">Durasi Rata-rata</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(ga4Report?.topPages || []).map((p) => (
+                    <tr key={p.path} className="border-b border-gray-100">
+                      <td className="px-6 py-3 text-gray-900 truncate max-w-xs" title={p.path}>{p.path}</td>
+                      <td className="px-4 py-3 text-right text-gray-600">{p.pageviews.toLocaleString("id-ID")}</td>
+                      <td className="px-4 py-3 text-right text-gray-600">{p.bounceRate.toFixed(1)}%</td>
+                      <td className="px-6 py-3 text-right text-gray-600">{formatDuration(p.avgSessionDuration)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
@@ -258,11 +344,26 @@ function StatCard({ title, value, subtitle, gold }: { title: string; value: numb
   )
 }
 
-function GaStatCard({ title, value, accent }: { title: string; value: number; accent: string }) {
+function GaStatCard({
+  icon: Icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: typeof Users
+  label: string
+  value: string
+  accent: "bekon-gold" | "bekon-sage"
+}) {
   return (
-    <div className="bg-white rounded-xl p-6 border border-gray-200">
-      <p className="text-gray-500 text-sm">{title}</p>
-      <p className={`text-3xl font-bold mt-1 ${accent}`}>{value.toLocaleString("id-ID")}</p>
+    <div className="bg-white rounded-xl p-5 border border-gray-200 flex items-center gap-4">
+      <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${accent === "bekon-gold" ? "bg-bekon-gold/10 text-bekon-gold" : "bg-bekon-sage/10 text-bekon-sage"}`}>
+        <Icon size={20} />
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-gray-900 leading-tight">{value}</p>
+        <p className="text-xs text-gray-500">{label}</p>
+      </div>
     </div>
   )
 }
