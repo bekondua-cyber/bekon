@@ -19,12 +19,13 @@ const chatSchema = z.object({
     .optional(),
 })
 
-async function buildSystemPrompt(): Promise<string> {
+async function buildSystemPrompt(): Promise<{ systemPrompt: string; waLink: string }> {
   const [knowledgeEntries, portfolios, testimonials, settings] = await Promise.all([
     prisma.knowledgeEntry.findMany({
       where: { isPublished: true },
       orderBy: { sortOrder: "asc" },
       select: { question: true, answer: true, category: true },
+      take: 30,
     }),
     prisma.portfolio.findMany({
       where: { isPublished: true },
@@ -59,7 +60,7 @@ async function buildSystemPrompt(): Promise<string> {
     .map((t) => `- ${t.clientName} (${t.projectType || "-"}): "${t.content}"`)
     .join("\n")
 
-  return `Kamu adalah asisten AI resmi BEKON (Bangun Eka Konstruksi), kontraktor dan arsitek profesional di Serang, Cilegon, Banten sejak 2009. Jawab pertanyaan calon klien dengan ramah, singkat, dan informatif dalam Bahasa Indonesia.
+  const systemPrompt = `Kamu adalah asisten AI resmi BEKON (Bangun Eka Konstruksi), kontraktor dan arsitek profesional di Serang, Cilegon, Banten sejak 2009. Jawab pertanyaan calon klien dengan ramah, singkat, dan informatif dalam Bahasa Indonesia.
 
 ATURAN PENTING:
 1. JANGAN mengarang harga, estimasi biaya, atau janji waktu pengerjaan spesifik. Untuk pertanyaan harga/RAB, arahkan ke konsultasi WhatsApp.
@@ -79,6 +80,8 @@ TESTIMONI KLIEN:
 ${testimonialText || "(belum ada data)"}
 
 Kontak WhatsApp untuk konsultasi lebih lanjut: ${waLink}`
+
+  return { systemPrompt, waLink }
 }
 
 export async function POST(request: NextRequest) {
@@ -99,12 +102,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { message, history = [] } = validation.data
-    const systemPrompt = await buildSystemPrompt()
-
-    const settings = await prisma.setting.findMany()
-    const settingsMap = Object.fromEntries(settings.map((s) => [s.key, s.value || ""]))
-    const waNumber = normalizeWA(settingsMap.wa_admin_1 || siteConfig.whatsapp1)
-    const fallbackReply = `Maaf, untuk pertanyaan ini tim kami akan lebih membantu jika berbicara langsung. Silakan hubungi kami via WhatsApp: https://wa.me/${waNumber}`
+    const { systemPrompt, waLink } = await buildSystemPrompt()
+    const fallbackReply = `Maaf, untuk pertanyaan ini tim kami akan lebih membantu jika berbicara langsung. Silakan hubungi kami via WhatsApp: ${waLink}`
 
     const reply = await generateCompletion({
       temperature: 0.5,

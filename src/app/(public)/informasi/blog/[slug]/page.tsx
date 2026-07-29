@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 
 interface Props {
   params: { slug: string };
@@ -41,6 +42,7 @@ interface Article {
   publishedAt?: string | null;
   metaTitle?: string | null;
   metaDesc?: string | null;
+  ogImage?: string | null;
 }
 
 async function fetchArticle(slug: string): Promise<Article | null> {
@@ -62,10 +64,29 @@ async function fetchArticle(slug: string): Promise<Article | null> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await fetchArticle(params.slug);
   if (!article) return { title: "Artikel Tidak Ditemukan" };
+
+  const title = article.metaTitle || article.title;
+  const description = article.metaDesc || article.excerpt;
+  const image = article.ogImage || article.thumbnail;
+
   return {
-    title: article.metaTitle || article.title,
-    description: article.metaDesc || article.excerpt,
+    title,
+    description,
     alternates: { canonical: `/informasi/blog/${params.slug}` },
+    openGraph: {
+      title,
+      description,
+      url: `https://bangunrumahbekon.com/informasi/blog/${params.slug}`,
+      siteName: "BEKON",
+      locale: "id_ID",
+      type: "article",
+      publishedTime: article.publishedAt || undefined,
+      images: image ? [{ url: image, width: 1200, height: 630 }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: image ? [image] : undefined,
+    },
   };
 }
 
@@ -73,8 +94,24 @@ export default async function BlogDetailPage({ params }: Props) {
   const article = await fetchArticle(params.slug);
   if (!article) notFound();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: article.title,
+    description: article.metaDesc || article.excerpt,
+    image: article.ogImage || article.thumbnail || undefined,
+    datePublished: article.publishedAt || undefined,
+    author: { "@type": "Organization", name: "BEKON" },
+    publisher: { "@type": "Organization", name: "BEKON" },
+    mainEntityOfPage: `https://bangunrumahbekon.com/informasi/blog/${params.slug}`,
+  };
+
   return (
     <div className="min-h-screen bg-bekon-off-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <article className="max-w-container mx-auto px-6 lg:px-20 pt-32 pb-20">
         <Link
           href="/informasi/blog"
@@ -122,7 +159,7 @@ export default async function BlogDetailPage({ params }: Props) {
           {article.content ? (
             <div
               className="prose prose-gray max-w-none prose-headings:text-bekon-near-black prose-a:text-bekon-gold"
-              dangerouslySetInnerHTML={{ __html: article.content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(article.content) }}
             />
           ) : (
             <div className="bg-white rounded-xl border border-bekon-border p-8 text-center">
