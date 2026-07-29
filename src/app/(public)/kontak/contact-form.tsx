@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { siteConfig } from "@/data/site-config";
 import { trackConversion } from "@/lib/track-client";
+import { normalizeWA } from "@/lib/utils";
 
 interface ContactFormProps {
   settings?: Record<string, string>;
@@ -54,7 +55,7 @@ export function ContactForm({ settings = {} }: ContactFormProps) {
 
     const text = `Halo BEKON, saya ${name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${service || "Belum ditentukan"}\nPesan: ${message || "Saya ingin konsultasi"}`;
     window.open(
-      `https://wa.me/${s("wa_admin_1", siteConfig.whatsapp1)}?text=${encodeURIComponent(text)}`,
+      `https://wa.me/${normalizeWA(s("wa_admin_1", siteConfig.whatsapp1))}?text=${encodeURIComponent(text)}`,
       "_blank"
     );
     setTimeout(() => setSubmitting(false), 2000);

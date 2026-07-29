@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/data/site-config";
 import { prisma } from "@/lib/prisma";
+import { normalizeWA } from "@/lib/utils";
 import { ContactForm } from "./contact-form";
 import { MapPin, Phone, Mail } from "lucide-react";
 
@@ -42,7 +43,7 @@ export default async function KontakPage() {
             </h2>
             <div className="flex flex-wrap gap-4 justify-center">
               <a
-                href={`https://wa.me/${s("wa_admin_1", siteConfig.whatsapp1)}`}
+                href={`https://wa.me/${normalizeWA(s("wa_admin_1", siteConfig.whatsapp1))}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-8 py-3 bg-[#25D366] text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
@@ -53,7 +54,7 @@ export default async function KontakPage() {
                 {s("wa_admin_1_name", siteConfig.whatsapp1_name)}
               </a>
               <a
-                href={`https://wa.me/${s("wa_admin_2", siteConfig.whatsapp2)}`}
+                href={`https://wa.me/${normalizeWA(s("wa_admin_2", siteConfig.whatsapp2))}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-8 py-3 bg-[#25D366] text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
