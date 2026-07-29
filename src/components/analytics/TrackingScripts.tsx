@@ -2,6 +2,13 @@
 
 import Script from "next/script";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
+
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+  }
+}
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
@@ -13,6 +20,18 @@ const GTAG_LOADER_ID = GA4_ID || GOOGLE_ADS_ID;
 
 export function TrackingScripts() {
   const pathname = usePathname();
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (META_PIXEL_ID && !pathname?.startsWith("/admin") && window.fbq) {
+      window.fbq("track", "PageView");
+    }
+  }, [pathname]);
+
   if (pathname?.startsWith("/admin")) return null;
 
   return (

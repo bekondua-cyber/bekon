@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createHash } from "crypto"
 import { z } from "zod"
 import { rateLimit } from "@/lib/rate-limit"
+import { normalizeWA } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (identifier !== "unknown") userData.client_ip_address = identifier
     const userAgent = request.headers.get("user-agent")
     if (userAgent) userData.client_user_agent = userAgent
-    if (phone) userData.ph = [sha256(phone)]
+    if (phone) userData.ph = [sha256(normalizeWA(phone))]
     if (email) userData.em = [sha256(email)]
 
     const res = await fetch(
