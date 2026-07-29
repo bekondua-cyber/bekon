@@ -1,10 +1,11 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { toast } from "sonner"
 import { RichTextEditor } from "@/components/admin/RichTextEditor"
 import { AiGenerateArticleModal } from "@/components/admin/AiGenerateArticleModal"
+import { AI_ARTICLE_DRAFT_KEY } from "@/components/admin/ai-article-draft"
 import { uploadFile } from "@/lib/upload-client"
 
 export default function AdminArtikelTambahPage() {
@@ -23,6 +24,27 @@ export default function AdminArtikelTambahPage() {
     metaTitle: "",
     metaDesc: "",
   })
+
+  useEffect(() => {
+    const draft = sessionStorage.getItem(AI_ARTICLE_DRAFT_KEY)
+    if (!draft) return
+    sessionStorage.removeItem(AI_ARTICLE_DRAFT_KEY)
+    try {
+      const result = JSON.parse(draft)
+      setForm((f) => ({
+        ...f,
+        title: result.title,
+        slug: result.slug,
+        excerpt: result.excerpt,
+        content: result.contentHtml,
+        metaTitle: result.metaTitle,
+        metaDesc: result.metaDesc,
+      }))
+      toast.success("Artikel hasil AI dimuat, silakan review sebelum simpan")
+    } catch {
+      // draft rusak, abaikan
+    }
+  }, [])
 
   function generateSlug(title: string) {
     return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")

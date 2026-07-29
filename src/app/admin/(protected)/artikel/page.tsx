@@ -6,6 +6,8 @@ import { toast } from "sonner"
 import { Edit, Trash2 } from "lucide-react"
 import { AdminSearch } from "@/components/admin/AdminSearch"
 import { TableSkeleton } from "@/components/admin/AdminSkeleton"
+import { AiGenerateArticleModal } from "@/components/admin/AiGenerateArticleModal"
+import { AI_ARTICLE_DRAFT_KEY } from "@/components/admin/ai-article-draft"
 
 interface ArticleItem {
   id: string
@@ -97,6 +99,12 @@ export default function AdminArtikelPage() {
         <h1 className="text-2xl font-bold text-gray-900">Artikel</h1>
         <div className="flex items-center gap-3">
           <AdminSearch value={search} onChange={setSearch} placeholder="Cari artikel..." />
+          <AiGenerateArticleModal
+            onGenerated={(result) => {
+              sessionStorage.setItem(AI_ARTICLE_DRAFT_KEY, JSON.stringify(result))
+              router.push("/admin/artikel/tambah")
+            }}
+          />
           <Link
             href="/admin/artikel/tambah"
             className="px-4 py-2 bg-bekon-gold text-white rounded-lg text-sm font-medium hover:bg-bekon-gold/90 transition-colors"
