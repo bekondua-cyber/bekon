@@ -12,6 +12,8 @@ const capiSchema = z.object({
   eventSourceUrl: z.string().max(500).optional(),
   phone: z.string().max(30).optional(),
   email: z.string().max(200).optional(),
+  fbc: z.string().max(300).optional(),
+  fbp: z.string().max(300).optional(),
 })
 
 function sha256(value: string): string {
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Data event tidak valid" }, { status: 400 })
     }
 
-    const { eventName, eventId, eventSourceUrl, phone, email } = validation.data
+    const { eventName, eventId, eventSourceUrl, phone, email, fbc, fbp } = validation.data
 
     const userData: Record<string, string | string[]> = {}
     if (identifier !== "unknown") userData.client_ip_address = identifier
@@ -47,6 +49,8 @@ export async function POST(request: NextRequest) {
     if (userAgent) userData.client_user_agent = userAgent
     if (phone) userData.ph = [sha256(normalizeWA(phone))]
     if (email) userData.em = [sha256(email)]
+    if (fbc) userData.fbc = fbc
+    if (fbp) userData.fbp = fbp
 
     const res = await fetch(
       `https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${accessToken}`,

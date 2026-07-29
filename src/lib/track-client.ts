@@ -14,6 +14,12 @@ function generateEventId(): string {
   return `evt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 }
 
+function getCookie(name: string): string | undefined {
+  if (typeof document === "undefined") return undefined
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : undefined
+}
+
 export function trackConversion(eventName: string, data?: { phone?: string; email?: string }) {
   const eventId = generateEventId()
 
@@ -34,6 +40,8 @@ export function trackConversion(eventName: string, data?: { phone?: string; emai
       eventName,
       eventId,
       eventSourceUrl: typeof window !== "undefined" ? window.location.href : undefined,
+      fbc: getCookie("_fbc"),
+      fbp: getCookie("_fbp"),
       ...data,
     }),
   }).catch(() => {})
