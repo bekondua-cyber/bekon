@@ -6,10 +6,12 @@ import { rateLimit } from "@/lib/rate-limit"
 const leadSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter").max(100, "Nama maksimal 100 karakter"),
   phone: z.string().regex(/^(\+62|62|0)8[1-9][0-9]{6,11}$/, "Format nomor telepon tidak valid"),
+  email: z.string().email("Format email tidak valid").max(200).optional().or(z.literal("")),
   service: z.string().max(100).optional().default(""),
   budget: z.string().max(100).optional().default(""),
   location: z.string().max(200).optional().default(""),
   message: z.string().min(10, "Pesan minimal 10 karakter").max(1000, "Pesan maksimal 1000 karakter"),
+  company_website: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -34,12 +36,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { name, phone, service, budget, location, message } = validation.data
+    const { name, phone, email, service, budget, location, message, company_website } = validation.data
+
+    if (company_website) {
+      // Honeypot triggered — pretend success so the bot doesn't know it was blocked
+      return NextResponse.json({ success: true, message: "Pesan berhasil dikirim" })
+    }
 
     await prisma.lead.create({
       data: {
         name,
         phone,
+        email: email || null,
         service: service || null,
         budget: budget || null,
         location: location || null,

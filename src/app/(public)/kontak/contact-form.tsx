@@ -35,8 +35,11 @@ export function ContactForm({ settings = {} }: ContactFormProps) {
     const data = new FormData(form);
     const name = (data.get("name") as string) || "";
     const phone = (data.get("phone") as string) || "";
+    const email = (data.get("email") as string) || "";
     const service = (data.get("service") as string) || "";
+    const budget = (data.get("budget") as string) || "";
     const message = (data.get("message") as string) || "";
+    const companyWebsite = (data.get("company_website") as string) || "";
 
     try {
       await fetch("/api/leads", {
@@ -45,13 +48,16 @@ export function ContactForm({ settings = {} }: ContactFormProps) {
         body: JSON.stringify({
           name: name || "Calon Klien",
           phone: phone || "-",
+          email: email || undefined,
           service: service || "",
+          budget: budget || "",
           message: message || "Tertarik dengan layanan BEKON",
+          company_website: companyWebsite,
         }),
       });
     } catch (err) { console.error("Contact form error:", err) }
 
-    trackConversion("Lead", { phone: phone || undefined });
+    trackConversion("Lead", { phone: phone || undefined, email: email || undefined });
 
     const text = `Halo BEKON, saya ${name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${service || "Belum ditentukan"}\nPesan: ${message || "Saya ingin konsultasi"}`;
     window.open(
@@ -67,6 +73,14 @@ export function ContactForm({ settings = {} }: ContactFormProps) {
         Kirim Pesan
       </h2>
       <form onSubmit={handleSubmit} className="space-y-5">
+        <input
+          type="text"
+          name="company_website"
+          style={{ position: "absolute", left: "-9999px" }}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+        />
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-bekon-text-secondary mb-1.5">
             Nama
@@ -92,6 +106,18 @@ export function ContactForm({ settings = {} }: ContactFormProps) {
           />
         </div>
         <div>
+          <label htmlFor="email" className="block text-sm font-medium text-bekon-text-secondary mb-1.5">
+            Email (opsional)
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            className="w-full px-4 py-2.5 border border-bekon-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bekon-gold/30 focus:border-bekon-gold"
+            placeholder="nama@email.com"
+          />
+        </div>
+        <div>
           <label htmlFor="service" className="block text-sm font-medium text-bekon-text-secondary mb-1.5">
             Layanan
           </label>
@@ -104,6 +130,23 @@ export function ContactForm({ settings = {} }: ContactFormProps) {
             {services.map((svc) => (
               <option key={svc} value={svc}>{svc}</option>
             ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="budget" className="block text-sm font-medium text-bekon-text-secondary mb-1.5">
+            Perkiraan Budget
+          </label>
+          <select
+            id="budget"
+            name="budget"
+            className="w-full px-4 py-2.5 border border-bekon-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bekon-gold/30 focus:border-bekon-gold"
+          >
+            <option value="">Pilih perkiraan budget</option>
+            <option value="< Rp100 juta">&lt; Rp100 juta</option>
+            <option value="Rp100 - 300 juta">Rp100 - 300 juta</option>
+            <option value="Rp300 - 500 juta">Rp300 - 500 juta</option>
+            <option value="> Rp500 juta">&gt; Rp500 juta</option>
+            <option value="Belum tahu">Belum tahu</option>
           </select>
         </div>
         <div>

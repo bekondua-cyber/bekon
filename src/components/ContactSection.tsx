@@ -35,8 +35,11 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
   const [form, setForm] = useState({
     name: "",
     phone: "",
+    email: "",
     service: "",
+    budget: "",
     message: "",
+    company_website: "",
   });
   const [phoneError, setPhoneError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -61,15 +64,18 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
         body: JSON.stringify({
           name: form.name || "Calon Klien",
           phone: phone || "-",
+          email: form.email || undefined,
           service: form.service || "",
+          budget: form.budget || "",
           message: form.message || "Tertarik dengan layanan BEKON",
+          company_website: form.company_website,
         }),
       });
     } catch {
       // If saving fails, still allow WhatsApp (don't block user)
     }
 
-    trackConversion("Lead", { phone: phone || undefined });
+    trackConversion("Lead", { phone: phone || undefined, email: form.email || undefined });
 
     const text = `Halo BEKON, saya ${form.name || "calon klien"}.\nNo. HP: ${phone}\nLayanan: ${form.service || "Belum ditentukan"}\nPesan: ${form.message || "Saya ingin konsultasi"}`;
     window.open(
@@ -195,6 +201,16 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
                 Form Konsultasi
               </h3>
               <form onSubmit={handleSubmit} className="space-y-5">
+                <input
+                  type="text"
+                  name="company_website"
+                  value={form.company_website}
+                  onChange={(e) => setForm({ ...form, company_website: e.target.value })}
+                  style={{ position: "absolute", left: "-9999px" }}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                />
                 <div>
                   <label
                     htmlFor="name"
@@ -237,6 +253,23 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
 
                 <div>
                   <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-bekon-text-secondary mb-1.5"
+                  >
+                    Email (opsional)
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-bekon-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bekon-gold/30 focus:border-bekon-gold bg-white"
+                    placeholder="nama@email.com"
+                  />
+                </div>
+
+                <div>
+                  <label
                     htmlFor="service"
                     className="block text-sm font-medium text-bekon-text-secondary mb-1.5"
                   >
@@ -256,6 +289,28 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
                         {s}
                       </option>
                     ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="budget"
+                    className="block text-sm font-medium text-bekon-text-secondary mb-1.5"
+                  >
+                    Perkiraan Budget
+                  </label>
+                  <select
+                    id="budget"
+                    value={form.budget}
+                    onChange={(e) => setForm({ ...form, budget: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-bekon-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bekon-gold/30 focus:border-bekon-gold bg-white"
+                  >
+                    <option value="">Pilih perkiraan budget</option>
+                    <option value="< Rp100 juta">&lt; Rp100 juta</option>
+                    <option value="Rp100 - 300 juta">Rp100 - 300 juta</option>
+                    <option value="Rp300 - 500 juta">Rp300 - 500 juta</option>
+                    <option value="> Rp500 juta">&gt; Rp500 juta</option>
+                    <option value="Belum tahu">Belum tahu</option>
                   </select>
                 </div>
 

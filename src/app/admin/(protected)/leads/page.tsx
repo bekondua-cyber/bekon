@@ -8,6 +8,7 @@ interface Lead {
   id: string
   name: string
   phone: string | null
+  email: string | null
   service: string | null
   budget: string | null
   location: string | null
@@ -151,6 +152,7 @@ export default function AdminLeadsPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
+                    {lead.email && <span>{lead.email}</span>}
                     {lead.service && <span>{lead.service}</span>}
                     {lead.budget && <span>Budget: {lead.budget}</span>}
                     {lead.location && <span>{lead.location}</span>}
