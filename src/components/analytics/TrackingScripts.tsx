@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
+    ttq?: { page: () => void; track: (...args: unknown[]) => void };
   }
 }
 
@@ -29,6 +30,9 @@ export function TrackingScripts() {
     }
     if (META_PIXEL_ID && !pathname?.startsWith("/admin") && window.fbq) {
       window.fbq("track", "PageView");
+    }
+    if (TIKTOK_PIXEL_ID && !pathname?.startsWith("/admin") && window.ttq) {
+      window.ttq.page();
     }
   }, [pathname]);
 

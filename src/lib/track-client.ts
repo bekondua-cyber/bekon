@@ -4,6 +4,7 @@ declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void
     gtag?: (...args: unknown[]) => void
+    ttq?: { page: () => void; track: (...args: unknown[]) => void }
   }
 }
 
@@ -33,6 +34,10 @@ export function trackConversion(eventName: string, data?: { phone?: string; emai
     })
   }
 
+  if (typeof window !== "undefined" && window.ttq) {
+    window.ttq.track(eventName, {}, { event_id: eventId })
+  }
+
   fetch("/api/track/meta-capi", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -42,6 +47,19 @@ export function trackConversion(eventName: string, data?: { phone?: string; emai
       eventSourceUrl: typeof window !== "undefined" ? window.location.href : undefined,
       fbc: getCookie("_fbc"),
       fbp: getCookie("_fbp"),
+      ...data,
+    }),
+  }).catch(() => {})
+
+  fetch("/api/track/tiktok-events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      eventName,
+      eventId,
+      eventSourceUrl: typeof window !== "undefined" ? window.location.href : undefined,
+      ttclid: getCookie("ttclid"),
+      ttp: getCookie("_ttp"),
       ...data,
     }),
   }).catch(() => {})
