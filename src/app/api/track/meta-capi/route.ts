@@ -3,6 +3,7 @@ import { createHash } from "crypto"
 import { z } from "zod"
 import { rateLimit } from "@/lib/rate-limit"
 import { normalizeWA } from "@/lib/utils"
+import { LEAD_VALUE, LEAD_CURRENCY } from "@/lib/lead-value"
 
 export const dynamic = "force-dynamic"
 
@@ -66,6 +67,12 @@ export async function POST(request: NextRequest) {
               event_source_url: eventSourceUrl,
               action_source: "website",
               user_data: userData,
+              // Wajib ada, kalau tidak Meta tidak bisa menghitung ROAS dan
+              // event ditandai bermasalah di Events Manager.
+              custom_data: {
+                value: LEAD_VALUE,
+                currency: LEAD_CURRENCY,
+              },
             },
           ],
         }),
