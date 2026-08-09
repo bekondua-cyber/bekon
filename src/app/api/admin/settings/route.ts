@@ -19,13 +19,18 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    for (const [key, value] of Object.entries(validation.data)) {
-      await prisma.setting.upsert({
-        where: { key },
-        update: { value },
-        create: { key, value },
-      })
-    }
+    // Dulu ini `await` di dalam loop: dengan 27 kunci pengaturan di produksi,
+    // satu klik simpan berarti 27 perjalanan bolak-balik berurutan ke Neon.
+    // Satu transaksi juga membuat penyimpanan bersifat semua-atau-tidak.
+    await prisma.$transaction(
+      Object.entries(validation.data).map(([key, value]) =>
+        prisma.setting.upsert({
+          where: { key },
+          update: { value },
+          create: { key, value },
+        })
+      )
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {

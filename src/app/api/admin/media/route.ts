@@ -42,18 +42,20 @@ export async function DELETE(request: NextRequest) {
         )
       }
 
-      console.log("[Media API] Bulk delete:", ids.length, "items")
+      // Satu query untuk semua, bukan findUnique berurutan di dalam loop.
+      const items = await prisma.media.findMany({
+        where: { id: { in: ids } },
+        select: { publicId: true },
+      })
 
-      for (const mediaId of ids) {
-        const media = await prisma.media.findUnique({ where: { id: mediaId } })
-        if (media?.publicId) {
-          await deleteImage(media.publicId)
-        }
-      }
+      await Promise.all(
+        items
+          .filter((m) => m.publicId)
+          .map((m) => deleteImage(m.publicId))
+      )
 
       await prisma.media.deleteMany({ where: { id: { in: ids } } })
 
-      console.log("[Media API] Bulk delete success")
       return NextResponse.json({ success: true })
     }
 

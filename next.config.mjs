@@ -48,7 +48,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' data: https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://res.cloudinary.com https://img.youtube.com https://images.unsplash.com https://www.google-analytics.com https://www.facebook.com https://analytics.tiktok.com https://www.google.com https://www.google.co.id https://www.googleadservices.com https://googleads.g.doubleclick.net https://ad.doubleclick.net",
-              "connect-src 'self' https://api.anthropic.com https://www.google-analytics.com https://www.facebook.com https://analytics.tiktok.com https://www.google.com https://www.google.co.id https://www.googleadservices.com https://googleads.g.doubleclick.net https://ad.doubleclick.net",
+              "connect-src 'self' https://www.google-analytics.com https://www.facebook.com https://analytics.tiktok.com https://www.google.com https://www.google.co.id https://www.googleadservices.com https://googleads.g.doubleclick.net https://ad.doubleclick.net",
               "frame-src https://www.youtube.com https://youtube.com https://www.facebook.com https://www.google.com",
               "media-src 'self' https://res.cloudinary.com",
               "object-src 'none'",

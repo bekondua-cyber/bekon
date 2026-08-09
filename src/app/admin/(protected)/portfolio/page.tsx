@@ -286,6 +286,7 @@ export default function AdminPortfolioPage() {
                         className="text-gray-400 hover:text-blue-500 transition-colors"
                         title="Lihat"
                         target="_blank"
+                        rel="noopener noreferrer"
                       >
                         <Eye className="w-4 h-4" />
                       </Link>

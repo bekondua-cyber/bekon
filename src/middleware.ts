@@ -6,17 +6,21 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isApiRoute = pathname.startsWith("/api/")
 
-  if (pathname === "/admin/login") {
-    return NextResponse.next()
-  }
-
-  if (!isApiRoute) {
+  // Halaman login tidak butuh token, tapi tetap harus ikut aturan no-store di
+  // bawah. Dulu ia return lebih awal, sehingga produksi mengembalikan
+  // `public, max-age=3600` dan CDN menyajikannya sebagai halaman ter-cache.
+  if (pathname !== "/admin/login" && !isApiRoute) {
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
 
     if (!token) {
       const loginUrl = new URL("/admin/login", request.url)
       loginUrl.searchParams.set("callbackUrl", pathname)
-      return NextResponse.redirect(loginUrl)
+      const redirect = NextResponse.redirect(loginUrl)
+      // Redirect ini pun tidak boleh di-cache. Tanpa ini CDN menyajikannya
+      // sebagai `public, max-age=3600`, sehingga admin yang SUDAH login tetap
+      // terlempar ke halaman login sampai cache-nya kedaluwarsa.
+      redirect.headers.set("Cache-Control", "no-store, max-age=0")
+      return redirect
     }
   }
 
