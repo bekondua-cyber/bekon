@@ -3,6 +3,7 @@ import { z } from "zod"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
+import { resolveGeminiModel } from "@/lib/ai/model-setting"
 import { parseAiJson } from "@/lib/ai/parse"
 import { BEKON_BRAND_CONTEXT, BEKON_SERVICE_AREA } from "@/lib/ai/brand"
 
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
     const { topic, category, keywords } = validation.data
 
     const raw = await generateCompletion({
+      model: await resolveGeminiModel(),
       json: true,
       temperature: 0.8,
       maxTokens: 3000,

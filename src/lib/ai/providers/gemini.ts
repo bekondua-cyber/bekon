@@ -1,18 +1,23 @@
 import type { AiCompletionOptions, AiProvider } from "../types"
 import { fetchWithTimeout } from "../fetch-with-timeout"
+import { DEFAULT_GEMINI_MODEL } from "../gemini-models"
 
 export const geminiProvider: AiProvider = {
   name: "gemini",
   envKey: "GEMINI_API_KEY",
-  async complete({ messages, temperature = 0.7, maxTokens = 2048, json }: AiCompletionOptions): Promise<string> {
+  async complete({ messages, temperature = 0.7, maxTokens = 2048, json, model }: AiCompletionOptions): Promise<string> {
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) throw new Error("GEMINI_API_KEY tidak diset")
+
+    // Model lama "gemini-2.0-flash" rutin membalas 429; default kini varian
+    // lite terbaru yang jatah hariannya paling longgar.
+    const modelId = model || process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL
 
     const systemMessages = messages.filter((m) => m.role === "system").map((m) => m.content).join("\n\n")
     const conversation = messages.filter((m) => m.role !== "system")
 
     const res = await fetchWithTimeout(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -33,7 +38,7 @@ export const geminiProvider: AiProvider = {
 
     if (!res.ok) {
       const text = await res.text().catch(() => "")
-      throw Object.assign(new Error(`Gemini error: ${res.status} ${text}`), { status: res.status })
+      throw Object.assign(new Error(`Gemini error (${modelId}): ${res.status} ${text}`), { status: res.status })
     }
 
     const data = await res.json()

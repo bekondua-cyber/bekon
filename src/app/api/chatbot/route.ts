@@ -3,6 +3,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
+import { resolveGeminiModel } from "@/lib/ai/model-setting"
 import { BEKON_BRAND_CONTEXT } from "@/lib/ai/brand"
 import { services } from "@/data/services"
 import { siteConfig } from "@/data/site-config"
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
     const fallbackReply = `Maaf, untuk pertanyaan ini tim kami akan lebih membantu jika berbicara langsung. Silakan hubungi kami via WhatsApp: ${waLink}`
 
     const reply = await generateCompletion({
+      model: await resolveGeminiModel(),
       temperature: 0.5,
       maxTokens: 500,
       messages: [

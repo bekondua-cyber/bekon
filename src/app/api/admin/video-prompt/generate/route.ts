@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
+import { resolveGeminiModel } from "@/lib/ai/model-setting"
 import { parseAiJson, AiParseError } from "@/lib/ai/parse"
 import { getCategory, ASPECT_RATIO_OPTIONS } from "@/lib/video-categories"
 import { buildMasterPrompt } from "@/lib/video-prompt/master-prompt"
@@ -101,6 +102,7 @@ export async function POST(request: NextRequest) {
     const maxTokens = Math.min(8000, 2500 + sceneCount * 900)
 
     const raw = await generateCompletion({
+      model: await resolveGeminiModel(),
       json: true,
       temperature: 0.7,
       maxTokens,

@@ -4,10 +4,15 @@ import { toast } from "sonner"
 import { ImageUploader } from "@/components/admin/ImageUploader"
 import type { WhyBekonItem } from "@/data/why-bekon"
 import type { SocialLink } from "@/components/SocialLinksRenderer"
+import {
+  GEMINI_MODEL_OPTIONS,
+  DEFAULT_GEMINI_MODEL,
+  GEMINI_MODEL_SETTING_KEY,
+} from "@/lib/ai/gemini-models"
 
 type SettingsData = Record<string, string>
 
-const tabs = ["Perusahaan", "WhatsApp & Kontak", "SEO Global", "Tentang"]
+const tabs = ["Perusahaan", "WhatsApp & Kontak", "SEO Global", "Tentang", "AI"]
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SettingsData>({})
@@ -260,6 +265,57 @@ export default function AdminSettingsPage() {
               />
             </div>
             <Field label="Google Analytics ID" value={getSetting(settings, "google_analytics_id")} onChange={(v) => updateSetting("google_analytics_id", v)} />
+          </>
+        )}
+
+        {activeTab === "AI" && (
+          <>
+            <div>
+              <h2 className="font-semibold text-gray-900">Model AI</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Dipakai oleh generate artikel, chatbot, dan AI Video Prompt.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Model Gemini</label>
+              <select
+                value={getSetting(settings, GEMINI_MODEL_SETTING_KEY, DEFAULT_GEMINI_MODEL)}
+                onChange={(e) => updateSetting(GEMINI_MODEL_SETTING_KEY, e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-bekon-gold outline-none bg-white"
+              >
+                {GEMINI_MODEL_OPTIONS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                {GEMINI_MODEL_OPTIONS.find(
+                  (m) => m.id === getSetting(settings, GEMINI_MODEL_SETTING_KEY, DEFAULT_GEMINI_MODEL)
+                )?.note}
+              </p>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg space-y-2">
+              <p className="text-xs text-amber-800 leading-relaxed">
+                Kalau AI mulai sering gagal dengan pesan kuota habis, ganti ke model lain di
+                daftar ini — tiap model punya jatah harian sendiri, jadi berpindah model
+                langsung memulihkan fitur tanpa perlu menunggu reset.
+              </p>
+              <p className="text-xs text-amber-800/80 leading-relaxed">
+                Sisa jatah harian yang sebenarnya bisa dilihat di{" "}
+                <a
+                  href="https://aistudio.google.com/rate-limit"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 font-medium"
+                >
+                  Google AI Studio
+                </a>
+                . Google tidak lagi menerbitkan angkanya di dokumentasi.
+              </p>
+            </div>
           </>
         )}
 

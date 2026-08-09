@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
+import { resolveGeminiModel } from "@/lib/ai/model-setting"
 import { parseAiJson } from "@/lib/ai/parse"
 import { BEKON_BRAND_CONTEXT } from "@/lib/ai/brand"
 import { getCategory } from "@/lib/video-categories"
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     const raw = await generateCompletion({
+      model: await resolveGeminiModel(),
       json: true,
       temperature: 0.9,
       maxTokens: 800,
