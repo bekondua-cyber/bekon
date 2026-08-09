@@ -14,6 +14,23 @@ function joinNonEmpty(parts: (string | undefined)[], separator: string): string 
   return parts.map((p) => p?.trim()).filter(Boolean).join(separator)
 }
 
+function stripTrailingDot(text: string): string {
+  return text.trim().replace(/\.+$/, "")
+}
+
+/**
+ * AI kadang mengembalikan nilai berkapital seperti "Sinar matahari pagi" yang
+ * jadi janggal di tengah kalimat. Huruf pertama diturunkan kecuali kata itu
+ * memang nama diri (kata kedua juga berkapital, mis. "Serang Timur").
+ */
+function lowerFirst(text: string): string {
+  const trimmed = text.trim()
+  if (!trimmed) return ""
+  const words = trimmed.split(/\s+/)
+  if (words.length > 1 && /^[A-Z]/.test(words[1])) return trimmed
+  return trimmed.charAt(0).toLowerCase() + trimmed.slice(1)
+}
+
 /**
  * Rakit prosa siap tempel ke Flow, mengikuti formula:
  * [Gerakan kamera + lensa]: [Subjek] [Aksi], di [Setting], disinari [Cahaya].
@@ -37,25 +54,31 @@ export function compileNaturalPrompt(
     ? used.map((s) => `${s.role}: ${s.identityAnchor}`).join(". ") + ". "
     : ""
 
+  const shotLine = joinNonEmpty(
+    [part.shot.movement, part.shot.type, part.shot.lens, part.shot.framing].map(lowerFirst),
+    ", "
+  )
+
   const opening =
-    `${ingredientLine}${part.shot.movement}, ${part.shot.type}, ${part.shot.lens}, ${part.shot.framing}: ` +
-    `${identityLine}${part.subject} ${part.action}, di ${part.scene}, disinari ${part.lighting}.`
+    `${ingredientLine}${shotLine}: ${identityLine}${lowerFirst(part.subject)} ${lowerFirst(part.action)}, ` +
+    `di ${lowerFirst(part.scene)}, disinari ${lowerFirst(part.lighting)}.`
 
   const beats = part.timeline.map((b) => `[${b.time}] ${b.action}`).join("\n")
 
   const style = `Style: ${styleBible.visualStyle}, ${styleBible.colorPalette}.`
 
   // Dialog diberi penanda "(no subtitles)" karena Veo cenderung menempelkan
-  // subtitle otomatis kalau tidak dilarang eksplisit.
+  // subtitle otomatis kalau tidak dilarang eksplisit. Ketiganya dipisah titik
+  // supaya "SFX:" dan "Ambient noise:" tidak dempet jadi satu kalimat.
   const audio = joinNonEmpty(
     [
       part.audio.dialogue ? `${part.audio.dialogue} (no subtitles)` : "",
-      part.audio.sfx,
-      part.audio.ambient,
+      stripTrailingDot(part.audio.sfx),
+      stripTrailingDot(part.audio.ambient),
     ],
-    " "
+    ". "
   )
-  const audioLine = audio ? `Audio: ${audio}` : ""
+  const audioLine = audio ? `Audio: ${audio}.` : ""
 
   const avoid = `Hindari: ${styleBible.negativePrompt}.`
 

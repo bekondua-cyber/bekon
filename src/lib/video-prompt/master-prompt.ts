@@ -63,6 +63,28 @@ TUGAS: susun rencana video menjadi ${partCount} part. Satu part = satu generate 
 5. JANGAN meminta teks apa pun muncul di dalam video. Teks ditambahkan saat editing.
 6. Aspect ratio ${aspectRatio}, platform ${platform}, tone ${tone}, gaya visual ${style}, struktur naratif "${structure}".
 
+=== DEFINISI FIELD (patuhi persis, ini penyebab prompt jelek kalau dilanggar) ===
+"subject" = WUJUD FISIK yang jadi fokus. Kata benda + ciri konkret, minimal 6 kata.
+  BENAR: "hamparan lahan kosong berumput liar seluas 200 meter persegi"
+  SALAH: "Lahan Kosong"  ← terlalu pendek, itu label bukan deskripsi
+
+"action" = APA YANG TERJADI. Harus diawali kata kerja, minimal 6 kata.
+  BENAR: "dibersihkan dua pekerja yang memasang patok bowplank kayu"
+  SALAH: "Transformasi Lahan"  ← kata benda, bukan aksi
+
+"scene" = LOKASI & SUASANA FISIK. JANGAN mengulang isi "label".
+  BENAR: "pinggiran kota Serang, langit cerah, deretan pohon kelapa di kejauhan"
+  SALAH: "Lahan Kosong hingga Pembangunan Pondasi"  ← itu label part, bukan lokasi
+
+"shot.type" = jenis shot saja. Pilih satu: establishing shot / wide shot / medium shot / close-up / extreme close-up
+"shot.lens" = panjang fokal saja. Pilih satu: 16mm / 24mm / 35mm / 50mm / 85mm. JANGAN tulis "Wide Angle".
+"shot.framing" = sudut kamera saja. Pilih satu: eye level / low angle / high angle / bird's eye view / over-the-shoulder
+"shot.movement" = SATU gerakan saja, jangan digabung.
+  BENAR: "slow dolly-in"     SALAH: "Slow Dolly-in, Drone Orbit"  ← dua gerakan
+
+Tulis semua nilai dengan huruf kecil, kecuali nama tempat/orang.
+Jangan mengulang kata yang sama di "subject", "scene", dan "label".
+
 === KATEGORI: ${categoryInfo.label} ===
 ${categoryInfo.promptGuidance}
 
@@ -83,10 +105,10 @@ Untuk "styleBible.negativePrompt", gunakan persis: "${CONSTRUCTION_NEGATIVE_PROM
 
 Untuk setiap subjek/karakter yang tampil, tulis "identityAnchor" berisi ciri fisik konkret (usia, rambut, pakaian, atribut) dan ULANGI subjek yang sama di part manapun dia muncul. Cantumkan id subjek tersebut di "ingredients" part terkait.
 
-Field "continuity" per part:
-- "new" untuk part pembuka atau ganti lokasi/waktu
-- "extend" bila part ini kelanjutan mulus dari part sebelumnya (kamera & pencahayaan sama)
-- "firstLastFrame" bila part ini transisi before→after (sangat cocok untuk renovasi)
+Field "continuity" per part — pilih dengan hati-hati, salah pilih bikin hasil di Flow kacau:
+- "new" = DEFAULT. Pakai ini bila lokasi, waktu, tahap konstruksi, atau sudut kamera berubah. Timelapse yang melompat antar tahap (pondasi → atap) SELALU "new".
+- "extend" = HANYA bila part ini benar-benar melanjutkan shot yang sama persis: lokasi sama, pencahayaan sama, subjek sama, kamera bergerak tanpa terputus. Kalau ragu, pakai "new".
+- "firstLastFrame" = transisi before→after dalam satu bingkai yang sama (sangat cocok untuk renovasi).
 
 ${portfolioContext}
 ${subjectsContext}

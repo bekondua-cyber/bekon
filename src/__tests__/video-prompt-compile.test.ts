@@ -70,6 +70,31 @@ describe("compileNaturalPrompt", () => {
   })
 })
 
+describe("compileNaturalPrompt — kerapian kalimat", () => {
+  it("memisahkan SFX dan Ambient noise dengan titik, tidak dempet", () => {
+    const prompt = compileNaturalPrompt(part, styleBible, subjects)
+    expect(prompt).toContain("SFX: angin terbuka. Ambient noise: suara pedesaan")
+  })
+
+  it("menurunkan kapital di tengah kalimat", () => {
+    const capitalised: VideoPart = {
+      ...part,
+      subject: "Lahan kosong berumput liar",
+      lighting: "Sinar matahari pagi dari sisi kanan",
+      shot: { ...part.shot, movement: "Slow Dolly-in" },
+    }
+    const prompt = compileNaturalPrompt(capitalised, styleBible, subjects)
+    expect(prompt).toContain("disinari sinar matahari pagi")
+    expect(prompt).not.toContain("disinari Sinar matahari")
+  })
+
+  it("mempertahankan kapital pada nama diri", () => {
+    const withPlace: VideoPart = { ...part, scene: "Serang Timur, langit cerah" }
+    const prompt = compileNaturalPrompt(withPlace, styleBible, subjects)
+    expect(prompt).toContain("di Serang Timur")
+  })
+})
+
 describe("compileNaturalPrompt tanpa subjek", () => {
   it("tidak menulis baris ingredients", () => {
     const prompt = compileNaturalPrompt({ ...part, ingredients: [] }, styleBible, subjects)
