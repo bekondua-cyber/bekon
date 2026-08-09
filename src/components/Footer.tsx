@@ -3,6 +3,7 @@ import { siteConfig, footerQuickLinks, footerServices } from "@/data/site-config
 import { prisma } from "@/lib/prisma";
 import { SocialLinksRenderer, parseSocialLinks } from "@/components/SocialLinksRenderer";
 import { normalizeWA } from "@/lib/utils";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 export async function Footer() {
   const dbSettings = await prisma.setting.findMany();
@@ -123,14 +124,12 @@ export async function Footer() {
                 </a>
               </li>
               <li>
-                <a
+                <WhatsAppLink
                   href={`https://wa.me/${normalizeWA(s("wa_admin_1", siteConfig.whatsapp1))}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="text-bekon-whatsapp hover:text-white transition-colors text-sm underline underline-offset-2"
                 >
                   WhatsApp &rarr;
-                </a>
+                </WhatsAppLink>
               </li>
             </ul>
           </div>

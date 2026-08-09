@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/data/site-config";
 import PortfolioHeroCarousel from "@/components/PortfolioHeroCarousel";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
@@ -177,14 +178,12 @@ export default async function PortfolioDetailPage({ params }: Props) {
                 <p className="text-bekon-text-muted text-sm mb-4">
                   Konsultasikan kebutuhan bangunan Anda bersama tim BEKON secara gratis.
                 </p>
-                <a
+                <WhatsAppLink
                   href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-bekon-gold text-white rounded-lg text-sm font-semibold hover:bg-bekon-gold/90 transition-colors"
                 >
                   Konsultasi Gratis
-                </a>
+                </WhatsAppLink>
               </div>
 
               {/* Related Projects */}
@@ -237,14 +236,12 @@ export default async function PortfolioDetailPage({ params }: Props) {
           <h2 className="font-display text-[clamp(28px,3vw,36px)] text-white font-light mb-4">
             Tertarik dengan Proyek Serupa?
           </h2>
-          <a
+          <WhatsAppLink
             href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-bekon-gold rounded-full text-sm font-semibold hover:bg-bekon-near-black hover:text-white transition-all"
           >
             Konsultasi Gratis
-          </a>
+          </WhatsAppLink>
         </div>
       </section>
     </div>

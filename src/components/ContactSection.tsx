@@ -7,6 +7,7 @@ import { siteConfig } from "@/data/site-config";
 import { normalizeWA } from "@/lib/utils";
 import { SocialLinksRenderer, parseSocialLinks } from "@/components/SocialLinksRenderer";
 import { trackConversion } from "@/lib/track-client";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 interface ContactSectionProps {
   settings?: Record<string, string>;
@@ -152,22 +153,18 @@ export function ContactSection({ settings = {} }: ContactSectionProps) {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <a
+              <WhatsAppLink
                 href={`https://wa.me/${normalizeWA(s("wa_admin_1", siteConfig.whatsapp1))}`}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-bekon-whatsapp text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
               >
                 {s("wa_admin_1_name", siteConfig.whatsapp1_name)}
-              </a>
-              <a
+              </WhatsAppLink>
+              <WhatsAppLink
                 href={`https://wa.me/${normalizeWA(s("wa_admin_2", siteConfig.whatsapp2))}`}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-bekon-whatsapp text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
               >
                 {s("wa_admin_2_name", siteConfig.whatsapp2_name)}
-              </a>
+              </WhatsAppLink>
             </div>
 
             <SocialLinksRenderer

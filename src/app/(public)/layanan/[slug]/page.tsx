@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { services } from "@/data/services";
 import { siteConfig } from "@/data/site-config";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 interface Props {
   params: { slug: string };
@@ -86,14 +87,12 @@ export default function LayananDetailPage({ params }: Props) {
               <p className="text-bekon-text-muted leading-relaxed mb-6">
                 {service.description}
               </p>
-              <a
+              <WhatsAppLink
                 href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20tertarik%20dengan%20${encodeURIComponent(service.title)}`}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-7 py-3 bg-bekon-gold text-white rounded-full text-sm font-medium transition-all hover:bg-bekon-gold-dark"
               >
                 Konsultasi Gratis
-              </a>
+              </WhatsAppLink>
             </div>
             <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
               <Image
@@ -175,14 +174,12 @@ export default function LayananDetailPage({ params }: Props) {
           <p className="text-white/80 mb-8">
             Konsultasi gratis tanpa komitmen bersama tim BEKON.
           </p>
-          <a
+          <WhatsAppLink
             href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20tertarik%20dengan%20${encodeURIComponent(service.title)}`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-bekon-gold rounded-full text-sm font-semibold hover:bg-bekon-near-black hover:text-white transition-all"
           >
             Konsultasi Gratis
-          </a>
+          </WhatsAppLink>
         </div>
       </section>
     </div>

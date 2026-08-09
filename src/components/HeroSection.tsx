@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { ChevronDown } from "lucide-react"
 import { WhatsAppIcon } from "@/components/Icons"
+import { WhatsAppLink } from "@/components/WhatsAppLink"
 import Link from "next/link"
 import { siteConfig } from "@/data/site-config"
 import type { HeroSlide } from "@/types/hero"
@@ -145,14 +146,12 @@ function HeroFallback() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 self-start">
-            <a
+            <WhatsAppLink
               href={STATIC_CONTENT.ctaPrimary.link}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
             >
               {STATIC_CONTENT.ctaPrimary.text}
-            </a>
+            </WhatsAppLink>
             <Link
               href={STATIC_CONTENT.ctaSecondary.link}
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border-2 border-bekon-gold text-bekon-gold rounded-full transition-all duration-200 hover:bg-bekon-gold hover:text-white text-sm font-medium"
@@ -194,15 +193,13 @@ function DesktopContent({ label }: { label: string }) {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 self-start">
-        <a
+        <WhatsAppLink
           href={STATIC_CONTENT.ctaPrimary.link}
-          target="_blank"
-          rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
         >
           <WhatsAppIcon className="w-[18px] h-[18px]" aria-hidden="true" />
           {STATIC_CONTENT.ctaPrimary.text}
-        </a>
+        </WhatsAppLink>
         <Link
           href={STATIC_CONTENT.ctaSecondary.link}
           className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border-2 border-bekon-gold text-bekon-gold rounded-full transition-all duration-200 hover:bg-bekon-gold hover:text-white text-sm font-medium"

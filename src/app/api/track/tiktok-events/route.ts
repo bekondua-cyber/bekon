@@ -3,7 +3,7 @@ import { createHash } from "crypto"
 import { z } from "zod"
 import { rateLimit } from "@/lib/rate-limit"
 import { normalizeWA } from "@/lib/utils"
-import { LEAD_VALUE, LEAD_CURRENCY } from "@/lib/lead-value"
+import { LEAD_CURRENCY, valueForEvent } from "@/lib/lead-value"
 
 export const dynamic = "force-dynamic"
 
@@ -70,8 +70,9 @@ export async function POST(request: NextRequest) {
             user: userData,
             page: eventSourceUrl ? { url: eventSourceUrl } : undefined,
             // Tanpa value & currency, TikTok tidak bisa menghitung ROAS.
+            // Dihitung dari eventName supaya sama persis dengan pixel browser.
             properties: {
-              value: LEAD_VALUE,
+              value: valueForEvent(eventName),
               currency: LEAD_CURRENCY,
             },
           },
