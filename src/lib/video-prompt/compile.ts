@@ -1,3 +1,4 @@
+import type { PromptRecipe } from "@/lib/video-categories"
 import type { CompiledPart, StyleBible, Subject, VideoPart } from "./schema"
 
 /**
@@ -101,9 +102,11 @@ export function compileJsonPrompt(
   part: VideoPart,
   styleBible: StyleBible,
   subjects: Subject[],
-  aspectRatio: string
+  aspectRatio: string,
+  recipe: PromptRecipe = "beatSequence"
 ): Record<string, unknown> {
   const used = subjects.filter((s) => part.ingredients.includes(s.id))
+  const isContinuous = recipe === "continuousTransformation"
 
   return {
     shot: part.shot,
@@ -115,7 +118,15 @@ export function compileJsonPrompt(
     lighting: part.lighting,
     style: styleBible.visualStyle,
     color_palette: styleBible.colorPalette,
-    timeline: part.timeline.map((b) => ({ time: b.time, action: b.action })),
+    // Timelapse memakai daftar tahap dalam satu shot menerus; timestamp justru
+    // menyuruh Veo memotong adegan dan merusak ilusi transformasi.
+    ...(isContinuous
+      ? {
+          camera_continuity: "single uninterrupted camera move, no cuts",
+          construction_stages: part.stages,
+          final_reveal: part.finalReveal,
+        }
+      : { timeline: part.timeline.map((b) => ({ time: b.time, action: b.action })) }),
     audio: {
       dialogue: part.audio.dialogue ? `${part.audio.dialogue} (no subtitles)` : "",
       sfx: part.audio.sfx,
@@ -129,15 +140,87 @@ export function compileJsonPrompt(
   }
 }
 
+/**
+ * Prompt untuk timelapse konstruksi: SATU gerakan kamera menerus sepanjang
+ * klip, yang berubah adalah bangunannya. Sengaja tanpa beat bertimestamp —
+ * timestamp menyuruh Veo memotong adegan, dan potongan merusak ilusi
+ * transformasi. Ditulis dalam bahasa Inggris karena Veo jauh lebih patuh
+ * pada instruksi berbahasa Inggris.
+ */
+export function compileContinuousPrompt(
+  part: VideoPart,
+  styleBible: StyleBible,
+  subjects: Subject[]
+): string {
+  const used = subjects.filter((s) => part.ingredients.includes(s.id))
+  const hasReference = used.length > 0
+
+  const referenceClause = hasReference ? " based on the reference image" : ""
+  const ingredientLine = hasReference
+    ? `Using the provided images for ${used.map((s) => s.role).join(", ")}. `
+    : ""
+
+  const opening =
+    `${ingredientLine}Create a cinematic ${part.durationSec}-second timelapse video showing ` +
+    `${part.subject} ${part.action}${referenceClause}.`
+
+  // Kamera dinyatakan menerus dua kali — di awal dan setelah daftar tahap —
+  // karena inilah instruksi yang paling sering diabaikan model.
+  // Kata "continuous" tidak ditambahkan bila nilai movement sudah memuatnya,
+  // supaya tidak jadi "continuous slow continuous 360-degree orbit".
+  const movement = part.shot.movement.trim()
+  const alreadyContinuous = /continuous|uninterrupted|unbroken/i.test(movement)
+  const cameraBehavior =
+    `The entire video is filmed with ${alreadyContinuous ? "a single" : "one smooth, continuous"} ` +
+    `${movement} (${part.shot.lens}, ${part.shot.framing}). The camera never cuts.`
+
+  const stagesLine = part.stages.length
+    ? `During the shot, show realistic construction stages appearing naturally in order: ${part.stages.join(", ")}.`
+    : part.timeline.map((b) => b.action).join(", ")
+
+  const continuity =
+    `The camera maintains the same path and perspective throughout the entire transformation ` +
+    `while the building grows, in ${part.scene}, lit by ${part.lighting}.`
+
+  const reveal = part.finalReveal
+    ? hasReference
+      ? `${part.finalReveal} Match the exact same architectural style as the reference image.`
+      : part.finalReveal
+    : ""
+
+  const style = `${styleBible.visualStyle}, ${styleBible.colorPalette}, ultra realistic architectural visualization, 4K, highly detailed.`
+
+  const audio = joinNonEmpty(
+    [stripTrailingDot(part.audio.sfx), stripTrailingDot(part.audio.ambient)],
+    ". "
+  )
+  const audioLine = audio ? `Audio: ${audio}.` : ""
+
+  const cameraLine = part.cameraSummary ? `Camera: ${part.cameraSummary}.` : ""
+
+  const avoid = `Avoid: ${styleBible.negativePrompt}.`
+
+  return joinNonEmpty(
+    [opening, cameraBehavior, stagesLine, continuity, reveal, style, audioLine, cameraLine, avoid],
+    "\n\n"
+  )
+}
+
 export function compilePart(
   part: VideoPart,
   styleBible: StyleBible,
   subjects: Subject[],
-  aspectRatio: string
+  aspectRatio: string,
+  recipe: PromptRecipe = "beatSequence"
 ): CompiledPart {
+  const naturalPrompt =
+    recipe === "continuousTransformation"
+      ? compileContinuousPrompt(part, styleBible, subjects)
+      : compileNaturalPrompt(part, styleBible, subjects)
+
   return {
     ...part,
-    naturalPrompt: compileNaturalPrompt(part, styleBible, subjects),
-    jsonPrompt: compileJsonPrompt(part, styleBible, subjects, aspectRatio),
+    naturalPrompt,
+    jsonPrompt: compileJsonPrompt(part, styleBible, subjects, aspectRatio, recipe),
   }
 }

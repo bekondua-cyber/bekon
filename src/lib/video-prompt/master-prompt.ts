@@ -6,6 +6,16 @@ import type { VideoCategory } from "@/lib/video-categories"
  * "no X") sesuai panduan Veo, dan menutup artefak yang paling sering muncul
  * pada adegan proyek: struktur melengkung, besi melayang, alat berat morphing.
  */
+/**
+ * Negative prompt khusus timelapse. Selain artefak umum, menutup kegagalan
+ * paling merusak pada video transformasi: desain rumah berubah di tengah klip.
+ */
+export const TIMELAPSE_NEGATIVE_PROMPT =
+  "cartoon style, unrealistic construction, changing house design mid-shot, " +
+  "wrong architecture, extra floors appearing, distorted building, floating objects, " +
+  "unrealistic workers, bad anatomy, deformed hands, shaky drone movement, " +
+  "camera cuts, warped windows, blurry details, low resolution, on-screen text, watermark"
+
 export const CONSTRUCTION_NEGATIVE_PROMPT =
   "teks di layar, watermark, subtitle, logo, scaffolding melengkung tidak wajar, " +
   "besi tulangan melayang tanpa penopang, alat berat berubah bentuk, " +
@@ -22,6 +32,50 @@ const CAMERA_VOCABULARY =
   "drone orbit, drone pull-back, crane rise, slow dolly-in, tracking shot, " +
   "push-in, hyperlapse locked-off, low angle hero shot, over-the-shoulder, " +
   "gimbal walkthrough, rack focus"
+
+/**
+ * Aturan tambahan untuk timelapse. Menggantikan struktur beat dengan satu
+ * gerakan kamera menerus, dan meminta isi prompt dalam bahasa Inggris karena
+ * Veo jauh lebih patuh pada instruksi berbahasa Inggris.
+ */
+function continuousRecipeRules(partCount: number, durationPerPart: number): string {
+  return `
+=== RESEP KHUSUS: TRANSFORMASI MENERUS (paling penting, baca dulu) ===
+Video ini BUKAN rangkaian potongan adegan. Setiap part adalah SATU gerakan kamera
+menerus selama ${durationPerPart} detik tanpa cut sama sekali. Yang berubah adalah
+BANGUNANNYA, bukan shot-nya.
+
+1. "shot.movement" harus satu gerakan menerus yang bisa berjalan penuh ${durationPerPart} detik.
+   BENAR: "slow continuous 360-degree drone orbit", "steady rising crane shot"
+   SALAH: "cut to close-up", "slow dolly-in lalu pindah ke wide"
+
+2. Isi "stages" dengan 12–18 tahap konstruksi berurutan yang muncul SELAMA gerakan
+   kamera itu. Makin rapat, makin meyakinkan transformasinya. Tulis singkat, dipisah koma.
+   Contoh: "empty land preparation", "survey workers marking the area",
+   "excavators digging foundations", "workers installing steel reinforcement",
+   "pouring concrete foundation", "building brick walls", "constructing columns and beams",
+   "installing roof structures", "workers on scaffolding", "plastering", "painting",
+   "installing windows", "exterior stone finishing", "lighting installation", "landscaping"
+
+3. Isi "finalReveal" dengan klimaks: kamera naik lebih tinggi sambil tetap bergerak,
+   memperlihatkan rumah yang sudah jadi, ditutup pull-back gaya iklan properti premium.
+
+4. Isi "cameraSummary" dengan ringkasan gaya kamera.
+   Contoh: "cinematic drone FPV, slow 360-degree orbit, smooth aerial tracking, parallax movement, rising reveal shot"
+
+5. "timeline" tetap diisi 3 beat sebagai ringkasan progres untuk dibaca admin,
+   TAPI beat ini tidak masuk ke prompt akhir. Fokuskan tenaga pada "stages".
+
+6. Tulis isi field "subject", "action", "scene", "lighting", "stages", "finalReveal",
+   "cameraSummary", dan seluruh "styleBible" dalam BAHASA INGGRIS — Veo jauh lebih
+   patuh pada instruksi berbahasa Inggris. Hanya "label", "editorNotes", dan
+   "timeline[].action" yang ditulis Bahasa Indonesia (itu untuk dibaca admin).
+
+7. Pakai "styleBible.negativePrompt" persis: "${TIMELAPSE_NEGATIVE_PROMPT}"
+
+${partCount > 1 ? `Karena ada ${partCount} part, bagi keseluruhan progres konstruksi menjadi ${partCount} rentang tahap yang berurutan dan tidak tumpang tindih. Tiap part tetap satu gerakan kamera menerus sendiri.` : ""}
+`
+}
 
 export interface MasterPromptInput {
   categoryInfo: VideoCategory
@@ -66,6 +120,7 @@ Untuk video konstruksi, pakai bahan referensi sebagai acuan tampilan bangunan JA
 
 TUGAS: susun rencana video menjadi ${partCount} part. Satu part = satu generate di Flow = ${durationPerPart} detik.
 
+${categoryInfo.promptRecipe === "continuousTransformation" ? continuousRecipeRules(partCount, durationPerPart) : ""}
 === ATURAN KERAS VEO (wajib dipatuhi) ===
 1. Satu part hanya boleh punya SATU aksi utama. Beberapa aksi bersamaan membuat video tidak stabil.
 2. Setiap part harus dipecah menjadi 3 beat bertimestamp yang menutup penuh 0–${durationPerPart} detik:
@@ -156,7 +211,14 @@ Kembalikan HANYA JSON valid, tanpa markdown code fence, dengan struktur persis:
         { "time": "00:07-00:10", "action": "..." }
       ],
       "audio": { "dialogue": "", "sfx": "SFX: ...", "ambient": "Ambient noise: ..." },
-      "editorNotes": { "textOverlay": "...", "musicCue": "...", "transitionToNext": "..." }
+      "editorNotes": { "textOverlay": "...", "musicCue": "...", "transitionToNext": "..." }${
+        categoryInfo.promptRecipe === "continuousTransformation"
+          ? `,
+      "stages": ["empty land preparation", "survey workers marking the area", "..."],
+      "finalReveal": "...",
+      "cameraSummary": "..."`
+          : ""
+      }
     }
   ]
 }

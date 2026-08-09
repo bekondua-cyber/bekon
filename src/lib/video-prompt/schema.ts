@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 /** Versi schema, disimpan di DB supaya hasil lama tetap bisa dibaca. */
-export const PROMPT_VERSION = 2
+export const PROMPT_VERSION = 3
 
 /**
  * Gaya global yang diulang VERBATIM ke setiap part. Ini kunci supaya beberapa
@@ -65,6 +65,19 @@ export const partSchema = z.object({
   timeline: z.array(beatSchema).min(1),
   audio: audioSchema,
   editorNotes: editorNotesSchema,
+
+  // --- Khusus resep `continuousTransformation` (timelapse) ---
+  // Opsional supaya hasil lama (promptVersion 2) tetap bisa diparse.
+
+  /**
+   * Enumerasi padat tahap konstruksi yang muncul di dalam SATU gerakan kamera
+   * menerus. Makin rapat tahapnya, makin meyakinkan transformasinya.
+   */
+  stages: z.array(z.string()).optional().default([]),
+  /** Klimaks yang menjangkar hasil akhir ke gambar referensi. */
+  finalReveal: z.string().optional().default(""),
+  /** Ringkasan gaya kamera, ditaruh di baris penutup prompt. */
+  cameraSummary: z.string().optional().default(""),
 })
 
 /** Apa yang diminta DARI AI (tanpa prompt terkompilasi). */
