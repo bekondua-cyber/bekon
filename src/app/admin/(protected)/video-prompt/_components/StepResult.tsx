@@ -3,6 +3,7 @@ import { ArrowLeft, RotateCcw, Copy, Clock, Film, Ratio } from "lucide-react"
 import { toast } from "sonner"
 import type { VideoPromptResult } from "@/lib/video-prompt/schema"
 import { PartCard } from "./PartCard"
+import { FlowGuide } from "./FlowGuide"
 
 function Stat({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
   return (
@@ -103,6 +104,8 @@ export function StepResult({
           </div>
         </div>
       </div>
+
+      <FlowGuide />
 
       <div className="space-y-3">
         {parts.map((part) => (

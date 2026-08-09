@@ -1,8 +1,9 @@
 "use client"
 import { useState } from "react"
-import { Check, Braces, FileText, Paperclip, Music, Type as TypeIcon } from "lucide-react"
+import { Check, Braces, FileText, Paperclip, Music, Download, Type as TypeIcon } from "lucide-react"
 import { toast } from "sonner"
 import type { CompiledPart, Subject } from "@/lib/video-prompt/schema"
+import { toDownloadUrl } from "@/lib/cloudinary-url"
 import { BeatTimeline } from "./BeatTimeline"
 
 const CONTINUITY_BADGE: Record<string, { label: string; className: string }> = {
@@ -83,19 +84,28 @@ export function PartCard({
         <BeatTimeline timeline={part.timeline} />
 
         {attached.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center gap-2 p-2.5 bg-bekon-gold/5 border border-bekon-gold/20 rounded-lg">
-            <span className="flex items-center gap-1.5 text-xs font-medium text-bekon-gold">
-              <Paperclip size={13} /> Upload di Flow:
-            </span>
-            {attached.map((s) => (
-              <span key={s.id} className="inline-flex items-center gap-1.5 px-2 py-1 bg-white rounded-md text-xs text-gray-700 border border-gray-200">
-                {s.referenceImages[0] && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={s.referenceImages[0]} alt="" className="w-4 h-4 rounded-full object-cover" />
-                )}
-                {s.role}
-              </span>
-            ))}
+          <div className="mt-4 p-3 bg-bekon-gold/5 border border-bekon-gold/20 rounded-lg">
+            <p className="flex items-center gap-1.5 text-xs font-medium text-bekon-gold mb-2">
+              <Paperclip size={13} /> Lampirkan gambar ini di Flow (Ingredients to Video)
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {attached.map((s) =>
+                s.referenceImages.map((img, i) => (
+                  <a
+                    key={`${s.id}-${i}`}
+                    href={toDownloadUrl(img, s.role)}
+                    download
+                    className="group inline-flex items-center gap-2 pl-1 pr-2.5 py-1 bg-white rounded-lg text-xs text-gray-700 border border-gray-200 hover:border-bekon-gold hover:shadow-sm transition-all"
+                    title={`Unduh gambar ${s.role}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img} alt="" className="w-8 h-8 rounded-md object-cover" />
+                    <span className="font-medium">{s.role}</span>
+                    <Download size={13} className="text-gray-400 group-hover:text-bekon-gold transition-colors" />
+                  </a>
+                ))
+              )}
+            </div>
           </div>
         )}
 
