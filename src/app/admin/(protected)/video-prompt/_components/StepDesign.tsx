@@ -69,6 +69,7 @@ export function StepDesign({
   const [assetsOpen, setAssetsOpen] = useState(categoryInfo.usesCharacter === "recommended")
 
   const selectedCount = (characterId ? 1 : 0) + materialIds.length
+  const libraryCount = characters.length + materials.length
 
   return (
     <div className="space-y-7">
@@ -156,7 +157,13 @@ export function StepDesign({
             <Users size={16} className="text-gray-400 shrink-0" />
             <span>
               <span className="text-sm font-semibold text-gray-800">Talent &amp; Bahan Referensi</span>
-              <span className="block text-xs text-gray-400">{talent.hint}</span>
+              <span className="block text-xs text-gray-400">
+                {talent.hint}
+                {/* Tanpa ini, pustaka aset tidak terlihat sama sekali saat panel tertutup. */}
+                {!assetsOpen && libraryCount > 0 && selectedCount === 0 && (
+                  <span className="text-gray-500"> · {libraryCount} aset tersedia di pustaka</span>
+                )}
+              </span>
             </span>
           </span>
           <span className="flex items-center gap-2 shrink-0">

@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import type { VideoPromptResult } from "@/lib/video-prompt/schema"
 import { PartCard } from "./PartCard"
 import { FlowGuide } from "./FlowGuide"
+import { AssetLocker } from "./AssetLocker"
 
 function Stat({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
   return (
@@ -104,6 +105,8 @@ export function StepResult({
           </div>
         </div>
       </div>
+
+      <AssetLocker subjects={subjects} parts={parts} />
 
       <FlowGuide />
 

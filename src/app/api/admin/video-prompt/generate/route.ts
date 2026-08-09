@@ -108,13 +108,33 @@ export async function POST(request: NextRequest) {
     // Lampirkan URL foto asli ke subjek supaya UI bisa menampilkan
     // gambar mana yang harus diupload ke Flow di part mana.
     const referenceUrls: Record<string, string[]> = {}
-    if (character) referenceUrls["karakter-utama"] = [character.photoUrl]
-    materials.forEach((m, i) => { referenceUrls[`bahan-${i + 1}`] = [m.photoUrl] })
+    const referenceRoles: Record<string, string> = {}
+    if (character) {
+      referenceUrls["karakter-utama"] = [character.photoUrl]
+      referenceRoles["karakter-utama"] = character.name
+    }
+    materials.forEach((m, i) => {
+      referenceUrls[`bahan-${i + 1}`] = [m.photoUrl]
+      referenceRoles[`bahan-${i + 1}`] = m.label
+    })
 
     const subjects = plan.subjects.map((s) => ({
       ...s,
       referenceImages: referenceUrls[s.id] || s.referenceImages,
     }))
+
+    // AI kadang lupa mencantumkan aset yang dipilih admin. Tanpa ini, foto
+    // yang sudah dipilih hilang diam-diam dan tidak bisa diunduh di mana pun.
+    const known = new Set(subjects.map((s) => s.id))
+    for (const [id, urls] of Object.entries(referenceUrls)) {
+      if (known.has(id)) continue
+      subjects.push({
+        id,
+        role: referenceRoles[id] || id,
+        identityAnchor: "",
+        referenceImages: urls,
+      })
+    }
 
     const parts = plan.parts.map((p) => compilePart(p, plan.styleBible, subjects, aspectRatio))
 
