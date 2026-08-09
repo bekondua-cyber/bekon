@@ -1,3 +1,5 @@
+export type DeliveryMode = "voiceover" | "onCameraDialogue"
+
 export interface VideoCategory {
   id: string
   label: string
@@ -6,6 +8,11 @@ export interface VideoCategory {
   structures: string[]
   styles: string[]
   usesCharacter: "optional" | "recommended" | "rare"
+  /**
+   * Default cara penyampaian. Voiceover lebih aman karena lip-sync Bahasa
+   * Indonesia di Veo masih lemah; admin tetap bisa menimpanya per generate.
+   */
+  defaultDelivery: DeliveryMode
   promptGuidance: string
 }
 
@@ -18,6 +25,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     structures: ["Progres Bertahap (lahan → pondasi → struktur → finishing)"],
     styles: ["Cinematic Timelapse", "Drone Aerial", "Time-blur Pekerja"],
     usesCharacter: "rare",
+    defaultDelivery: "voiceover",
     promptGuidance: `Buat video timelapse progres konstruksi. Tunjukkan tahapan berurutan: (1) lahan kosong, (2) pengukuran & pembersihan lahan, (3) penggalian pondasi dengan backhoe, (4) pengecoran pondasi dengan truk molen dan pekerja, (5) pembangunan struktur/dinding, (6) pemasangan atap, (7) finishing eksterior, (8) hasil akhir rumah mewah dengan pencahayaan golden hour. Gunakan elemen visual: pekerja proyek beraktivitas cepat (time-blur), alat berat (backhoe, truk molen/concrete mixer), material bangunan. Gerakan kamera dinamis: drone orbit, push-in, crane shot naik dari level tanah ke atas menunjukkan skala bangunan. Jangan gunakan karakter/talent presenter kecuali diminta eksplisit — fokus ke progres visual bangunan itu sendiri.`,
   },
   {
@@ -28,6 +36,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     structures: ["Hook - Body - CTA", "Problem - Solution - CTA"],
     styles: ["Vlog Biasa (kamera statis/tripod)", "Vlog Tongsis (selfie stick, talking to camera)", "Cinematic B-roll + Voiceover"],
     usesCharacter: "recommended",
+    defaultDelivery: "onCameraDialogue",
     promptGuidance: `Buat video edukasi/tips singkat dengan karakter (jika dipilih) menjelaskan langsung ke kamera atau lewat voiceover dengan B-roll pendukung. Gaya vlog tongsis: karakter memegang kamera sendiri (selfie stick), talking head close-up, natural dan personal. Gaya vlog biasa: kamera statis/tripod, karakter di frame lebih formal. Sertakan tips konkret dan actionable seputar bisnis konstruksi/renovasi BEKON.`,
   },
   {
@@ -38,6 +47,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     structures: ["Before - After - CTA", "Hook - Body - CTA"],
     styles: ["Cinematic Reveal", "Split-screen Comparison", "Vlog Walkthrough"],
     usesCharacter: "optional",
+    defaultDelivery: "voiceover",
     promptGuidance: `Tunjukkan transisi dramatis dari kondisi ruangan/bangunan sebelum renovasi ke hasil akhir setelah renovasi oleh BEKON. Gunakan teknik reveal sinematik (wipe transition, match cut, atau split-screen). Kalau ada karakter, posisikan sebagai pemilik rumah yang takjub melihat hasil, atau sebagai narator yang menjelaskan proses.`,
   },
   {
@@ -48,6 +58,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     structures: ["Hook - Body - CTA"],
     styles: ["Cinematic Walkthrough", "Drone Aerial Establishing + Interior Walkthrough", "Vlog Tongsis Tour"],
     usesCharacter: "optional",
+    defaultDelivery: "voiceover",
     promptGuidance: `Buat video tur properti (rumah/kost/ruko) hasil kerja BEKON, dimulai dari establishing shot eksterior (bisa drone aerial), lalu masuk ke dalam menunjukkan ruangan demi ruangan dengan gerakan kamera smooth (gimbal/steadicam feel). Highlight detail desain interior/eksterior yang jadi nilai jual.`,
   },
   {
@@ -58,6 +69,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     structures: ["Hook - Body - CTA"],
     styles: ["Talking Head Interview Style", "Vlog Natural"],
     usesCharacter: "recommended",
+    defaultDelivery: "onCameraDialogue",
     promptGuidance: `Buat video testimoni klien yang dramatis dan meyakinkan. Karakter (jika dipilih) berperan sebagai klien yang bercerita pengalaman menggunakan jasa BEKON, dipadukan dengan B-roll hasil proyek. Gaya interview/talking head yang hangat dan personal, bukan seperti iklan formal.`,
   },
   {
@@ -68,6 +80,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     structures: ["Hook - Body - CTA", "Progres Bertahap (lahan → pondasi → struktur → finishing)"],
     styles: ["Vlog Tongsis Dokumenter", "Cinematic Observational", "Fast-cut Montage"],
     usesCharacter: "optional",
+    defaultDelivery: "voiceover",
     promptGuidance: `Tunjukkan aktivitas harian tim BEKON di lapangan/proyek — diskusi tim, pengukuran, koordinasi dengan klien, momen kerja sama tim. Gaya dokumenter natural, terasa autentik bukan staged. Bisa gunakan karakter sebagai salah satu anggota tim yang memandu penonton.`,
   },
 ]
@@ -77,6 +90,12 @@ export function getCategory(id: string): VideoCategory {
 }
 
 export const DURATION_OPTIONS = [5, 8, 10]
-export const ASPECT_RATIO_OPTIONS = ["9:16", "16:9", "1:1", "4:5"]
+export const DEFAULT_DURATION = 10
+
+/**
+ * Veo hanya mendukung dua aspect ratio ini. Sebelumnya daftar ini juga memuat
+ * "1:1" dan "4:5" yang akan ditolak Flow saat generate.
+ */
+export const ASPECT_RATIO_OPTIONS = ["9:16", "16:9"]
 export const TONE_OPTIONS = ["Profesional", "Santai & Ramah", "Inspiratif", "Edukatif"]
 export const PLATFORM_OPTIONS = ["TikTok", "Instagram Reels", "YouTube Shorts"]

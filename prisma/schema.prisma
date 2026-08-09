@@ -202,6 +202,8 @@ model VideoPromptHistory {
   structure      String
   tone           String
   platform       String
+  style          String?
+  promptVersion  Int      @default(1)
   resultJson     String
   createdAt      DateTime @default(now())
 

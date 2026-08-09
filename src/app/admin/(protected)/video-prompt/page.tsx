@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import {
   Building2, Mic2, RefreshCw, Home, MessageCircleHeart, Users,
@@ -7,9 +7,10 @@ import {
   Camera, Mic, Type as TypeIcon, ArrowRight, ArrowLeft, RotateCcw,
   Grid3x3, Upload,
 } from "lucide-react"
-import { VIDEO_CATEGORIES, DURATION_OPTIONS, ASPECT_RATIO_OPTIONS, TONE_OPTIONS, PLATFORM_OPTIONS, getCategory } from "@/lib/video-categories"
+import { VIDEO_CATEGORIES, DURATION_OPTIONS, DEFAULT_DURATION, ASPECT_RATIO_OPTIONS, TONE_OPTIONS, PLATFORM_OPTIONS, getCategory } from "@/lib/video-categories"
 import { VideoPromptTabs } from "@/components/admin/VideoPromptTabs"
 import { uploadFile } from "@/lib/upload-client"
+import type { CompiledPart, VideoPromptResult } from "@/lib/video-prompt/schema"
 
 const CATEGORY_ICONS: Record<string, typeof Building2> = {
   Building2, Mic2, RefreshCw, Home, MessageCircleHeart, Users,
@@ -22,6 +23,12 @@ const ASPECT_SHAPES: Record<string, { w: number; h: number }> = {
   "4:5": { w: 22, h: 28 },
 }
 
+const CONTINUITY_LABEL: Record<string, string> = {
+  new: "klip baru",
+  extend: "lanjutan (Extend)",
+  firstLastFrame: "transisi frame awal→akhir",
+}
+
 const STEPS = [
   { label: "Jenis Video", icon: Sparkles },
   { label: "Ide Konten", icon: Wand2 },
@@ -32,7 +39,6 @@ const STEPS = [
 interface PortfolioOption { id: string; title: string }
 interface CharacterOption { id: string; name: string; gender: string | null; age: number | null; photoUrl: string }
 interface MaterialOption { id: string; label: string; photoUrl: string }
-interface Scene { visual: string; cameraMovement: string; voiceover: string; textOverlay: string }
 interface GeneratedResult { id: string; title: string; resultJson: string }
 
 export default function VideoPromptPage() {
@@ -58,7 +64,7 @@ export default function VideoPromptPage() {
 
   const [aspectRatio, setAspectRatio] = useState(ASPECT_RATIO_OPTIONS[0])
   const [sceneCount, setSceneCount] = useState(5)
-  const [durationPerScene, setDurationPerScene] = useState(DURATION_OPTIONS[0])
+  const [durationPerScene, setDurationPerScene] = useState(DEFAULT_DURATION)
   const [structure, setStructure] = useState(categoryInfo.structures[0])
   const [style, setStyle] = useState(categoryInfo.styles[0])
   const [tone, setTone] = useState(TONE_OPTIONS[0])
@@ -147,6 +153,7 @@ export default function VideoPromptPage() {
         credentials: "include",
         body: JSON.stringify({
           category, idea: selectedIdea, aspectRatio, sceneCount, durationPerScene, structure, tone, platform, style,
+          deliveryMode: categoryInfo.defaultDelivery,
           portfolioId: portfolioId || undefined, characterId: characterId || undefined, materialIds,
         }),
       })
@@ -171,9 +178,14 @@ export default function VideoPromptPage() {
     toast.success("Seluruh JSON disalin ke clipboard")
   }
 
-  function handleCopyScene(scene: Scene, i: number) {
-    navigator.clipboard.writeText(JSON.stringify(scene, null, 2))
-    toast.success(`Scene ${i + 1} disalin`)
+  function handleCopyNatural(part: CompiledPart) {
+    navigator.clipboard.writeText(part.naturalPrompt)
+    toast.success(`Prompt natural part ${part.index} disalin`)
+  }
+
+  function handleCopyPartJson(part: CompiledPart) {
+    navigator.clipboard.writeText(JSON.stringify(part.jsonPrompt, null, 2))
+    toast.success(`Prompt JSON part ${part.index} disalin`)
   }
 
   function resetAll() {
@@ -188,7 +200,19 @@ export default function VideoPromptPage() {
     setNoMaterial(false)
   }
 
-  const scenes: Scene[] = result ? JSON.parse(result.resultJson).scenes : []
+  // Guard + memo: sebelumnya JSON.parse telanjang di sini bisa membuat
+  // seluruh halaman admin crash kalau resultJson rusak, dan di-parse ulang
+  // setiap render.
+  const parsedResult = useMemo<VideoPromptResult | null>(() => {
+    if (!result) return null
+    try {
+      return JSON.parse(result.resultJson) as VideoPromptResult
+    } catch {
+      return null
+    }
+  }, [result])
+
+  const parts = parsedResult?.parts ?? []
   const selectedCharacter = characters.find((c) => c.id === characterId)
   const selectedMaterials = materials.filter((m) => materialIds.includes(m.id))
   const CategoryIcon = CATEGORY_ICONS[categoryInfo.icon]
@@ -541,7 +565,10 @@ export default function VideoPromptPage() {
                       </div>
                       <div>
                         <h2 className="font-semibold text-gray-900">{result.title}</h2>
-                        <p className="text-xs text-gray-500">{categoryInfo.label} · {aspectRatio} · {platform} · {scenes.length} scene</p>
+                        <p className="text-xs text-gray-500">
+                          {categoryInfo.label} · {aspectRatio} · {platform} · {parts.length} part ·{" "}
+                          {parts.reduce((sum, p) => sum + p.durationSec, 0)} detik total
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -570,21 +597,56 @@ export default function VideoPromptPage() {
                   )}
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {scenes.map((scene, i) => (
-                    <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="w-7 h-7 rounded-full bg-bekon-gold/10 text-bekon-gold text-xs font-bold flex items-center justify-center">{i + 1}</span>
-                        <button onClick={() => handleCopyScene(scene, i)} className="text-gray-400 hover:text-bekon-gold transition-colors" title="Copy scene ini">
-                          <Copy size={14} />
-                        </button>
+                <div className="space-y-4">
+                  {parts.map((part) => (
+                    <div key={part.index} className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-7 h-7 rounded-full bg-bekon-gold/10 text-bekon-gold text-xs font-bold flex items-center justify-center shrink-0">{part.index}</span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">{part.label}</p>
+                            <p className="text-xs text-gray-500">
+                              {part.durationSec} detik · {part.shot.movement} · {CONTINUITY_LABEL[part.continuity]}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          <button onClick={() => handleCopyNatural(part)} className="flex items-center gap-1.5 px-3 py-1.5 bg-bekon-gold text-white rounded-lg text-xs font-medium hover:bg-bekon-gold/90 transition-colors">
+                            <Copy size={13} /> Copy Natural
+                          </button>
+                          <button onClick={() => handleCopyPartJson(part)} className="flex items-center gap-1.5 px-3 py-1.5 border border-bekon-gold text-bekon-gold rounded-lg text-xs font-medium hover:bg-bekon-gold/10 transition-colors">
+                            <Copy size={13} /> Copy JSON
+                          </button>
+                        </div>
                       </div>
-                      <div className="space-y-2.5">
-                        <SceneField icon={Camera} label="Visual" value={scene.visual} />
-                        <SceneField icon={Clapperboard} label="Kamera" value={scene.cameraMovement} />
-                        <SceneField icon={Mic} label="Voiceover" value={scene.voiceover} />
-                        <SceneField icon={TypeIcon} label="Teks Overlay" value={scene.textOverlay} />
-                      </div>
+
+                      <pre className="bg-gray-50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 whitespace-pre-wrap font-mono leading-relaxed max-h-60 overflow-y-auto">
+                        {part.naturalPrompt}
+                      </pre>
+
+                      {part.ingredients.length > 0 && (
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <span className="text-xs text-gray-500">Lampirkan di Flow:</span>
+                          {part.ingredients.map((id) => {
+                            const subj = parsedResult?.subjects.find((s) => s.id === id)
+                            const url = subj?.referenceImages[0]
+                            return (
+                              <span key={id} className="inline-flex items-center gap-1.5 px-2 py-1 bg-bekon-gold/10 text-bekon-gold rounded-md text-xs">
+                                {url && <img src={url} alt="" className="w-4 h-4 rounded-full object-cover" />}
+                                {subj?.role || id}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      {(part.editorNotes.textOverlay || part.editorNotes.musicCue) && (
+                        <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
+                          <p className="text-xs font-medium text-gray-400">Catatan editing (bukan untuk Flow)</p>
+                          {part.editorNotes.textOverlay && <SceneField icon={TypeIcon} label="Teks Overlay" value={part.editorNotes.textOverlay} />}
+                          {part.editorNotes.musicCue && <SceneField icon={Mic} label="Musik" value={part.editorNotes.musicCue} />}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

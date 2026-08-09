@@ -3,6 +3,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
+import { BEKON_BRAND_CONTEXT } from "@/lib/ai/brand"
 import { services } from "@/data/services"
 import { siteConfig } from "@/data/site-config"
 import { normalizeWA } from "@/lib/utils"
@@ -60,7 +61,7 @@ async function buildSystemPrompt(): Promise<{ systemPrompt: string; waLink: stri
     .map((t) => `- ${t.clientName} (${t.projectType || "-"}): "${t.content}"`)
     .join("\n")
 
-  const systemPrompt = `Kamu adalah asisten AI resmi BEKON (Bangun Eka Konstruksi), kontraktor dan arsitek profesional di Serang, Cilegon, Banten sejak 2009. Jawab pertanyaan calon klien dengan ramah, singkat, dan informatif dalam Bahasa Indonesia.
+  const systemPrompt = `Kamu adalah asisten AI resmi BEKON. ${BEKON_BRAND_CONTEXT} Jawab pertanyaan calon klien dengan ramah, singkat, dan informatif dalam Bahasa Indonesia.
 
 ATURAN PENTING:
 1. JANGAN mengarang harga, estimasi biaya, atau janji waktu pengerjaan spesifik. Untuk pertanyaan harga/RAB, arahkan ke konsultasi WhatsApp.

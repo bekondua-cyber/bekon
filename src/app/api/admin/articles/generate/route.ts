@@ -3,6 +3,8 @@ import { z } from "zod"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
+import { parseAiJson } from "@/lib/ai/parse"
+import { BEKON_BRAND_CONTEXT, BEKON_SERVICE_AREA } from "@/lib/ai/brand"
 
 export const dynamic = "force-dynamic"
 
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `Kamu adalah penulis konten SEO profesional untuk BEKON (Bangun Eka Konstruksi), kontraktor dan arsitek di Serang, Cilegon, Banten, spesialis desain eksterior, interior, bangun rumah, renovasi, kost & ruko sejak 2009. Tulis dalam Bahasa Indonesia yang natural, informatif, dan SEO-friendly.
+          content: `Kamu adalah penulis konten SEO profesional. ${BEKON_BRAND_CONTEXT} Wilayah layanan: ${BEKON_SERVICE_AREA}. Tulis dalam Bahasa Indonesia yang natural, informatif, dan SEO-friendly.
 
 Kembalikan HANYA JSON valid dengan struktur persis berikut, tanpa markdown code fence:
 {
@@ -70,24 +72,12 @@ Kembalikan HANYA JSON valid dengan struktur persis berikut, tanpa markdown code 
       ],
     })
 
-    let parsed: unknown
-    try {
-      parsed = JSON.parse(raw)
-    } catch {
-      const match = raw.match(/\{[\s\S]*\}/)
-      if (!match) throw new Error("AI tidak mengembalikan JSON valid")
-      parsed = JSON.parse(match[0])
-    }
-
-    const result = resultSchema.safeParse(parsed)
-    if (!result.success) {
-      return NextResponse.json({ error: "Format hasil AI tidak sesuai, coba lagi" }, { status: 502 })
-    }
+    const result = parseAiJson(raw, resultSchema)
 
     return NextResponse.json({
       data: {
-        ...result.data,
-        slug: slugify(result.data.slug || result.data.title),
+        ...result,
+        slug: slugify(result.slug || result.title),
       },
     })
   } catch (error) {

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
+import { parseAiJson } from "@/lib/ai/parse"
+import { BEKON_BRAND_CONTEXT } from "@/lib/ai/brand"
 import { getCategory } from "@/lib/video-categories"
 
 export const dynamic = "force-dynamic"
@@ -62,7 +64,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `Kamu adalah sutradara konten & prompt engineer untuk BEKON, kontraktor dan arsitek di Serang, Banten sejak 2009, spesialis desain eksterior, interior, bangun rumah, renovasi, kost & ruko.
+          content: `Kamu adalah sutradara konten & prompt engineer. ${BEKON_BRAND_CONTEXT}
 
 Kategori video yang diminta: "${categoryInfo.label}" — ${categoryInfo.description}
 Panduan konsep kategori ini: ${categoryInfo.promptGuidance}
@@ -77,21 +79,9 @@ Setiap ide singkat (1 kalimat), spesifik, sesuai kategori di atas, dan menarik u
       ],
     })
 
-    let parsed: unknown
-    try {
-      parsed = JSON.parse(raw)
-    } catch {
-      const match = raw.match(/\{[\s\S]*\}/)
-      if (!match) throw new Error("AI tidak mengembalikan JSON valid")
-      parsed = JSON.parse(match[0])
-    }
+    const result = parseAiJson(raw, ideasSchema)
 
-    const result = ideasSchema.safeParse(parsed)
-    if (!result.success) {
-      return NextResponse.json({ error: "Format hasil AI tidak sesuai, coba lagi" }, { status: 502 })
-    }
-
-    return NextResponse.json({ data: result.data.ideas })
+    return NextResponse.json({ data: result.ideas })
   } catch (error) {
     console.error("POST /api/admin/video-prompt/ideas error:", error)
     const message = error instanceof Error ? error.message : "Gagal generate ide"

@@ -4,35 +4,28 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
-import { getCategory } from "@/lib/video-categories"
+import { parseAiJson } from "@/lib/ai/parse"
+import { getCategory, ASPECT_RATIO_OPTIONS } from "@/lib/video-categories"
+import { buildMasterPrompt } from "@/lib/video-prompt/master-prompt"
+import { compilePart } from "@/lib/video-prompt/compile"
+import { aiVideoPlanSchema, PROMPT_VERSION, type VideoPromptResult } from "@/lib/video-prompt/schema"
 
 export const dynamic = "force-dynamic"
 
 const requestSchema = z.object({
   category: z.string().min(1),
   idea: z.string().min(3),
-  aspectRatio: z.string().min(1),
-  sceneCount: z.number().int().min(1).max(20),
-  durationPerScene: z.number().int().min(1).max(120),
+  aspectRatio: z.enum(ASPECT_RATIO_OPTIONS as [string, ...string[]]),
+  sceneCount: z.number().int().min(1).max(12),
+  durationPerScene: z.number().int().min(4).max(10),
   structure: z.string().min(1),
   tone: z.string().min(1),
   platform: z.string().min(1),
   style: z.string().min(1),
+  deliveryMode: z.enum(["voiceover", "onCameraDialogue"]).optional(),
   portfolioId: z.string().optional(),
   characterId: z.string().optional(),
   materialIds: z.array(z.string()).optional().default([]),
-})
-
-const sceneSchema = z.object({
-  visual: z.string(),
-  cameraMovement: z.string(),
-  voiceover: z.string(),
-  textOverlay: z.string(),
-})
-
-const resultSchema = z.object({
-  title: z.string(),
-  scenes: z.array(sceneSchema).min(1),
 })
 
 export async function POST(request: NextRequest) {
@@ -54,92 +47,109 @@ export async function POST(request: NextRequest) {
 
     const {
       category, idea, aspectRatio, sceneCount, durationPerScene,
-      structure, tone, platform, style, portfolioId, characterId, materialIds,
+      structure, tone, platform, style, deliveryMode,
+      portfolioId, characterId, materialIds,
     } = validation.data
 
     const categoryInfo = getCategory(category)
 
-    const [character, materials] = await Promise.all([
+    const [portfolio, character, materials] = await Promise.all([
+      portfolioId ? prisma.portfolio.findUnique({ where: { id: portfolioId } }) : null,
       characterId ? prisma.videoCharacter.findUnique({ where: { id: characterId } }) : null,
       materialIds.length > 0 ? prisma.videoMaterial.findMany({ where: { id: { in: materialIds } } }) : [],
     ])
 
-    const characterContext = character
-      ? `Karakter utama: ${character.name}, ${character.gender || "-"}, ${character.age ? `${character.age} tahun` : "usia tidak diketahui"}. Foto referensi karakter: ${character.photoUrl}. Pastikan deskripsi visual karakter konsisten di setiap scene yang menampilkan dia.`
-      : "Tidak ada karakter/talent yang tampil di video ini."
-
-    const materialContext = materials.length > 0
-      ? `Bahan referensi visual:\n${materials.map((m) => `- ${m.label}${m.description ? ` (${m.description})` : ""}: ${m.photoUrl}`).join("\n")}`
+    // Sebelumnya portfolioId divalidasi & disimpan tapi tidak pernah masuk prompt.
+    const portfolioContext = portfolio
+      ? `=== PROYEK REFERENSI ===\n${portfolio.title} (${portfolio.category || "umum"}, ${portfolio.location || "-"}). ${portfolio.description || ""}`
       : ""
+
+    const subjectLines: string[] = []
+    if (character) {
+      subjectLines.push(
+        `- id "karakter-utama": ${character.name}, ${character.gender || "gender tidak disebut"}, ${character.age ? `${character.age} tahun` : "usia tidak diketahui"}. Gunakan id ini di "ingredients" pada part yang menampilkan dia.`
+      )
+    }
+    materials.forEach((m, i) => {
+      subjectLines.push(
+        `- id "bahan-${i + 1}": ${m.label}${m.description ? ` (${m.description})` : ""}. Referensi visual bahan/material.`
+      )
+    })
+    const subjectsContext = subjectLines.length
+      ? `=== SUBJEK & BAHAN REFERENSI ===\nFoto referensi akan dilampirkan admin di Flow lewat fitur Ingredients to Video.\n${subjectLines.join("\n")}`
+      : "=== SUBJEK ===\nTidak ada karakter atau bahan referensi. Fokus pada bangunan, material, dan aktivitas proyek."
+
+    const systemPrompt = buildMasterPrompt({
+      categoryInfo,
+      partCount: sceneCount,
+      durationPerPart: durationPerScene,
+      aspectRatio,
+      platform,
+      tone,
+      style,
+      structure,
+      deliveryMode: deliveryMode || categoryInfo.defaultDelivery,
+      portfolioContext,
+      subjectsContext,
+    })
 
     const raw = await generateCompletion({
       json: true,
       temperature: 0.8,
-      maxTokens: 3000,
+      maxTokens: 8000,
       messages: [
-        {
-          role: "system",
-          content: `Kamu adalah sutradara & prompt engineer video untuk BEKON, kontraktor/arsitek di Serang, Banten sejak 2009. Buat prompt JSON terstruktur untuk AI video generator (seperti Google Flow) berdasarkan ide konten yang diberikan.
-
-Kategori video: "${categoryInfo.label}" — ${categoryInfo.promptGuidance}
-
-${characterContext}
-${materialContext}
-
-Kembalikan HANYA JSON valid dengan struktur persis:
-{
-  "title": "judul video singkat",
-  "scenes": [
-    { "visual": "deskripsi visual scene, sebutkan referensi karakter/bahan jika relevan", "cameraMovement": "gerakan kamera", "voiceover": "narasi/voiceover", "textOverlay": "teks di layar" }
-  ]
-}
-
-Buat tepat ${sceneCount} scene. Ikuti struktur "${structure}". Gaya visual: ${style}. Tone: ${tone}. Target platform: ${platform}, aspect ratio ${aspectRatio}, durasi tiap scene sekitar ${durationPerScene} detik.`,
-        },
-        {
-          role: "user",
-          content: `Ide konten: ${idea}`,
-        },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Ide konten: ${idea}` },
       ],
     })
 
-    let parsed: unknown
-    try {
-      parsed = JSON.parse(raw)
-    } catch {
-      const match = raw.match(/\{[\s\S]*\}/)
-      if (!match) throw new Error("AI tidak mengembalikan JSON valid")
-      parsed = JSON.parse(match[0])
-    }
+    const plan = parseAiJson(raw, aiVideoPlanSchema)
 
-    const result = resultSchema.safeParse(parsed)
-    if (!result.success) {
-      return NextResponse.json({ error: "Format hasil AI tidak sesuai, coba lagi" }, { status: 502 })
-    }
+    // Lampirkan URL foto asli ke subjek supaya UI bisa menampilkan
+    // gambar mana yang harus diupload ke Flow di part mana.
+    const referenceUrls: Record<string, string[]> = {}
+    if (character) referenceUrls["karakter-utama"] = [character.photoUrl]
+    materials.forEach((m, i) => { referenceUrls[`bahan-${i + 1}`] = [m.photoUrl] })
 
-    const finalResult = {
-      ...result.data,
-      referenceImages: {
-        character: character ? { name: character.name, url: character.photoUrl } : null,
-        materials: materials.map((m) => ({ label: m.label, url: m.photoUrl })),
+    const subjects = plan.subjects.map((s) => ({
+      ...s,
+      referenceImages: referenceUrls[s.id] || s.referenceImages,
+    }))
+
+    const parts = plan.parts.map((p) => compilePart(p, plan.styleBible, subjects, aspectRatio))
+
+    const result: VideoPromptResult = {
+      promptVersion: PROMPT_VERSION,
+      project: {
+        title: plan.title,
+        category,
+        aspectRatio,
+        platform,
+        partCount: parts.length,
+        totalDurationSec: parts.reduce((sum, p) => sum + p.durationSec, 0),
       },
+      styleBible: plan.styleBible,
+      subjects,
+      parts,
     }
 
     const item = await prisma.videoPromptHistory.create({
       data: {
-        title: finalResult.title,
+        title: plan.title,
         category,
         portfolioId: portfolioId || null,
         characterId: characterId || null,
         materialIds,
         ideaPrompt: idea,
         aspectRatio,
-        sceneCount,
+        sceneCount: parts.length,
         durationPerSec: durationPerScene,
         structure,
         tone,
         platform,
-        resultJson: JSON.stringify(finalResult),
+        style,
+        promptVersion: PROMPT_VERSION,
+        resultJson: JSON.stringify(result),
       },
     })
 
