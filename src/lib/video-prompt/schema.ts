@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 /** Versi schema, disimpan di DB supaya hasil lama tetap bisa dibaca. */
-export const PROMPT_VERSION = 3
+export const PROMPT_VERSION = 4
 
 /**
  * Schema di berkas ini sengaja TOLERAN.
@@ -94,6 +94,13 @@ export const partSchema = z.object({
   timeline: z.array(beatSchema).default([]),
   audio: audioSchema.default({ dialogue: "", sfx: "", ambient: "" }),
   editorNotes: editorNotesSchema.default({ textOverlay: "", musicCue: "", transitionToNext: "" }),
+
+  /**
+   * Naskah voiceover siap baca, Bahasa Indonesia. Hanya diisi pada mode
+   * voiceover — Veo tidak mengucapkannya, jadi ini TIDAK ikut ke prompt Flow;
+   * admin merekam/menempelkannya sendiri saat editing.
+   */
+  voiceoverScript: looseText().default(""),
 
   // --- Khusus resep `continuousTransformation` (timelapse) ---
   /** Enumerasi padat tahap konstruksi di dalam satu gerakan kamera menerus. */

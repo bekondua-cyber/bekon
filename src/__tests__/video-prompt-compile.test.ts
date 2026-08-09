@@ -36,6 +36,7 @@ const part: VideoPart = {
   ],
   audio: { dialogue: "", sfx: "SFX: angin terbuka", ambient: "Ambient noise: suara pedesaan" },
   editorNotes: { textOverlay: "Mulai dari nol", musicCue: "upbeat", transitionToNext: "match cut" },
+  voiceoverScript: "",
   stages: [],
   finalReveal: "",
   cameraSummary: "",

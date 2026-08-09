@@ -20,6 +20,20 @@ function stripTrailingDot(text: string): string {
 }
 
 /**
+ * Sematkan kata depan hanya bila nilainya belum membawa sendiri.
+ *
+ * AI kerap mengembalikan scene "di sebuah rumah minimalis di Serang" meski
+ * definisi field melarangnya, dan kompilator lama menempelkan "di" lagi di
+ * depan — hasilnya "di di sebuah rumah minimalis".
+ */
+function withPreposition(value: string, preposition: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ""
+  const pattern = new RegExp(`^${preposition}\\s`, "i")
+  return pattern.test(trimmed) ? lowerFirst(trimmed) : `${preposition} ${lowerFirst(trimmed)}`
+}
+
+/**
  * AI kadang mengembalikan nilai berkapital seperti "Sinar matahari pagi" yang
  * jadi janggal di tengah kalimat. Huruf pertama diturunkan kecuali kata itu
  * memang nama diri (kata kedua juga berkapital, mis. "Serang Timur").
@@ -62,11 +76,16 @@ export function compileNaturalPrompt(
 
   // Field kosong kini mungkin (schema toleran), jadi setiap potongan kalimat
   // hanya ikut kalau ada isinya — mencegah "di , disinari ."
-  const focus = joinNonEmpty([lowerFirst(part.subject), lowerFirst(part.action)], " ")
+  //
+  // Subjek dan aksi dipisah KOMA, bukan spasi. Aturannya meminta "action"
+  // diawali kata kerja, tapi model sering mengirim klausa bersubjek sendiri
+  // ("seorang desainer memilih warna"); tanpa koma keduanya menempel jadi
+  // kalimat rusak: "ruangan kosong seorang desainer memilih warna".
+  const focus = joinNonEmpty([lowerFirst(part.subject), lowerFirst(part.action)], ", ")
   const place = joinNonEmpty(
     [
-      part.scene ? `di ${lowerFirst(part.scene)}` : "",
-      part.lighting ? `disinari ${lowerFirst(part.lighting)}` : "",
+      withPreposition(part.scene, "di"),
+      withPreposition(part.lighting, "disinari"),
     ],
     ", "
   )
@@ -104,6 +123,68 @@ export function compileNaturalPrompt(
 }
 
 /**
+ * Prompt untuk konten bergaya kreator: potongan cepat, ritme padat.
+ *
+ * Ditulis Bahasa Inggris seperti resep timelapse — Veo jauh lebih patuh.
+ * Perbedaan pokok dari `compileNaturalPrompt`: setiap beat dinyatakan sebagai
+ * POTONGAN BARU secara eksplisit, dan ada satu baris ritme di akhir. Tanpa
+ * penegasan itu Veo cenderung merender satu shot panjang yang tenang.
+ */
+export function compileFastCutPrompt(
+  part: VideoPart,
+  styleBible: StyleBible,
+  subjects: Subject[]
+): string {
+  const used = subjects.filter((s) => part.ingredients.includes(s.id))
+
+  const ingredientLine = used.length
+    ? `Using the provided images for ${used.map((s) => s.role).join(", ")}. `
+    : ""
+  const identityLine = used.length
+    ? used.map((s) => `${s.role}: ${s.identityAnchor}`).join(". ") + ". "
+    : ""
+
+  const optics = joinNonEmpty([part.shot.type, part.shot.lens, part.shot.framing], ", ")
+  const movement = part.shot.movement.trim() || "fast handheld follow"
+
+  const focus = joinNonEmpty([part.subject, part.action], ", ")
+  const place = joinNonEmpty(
+    [part.scene ? `in ${part.scene}` : "", part.lighting ? `lit by ${part.lighting}` : ""],
+    ", "
+  )
+
+  const opening = `${ingredientLine}Fast-paced social media style clip, ${part.durationSec} seconds. ${identityLine}${joinNonEmpty([focus, place], ", ")}.`
+  const camera = `Camera: ${movement}${optics ? ` (${optics})` : ""}, energetic and precise.`
+
+  // "Quick cut to" ditulis di depan tiap beat karena timestamp saja tidak cukup
+  // menyuruh Veo memotong — model membacanya sebagai satu adegan berdurasi.
+  const beats = part.timeline
+    .map((b, i) => `[${b.time}] ${i === 0 ? "" : "Quick cut to: "}${b.action}`)
+    .join("\n")
+
+  const rhythm =
+    part.timeline.length > 1
+      ? `Editing rhythm: ${part.timeline.length} rapid cuts across ${part.durationSec} seconds, each cut changing angle or framing. No lingering shots.`
+      : ""
+
+  const style = `Style: ${styleBible.visualStyle}, ${styleBible.colorPalette}.`
+
+  const audio = joinNonEmpty(
+    [
+      part.audio.dialogue ? `${part.audio.dialogue} (no subtitles)` : "",
+      stripTrailingDot(part.audio.sfx),
+      stripTrailingDot(part.audio.ambient),
+    ],
+    ". "
+  )
+  const audioLine = audio ? `Audio: ${audio}.` : ""
+
+  const avoid = `Avoid: ${styleBible.negativePrompt}.`
+
+  return joinNonEmpty([opening, camera, beats, rhythm, style, audioLine, avoid], "\n\n")
+}
+
+/**
  * Objek JSON bersih untuk ditempel ke Flow. Sengaja TIDAK memuat
  * `editorNotes` (itu untuk CapCut) maupun `naturalPrompt`.
  */
@@ -135,7 +216,16 @@ export function compileJsonPrompt(
           construction_stages: part.stages,
           final_reveal: part.finalReveal,
         }
-      : { timeline: part.timeline.map((b) => ({ time: b.time, action: b.action })) }),
+      : {
+          timeline: part.timeline.map((b) => ({ time: b.time, action: b.action })),
+          // Timestamp saja tidak cukup menyuruh Veo memotong; ritmenya perlu
+          // dinyatakan eksplisit seperti di prompt naturalnya.
+          ...(recipe === "fastCutSequence"
+            ? {
+                editing_rhythm: `${part.timeline.length} rapid cuts across ${part.durationSec} seconds, each cut changes angle or framing`,
+              }
+            : {}),
+        }),
     audio: {
       dialogue: part.audio.dialogue ? `${part.audio.dialogue} (no subtitles)` : "",
       sfx: part.audio.sfx,
@@ -241,7 +331,9 @@ export function compilePart(
   const naturalPrompt =
     recipe === "continuousTransformation"
       ? compileContinuousPrompt(part, styleBible, subjects, totalParts === 1)
-      : compileNaturalPrompt(part, styleBible, subjects)
+      : recipe === "fastCutSequence"
+        ? compileFastCutPrompt(part, styleBible, subjects)
+        : compileNaturalPrompt(part, styleBible, subjects)
 
   return {
     ...part,

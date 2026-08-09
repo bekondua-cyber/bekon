@@ -54,8 +54,11 @@ export async function generateCompletion(opts: AiCompletionOptions): Promise<str
       errors.push(`${name}: ${message}`)
 
       if (!shouldTryNextProvider(error)) {
+        // Seluruh error yang sudah terkumpul ikut dilaporkan — kalau hanya
+        // error terakhir yang disebut, kegagalan provider sebelumnya hilang
+        // dan penyebab sebenarnya jadi tidak terlihat di log.
         throw new Error(
-          `AI provider menolak permintaan dan provider lain tidak akan berbeda: ${message}`
+          `AI provider menolak permintaan dan provider lain tidak akan berbeda: ${errors.join(" | ")}`
         )
       }
     }

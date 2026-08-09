@@ -1,10 +1,15 @@
 "use client"
 import { useState } from "react"
-import { Check, Braces, FileText, Paperclip, Music, Download, Type as TypeIcon } from "lucide-react"
+import { Check, Braces, FileText, Paperclip, Music, Download, Mic, Type as TypeIcon } from "lucide-react"
 import { toast } from "sonner"
 import type { CompiledPart, Subject } from "@/lib/video-prompt/schema"
 import { toDownloadUrl } from "@/lib/cloudinary-url"
 import { BeatTimeline } from "./BeatTimeline"
+
+/** Jumlah kata naskah — penanda cepat apakah narasinya cukup mengisi durasi. */
+function wordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length
+}
 
 const CONTINUITY_BADGE: Record<string, { label: string; className: string }> = {
   new: { label: "Klip baru", className: "bg-blue-50 text-blue-600" },
@@ -120,6 +125,26 @@ export function PartCard({
           <pre className="mt-2 bg-gray-50 border border-gray-100 rounded-lg p-3 text-xs text-gray-700 whitespace-pre-wrap font-mono leading-relaxed max-h-56 overflow-y-auto">
             {part.naturalPrompt}
           </pre>
+        )}
+
+        {part.voiceoverScript && (
+          <div className="mt-3 p-3 bg-blue-50/60 border border-blue-100 rounded-lg">
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-blue-700">
+                <Mic size={13} /> Naskah voiceover ({wordCount(part.voiceoverScript)} kata)
+              </p>
+              <button
+                onClick={() => copy(part.voiceoverScript, "Naskah voiceover")}
+                className="text-[11px] font-medium text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                Salin
+              </button>
+            </div>
+            <p className="text-xs text-gray-700 leading-relaxed">{part.voiceoverScript}</p>
+            <p className="text-[11px] text-blue-500/80 mt-1.5">
+              Veo tidak mengucapkan ini — rekam sendiri saat editing.
+            </p>
+          </div>
         )}
 
         {(part.editorNotes.textOverlay || part.editorNotes.musicCue) && (
