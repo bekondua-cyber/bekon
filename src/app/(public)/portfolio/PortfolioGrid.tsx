@@ -13,16 +13,9 @@ const CATEGORIES = [
   { value: "kost-ruko", label: "Kost & Ruko" },
 ];
 
-interface PortfolioItem {
-  id: string;
-  title: string;
-  slug: string;
-  category?: string;
-  location?: string;
-  year?: number;
-  coverImage?: string;
-  isFeatured?: boolean;
-}
+// Dipakai bersama PortfolioSection supaya bentuknya tidak menyimpang; dulu
+// interface ini diduplikasi di sini dan diam-diam berbeda dari data aslinya.
+import type { PortfolioItem } from "@/components/PortfolioSection";
 
 const VALID_CATEGORIES = CATEGORIES.map((c) => c.value);
 

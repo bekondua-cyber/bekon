@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { getPortfolioBySlug } from "@/lib/queries"
 
 export const dynamic = "force-dynamic"
 
@@ -8,9 +8,7 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const item = await prisma.portfolio.findUnique({
-      where: { slug: params.slug, isPublished: true },
-    })
+    const item = await getPortfolioBySlug(params.slug)
 
     if (!item) {
       return NextResponse.json(

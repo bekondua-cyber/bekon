@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { getActiveHeroSlides } from "@/lib/queries"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const slides = await prisma.heroSlide.findMany({
-      where: { isActive: true },
-      orderBy: { order: "asc" },
-      include: {
-        portfolio: {
-          select: { id: true, title: true, slug: true, coverImage: true },
-        },
-      },
-    })
+    const slides = await getActiveHeroSlides()
+
     return NextResponse.json({ data: slides }, {
       headers: { "Cache-Control": "no-store, max-age=0" },
     })

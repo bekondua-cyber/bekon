@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PortfolioGrid } from "./PortfolioGrid";
+import { getPublishedPortfolio } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Portfolio Proyek | BEKON - Jasa Bangun Rumah Serang",
@@ -8,28 +9,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/portfolio" },
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
-
-async function fetchPortfolio() {
-  try {
-    const res = await fetch(`${API_BASE}/api/portfolio?all=true`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
-    const json = await res.json();
-    if (json && Array.isArray(json.data)) return json.data;
-    return [];
-  } catch {
-    return [];
-  }
-}
+export const dynamic = "force-dynamic";
 
 export default async function PortfolioPage({
   searchParams,
 }: {
   searchParams: { category?: string };
 }) {
-  const items = await fetchPortfolio();
+  const items = await getPublishedPortfolio({ all: true });
 
   return (
     <div className="min-h-screen bg-bekon-cream">

@@ -1,47 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { getPublishedPortfolio } from "@/lib/queries"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const featured = searchParams.get("featured")
-    const category = searchParams.get("category")
-    const all = searchParams.get("all")
-    const exclude = searchParams.get("exclude")
     const takeParam = searchParams.get("take")
 
-    const where: Record<string, unknown> = { isPublished: true }
-
-    if (featured === "true") {
-      where.isFeatured = true
-    }
-
-    if (category) {
-      where.category = category
-    }
-
-    if (exclude) {
-      where.NOT = { slug: exclude }
-    }
-
-    const items = await prisma.portfolio.findMany({
-      where,
-      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-      ...(all !== "true" ? { take: takeParam ? parseInt(takeParam) : 8 } : {}),
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        category: true,
-        location: true,
-        coverImage: true,
-        images: true,
-        isFeatured: true,
-        isPublished: true,
-        year: true,
-      },
+    const items = await getPublishedPortfolio({
+      featured: searchParams.get("featured") === "true",
+      category: searchParams.get("category"),
+      excludeSlug: searchParams.get("exclude"),
+      take: takeParam ? parseInt(takeParam) : null,
+      all: searchParams.get("all") === "true",
     })
 
     return NextResponse.json({ data: items }, {

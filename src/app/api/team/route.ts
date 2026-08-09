@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getActiveTeam } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const team = await prisma.teamMember.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: "asc" },
-      select: { id: true, name: true, role: true, bio: true, photo: true },
-    });
+    const team = await getActiveTeam();
+
     return NextResponse.json({ data: team }, {
       headers: { "Cache-Control": "no-store, max-age=0" },
     });

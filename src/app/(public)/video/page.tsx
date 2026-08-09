@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import VideoPageClient from "./VideoPageClient";
+import { getPublishedVideos } from "@/lib/queries";
 
 
 export const metadata: Metadata = {
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/video" },
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+export const dynamic = "force-dynamic";
 
 export interface VideoItem {
   id: string;
@@ -22,21 +23,8 @@ export interface VideoItem {
   isPublished: boolean;
 }
 
-async function fetchVideos(): Promise<VideoItem[]> {
-  try {
-    const res = await fetch(`${API_BASE}/api/videos`, { cache: "no-store" });
-    if (!res.ok) return [];
-    const json = await res.json();
-    const data = json.data;
-    if (Array.isArray(data)) return data as VideoItem[];
-    return [];
-  } catch {
-    return [];
-  }
-}
-
 export default async function VideoPage() {
-  const items = await fetchVideos();
+  const items = await getPublishedVideos();
 
   return (
     <div className="min-h-screen bg-bekon-off-white">

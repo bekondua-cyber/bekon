@@ -1,16 +1,19 @@
 import { Navbar } from "@/components/Navbar";
 import { SocialProofBar } from "@/components/SocialProofBar";
-import type { PortfolioItem } from "@/components/PortfolioSection";
-import type { Testimonial } from "@/components/TestimoniColumns";
-import type { VideoItem } from "@/components/VideoSection";
-import type { ArticleItem } from "@/components/BlogSection";
 import type { WhyBekonItem } from "@/data/why-bekon";
 import { teamMembers as fallbackTeam } from "@/data/team";
 import type { TeamMember } from "@/components/TeamSection";
-import type { HeroSlide } from "@/types/hero";
 import { Footer } from "@/components/Footer";
 import { siteConfig } from "@/data/site-config";
-import { prisma } from "@/lib/prisma";
+import {
+  getActiveHeroSlides,
+  getActiveTeam,
+  getPublishedArticles,
+  getPublishedPortfolio,
+  getPublishedTestimonials,
+  getPublishedVideos,
+  getSettingsMap,
+} from "@/lib/queries";
 import dynamic from "next/dynamic";
 
 const HeroSection = dynamic(
@@ -73,52 +76,22 @@ const FloatingWhatsApp = dynamic(
   {}  
 );
 
-// Untuk server component, gunakan absolute URL dari env atau construct dari headers
-const API_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000"
-
-async function fetchJSON<T>(url: string): Promise<T | null> {
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
-
-function extractArray<T = unknown>(res: unknown): T[] {
-  if (res && typeof res === "object" && "data" in res) {
-    const d = (res as { data: unknown }).data;
-    if (Array.isArray(d)) return d as T[];
-  }
-  return [];
-}
-
 export default async function HomePage() {
-  const [portfolioRes, testimonialsRes, videosRes, articlesRes, teamRes, heroRes, dbSettings] =
+  // Dulu ini enam fetch HTTP ke route API milik situs ini sendiri: satu render
+  // beranda menghabiskan 7 invocation fungsi Vercel dan 7 koneksi DB untuk data
+  // yang sama. Lebih buruk lagi, alamat dasarnya jatuh ke localhost kalau env
+  // NEXT_PUBLIC_SITE_URL kosong dan kegagalannya ditelan diam-diam — beranda
+  // bisa tampil kosong di produksi tanpa jejak error sama sekali.
+  const [portfolioData, testimonialsData, videosData, articlesData, teamData_, heroSlides, settings] =
     await Promise.all([
-      fetchJSON(`${API_BASE}/api/portfolio`),
-      fetchJSON(`${API_BASE}/api/testimonials`),
-      fetchJSON(`${API_BASE}/api/videos`),
-      fetchJSON(`${API_BASE}/api/articles`),
-      fetchJSON(`${API_BASE}/api/team`),
-      fetchJSON(`${API_BASE}/api/hero-slides`),
-      prisma.setting.findMany(),
+      getPublishedPortfolio(),
+      getPublishedTestimonials(),
+      getPublishedVideos(),
+      getPublishedArticles(),
+      getActiveTeam(),
+      getActiveHeroSlides(),
+      getSettingsMap(),
     ]);
-
-  const heroSlides = extractArray<HeroSlide>(heroRes);
-
-  const portfolioData = extractArray<PortfolioItem>(portfolioRes);
-  const testimonialsData = extractArray<Testimonial>(testimonialsRes);
-
-  const videosData = extractArray<VideoItem>(videosRes);
-
-  const articlesData = extractArray<ArticleItem>(articlesRes);
-
-  const settings: Record<string, string> = {}
-  for (const s of dbSettings) {
-    if (s.value !== null) settings[s.key] = s.value
-  }
 
   const tentangLabel = settings.tentang_label;
   const tentangTitle = settings.tentang_judul;
@@ -137,9 +110,10 @@ export default async function HomePage() {
     }
   } catch {}
 
-  const apiTeam = extractArray<TeamMember>(teamRes);
-  const teamData: TeamMember[] = apiTeam.length > 0
-    ? apiTeam
+  // Kalau tim belum diisi lewat admin, pakai data statis supaya section-nya
+  // tidak kosong.
+  const teamData: TeamMember[] = teamData_.length > 0
+    ? teamData_
     : fallbackTeam.map(m => ({ id: m.id, name: m.name, role: m.role, bio: m.bio, photo: m.photo ?? null }));
 
   const stats = [

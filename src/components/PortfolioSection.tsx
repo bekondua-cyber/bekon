@@ -5,14 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
+// Kolom opsional di Prisma bernilai `null`, bukan `undefined`. Sebelumnya
+// data ini datang lewat fetch HTTP yang di-cast buta, jadi tipe di sini
+// mengaku `?: string` padahal yang diterima `null`.
 export interface PortfolioItem {
   id: string;
   title: string;
   slug: string;
-  category?: string;
-  location?: string;
-  year?: number;
-  coverImage?: string;
+  category?: string | null;
+  location?: string | null;
+  year?: number | null;
+  coverImage?: string | null;
   isFeatured?: boolean;
 }
 

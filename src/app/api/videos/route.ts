@@ -1,34 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { getPublishedVideos } from "@/lib/queries"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const category = searchParams.get("category")
-
-    const where: Record<string, unknown> = { isPublished: true }
-
-    if (category) {
-      where.category = category
-    }
-
-    const items = await prisma.video.findMany({
-      where,
-      orderBy: { sortOrder: "asc" },
-      select: {
-        id: true,
-        title: true,
-        youtubeUrl: true,
-        youtubeId: true,
-        thumbnail: true,
-        category: true,
-        isFeatured: true,
-        isPublished: true,
-        sortOrder: true,
-      },
-    })
+    const items = await getPublishedVideos({ category: searchParams.get("category") })
 
     return NextResponse.json({ data: items }, {
       headers: { "Cache-Control": "no-store, max-age=0" },

@@ -5,39 +5,12 @@ import { notFound } from "next/navigation";
 import { siteConfig } from "@/data/site-config";
 import PortfolioHeroCarousel from "@/components/PortfolioHeroCarousel";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { getPortfolioBySlug, getPublishedPortfolio } from "@/lib/queries";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: { slug: string };
-}
-
-interface PortfolioDetail {
-  id: string;
-  title: string;
-  slug: string;
-  category?: string;
-  location?: string;
-  landSqm?: number;
-  areaSqm?: number;
-  floors?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  year?: number;
-  description?: string;
-  coverImage?: string;
-  images: string[];
-}
-
-interface RelatedItem {
-  id: string;
-  title: string;
-  slug: string;
-  category?: string;
-  location?: string;
-  coverImage?: string;
-  year?: number;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -48,34 +21,12 @@ const CATEGORY_LABELS: Record<string, string> = {
   "kost-ruko": "Kost & Ruko",
 };
 
-async function fetchPortfolio(slug: string): Promise<PortfolioDetail | null> {
-  try {
-    const res = await fetch(`${API_BASE}/api/portfolio/${slug}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    if (json && typeof json.data === "object" && !Array.isArray(json.data)) {
-      return json.data as PortfolioDetail;
-    }
-    return null;
-  } catch {
-    return null;
-  }
+async function fetchPortfolio(slug: string) {
+  return getPortfolioBySlug(slug);
 }
 
-async function fetchRelated(category: string, excludeSlug: string): Promise<RelatedItem[]> {
-  try {
-    const res = await fetch(
-      `${API_BASE}/api/portfolio?category=${category}&exclude=${excludeSlug}&take=3`,
-      { cache: "no-store" }
-    );
-    if (!res.ok) return [];
-    const json = await res.json();
-    return Array.isArray(json.data) ? json.data : [];
-  } catch {
-    return [];
-  }
+async function fetchRelated(category: string, excludeSlug: string) {
+  return getPublishedPortfolio({ category, excludeSlug, take: 3 });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

@@ -11,9 +11,9 @@ export interface VideoItem {
   title: string;
   youtubeUrl?: string;
   youtubeId: string;
-  category?: string;
+  category?: string | null;
   isFeatured?: boolean;
-  thumbnail?: string;
+  thumbnail?: string | null;
 }
 
 export function VideoSection({ items }: { items: VideoItem[] }) {

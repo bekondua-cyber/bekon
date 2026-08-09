@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import BlogFilterDropdown from "@/components/BlogFilterDropdown";
+import { getPublishedArticles } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -10,9 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/informasi/blog" },
 };
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "http://localhost:3000";
+export const dynamic = "force-dynamic";
 
 const CATEGORY_LABELS: Record<string, string> = {
   eksterior: "Eksterior",
@@ -20,7 +19,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   umum: "Umum",
 };
 
-function formatDate(dateStr: string | null | undefined): string {
+function formatDate(dateStr: Date | string | null | undefined): string {
   if (!dateStr) return "";
   try {
     return new Date(dateStr).toLocaleDateString("id-ID", {
@@ -40,38 +39,10 @@ export default async function BlogPage({
 }) {
   const filter = searchParams.filter || "semua";
   const q = searchParams.q || "";
-  const categoryParam =
-    filter === "semua" ? "eksterior,interior,umum" : filter;
+  const categories =
+    filter === "semua" ? ["eksterior", "interior", "umum"] : [filter];
 
-  let articles: Array<{
-    id: string;
-    title: string;
-    slug: string;
-    category?: string;
-    excerpt?: string;
-    thumbnail?: string | null;
-    publishedAt?: string | null;
-  }> = [];
-
-  try {
-    const res = await fetch(
-      `${API_BASE}/api/articles?category=${categoryParam}${q ? `&q=${encodeURIComponent(q)}` : ""}`,
-      { cache: "no-store" }
-    );
-    if (res.ok) {
-      const json = await res.json();
-      if (
-        json &&
-        typeof json === "object" &&
-        "data" in json &&
-        Array.isArray(json.data)
-      ) {
-        articles = json.data;
-      }
-    }
-  } catch {
-    articles = [];
-  }
+  const articles = await getPublishedArticles({ categories, q });
 
   return (
     <div className="min-h-screen bg-bekon-cream">

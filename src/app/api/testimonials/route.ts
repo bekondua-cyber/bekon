@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { getPublishedTestimonials } from "@/lib/queries"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const items = await prisma.testimonial.findMany({
-      where: { isPublished: true },
-      orderBy: { sortOrder: "asc" },
-    })
+    const items = await getPublishedTestimonials()
 
     return NextResponse.json({ data: items }, {
       headers: { "Cache-Control": "no-store, max-age=0" },

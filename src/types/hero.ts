@@ -7,10 +7,13 @@ export interface HeroSlide {
   ctaLink: string | null
   order: number
   isActive: boolean
-  sourceType: "custom" | "portfolio"
+  /** Kolomnya `String` biasa di DB, jadi tipe ini tidak boleh menyempit ke
+   *  dua nilai saja — baris lama atau salah tulis akan lolos begitu saja. */
+  sourceType: string
   portfolioId: string | null
-  createdAt: string
-  updatedAt: string
+  /** Date dari Prisma; string kalau datang lewat JSON di komponen klien. */
+  createdAt: Date | string
+  updatedAt: Date | string
   portfolio?: {
     id: string
     title: string

@@ -7,7 +7,8 @@ export type Testimonial = {
   id: string;
   clientName: string;
   content: string;
-  rating: number;
+  /** Opsional di DB; komponen sudah punya fallback bintang lima. */
+  rating: number | null;
   projectType?: string | null;
   location?: string | null;
   photo?: string | null;

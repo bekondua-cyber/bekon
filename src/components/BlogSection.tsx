@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-function formatDate(dateStr: string | null | undefined): string {
+function formatDate(dateStr: Date | string | null | undefined): string {
   if (!dateStr) return "";
   try {
     return new Date(dateStr).toLocaleDateString("id-ID", {
@@ -17,14 +17,16 @@ function formatDate(dateStr: string | null | undefined): string {
   }
 }
 
+// Bentuk sebenarnya dari Prisma: kolom opsional bernilai `null`, dan tanggal
+// datang sebagai objek Date (RSC mempertahankannya lintas batas server/klien).
 export interface ArticleItem {
   id: string;
   title: string;
   slug: string;
-  category?: string;
-  excerpt?: string;
-  thumbnail?: string;
-  publishedAt?: string;
+  category?: string | null;
+  excerpt?: string | null;
+  thumbnail?: string | null;
+  publishedAt?: Date | string | null;
 }
 
 export function BlogSection({ items }: { items: ArticleItem[] }) {

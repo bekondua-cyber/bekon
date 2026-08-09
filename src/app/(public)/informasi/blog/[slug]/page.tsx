@@ -3,14 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
+import { getArticleBySlug } from "@/lib/queries";
 
 interface Props {
   params: { slug: string };
 }
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "http://localhost:3000";
+export const dynamic = "force-dynamic";
 
 const CATEGORY_LABELS: Record<string, string> = {
   eksterior: "Eksterior",
@@ -18,7 +17,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   umum: "Umum",
 };
 
-function formatDate(dateStr: string | null | undefined): string {
+function formatDate(dateStr: Date | string | null | undefined): string {
   if (!dateStr) return "";
   try {
     return new Date(dateStr).toLocaleDateString("id-ID", {
@@ -31,43 +30,24 @@ function formatDate(dateStr: string | null | undefined): string {
   }
 }
 
-interface Article {
-  id: string;
-  title: string;
-  slug: string;
-  category?: string;
-  excerpt?: string;
-  content?: string;
-  thumbnail?: string | null;
-  publishedAt?: string | null;
-  metaTitle?: string | null;
-  metaDesc?: string | null;
-  ogImage?: string | null;
-}
-
-async function fetchArticle(slug: string): Promise<Article | null> {
-  try {
-    const res = await fetch(`${API_BASE}/api/articles/${slug}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    if (json && typeof json.data === "object" && !Array.isArray(json.data)) {
-      return json.data as Article;
-    }
-    return null;
-  } catch {
-    return null;
-  }
+/**
+ * Dulu ini fetch HTTP ke `/api/articles/${slug}` dengan slug disisipkan mentah
+ * ke URL. Query langsung menghapus perjalanan jaringan sekaligus masalah
+ * penyisipan itu.
+ */
+async function fetchArticle(slug: string) {
+  return getArticleBySlug(slug);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await fetchArticle(params.slug);
   if (!article) return { title: "Artikel Tidak Ditemukan" };
 
+  // Metadata Next menerima `undefined`, bukan `null` — dan kolom opsional
+  // Prisma bernilai null.
   const title = article.metaTitle || article.title;
-  const description = article.metaDesc || article.excerpt;
-  const image = article.ogImage || article.thumbnail;
+  const description = article.metaDesc || article.excerpt || undefined;
+  const image = article.ogImage || article.thumbnail || undefined;
 
   return {
     title,
@@ -80,7 +60,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: "BEKON",
       locale: "id_ID",
       type: "article",
-      publishedTime: article.publishedAt || undefined,
+      // OpenGraph menuntut ISO 8601, bukan objek Date.
+      publishedTime: article.publishedAt?.toISOString(),
       images: image ? [{ url: image, width: 1200, height: 630 }] : undefined,
     },
     twitter: {
