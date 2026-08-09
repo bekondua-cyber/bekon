@@ -17,8 +17,14 @@ const requestSchema = z.object({
   seedTopic: z.string().max(300).optional(),
 })
 
+// Toleran seperti schema rencana video: AI kadang mengirim satu string
+// berbaris/berkoma alih-alih array, dan itu tidak mengubah maknanya.
 const ideasSchema = z.object({
-  ideas: z.array(z.string()).min(1),
+  ideas: z.preprocess((v) => {
+    if (Array.isArray(v)) return v.map((x) => String(x).trim()).filter(Boolean)
+    if (typeof v === "string") return v.split(/\n|(?<=\.)\s*(?=[A-Z])/).map((s) => s.trim()).filter(Boolean)
+    return []
+  }, z.array(z.string()).min(1, "AI tidak mengembalikan satu ide pun")),
 })
 
 export async function POST(request: NextRequest) {

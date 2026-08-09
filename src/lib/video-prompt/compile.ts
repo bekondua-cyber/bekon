@@ -60,9 +60,18 @@ export function compileNaturalPrompt(
     ", "
   )
 
-  const opening =
-    `${ingredientLine}${shotLine}: ${identityLine}${lowerFirst(part.subject)} ${lowerFirst(part.action)}, ` +
-    `di ${lowerFirst(part.scene)}, disinari ${lowerFirst(part.lighting)}.`
+  // Field kosong kini mungkin (schema toleran), jadi setiap potongan kalimat
+  // hanya ikut kalau ada isinya — mencegah "di , disinari ."
+  const focus = joinNonEmpty([lowerFirst(part.subject), lowerFirst(part.action)], " ")
+  const place = joinNonEmpty(
+    [
+      part.scene ? `di ${lowerFirst(part.scene)}` : "",
+      part.lighting ? `disinari ${lowerFirst(part.lighting)}` : "",
+    ],
+    ", "
+  )
+  const body = joinNonEmpty([`${identityLine}${focus}`, place], ", ")
+  const opening = `${ingredientLine}${shotLine ? `${shotLine}: ` : ""}${body}.`
 
   const beats = part.timeline.map((b) => `[${b.time}] ${b.action}`).join("\n")
 
@@ -160,27 +169,35 @@ export function compileContinuousPrompt(
     ? `Using the provided images for ${used.map((s) => s.role).join(", ")}. `
     : ""
 
+  const focus = joinNonEmpty([part.subject, part.action], " ") || part.label
   const opening =
     `${ingredientLine}Create a cinematic ${part.durationSec}-second timelapse video showing ` +
-    `${part.subject} ${part.action}${referenceClause}.`
+    `${focus}${referenceClause}.`
 
   // Kamera dinyatakan menerus dua kali — di awal dan setelah daftar tahap —
   // karena inilah instruksi yang paling sering diabaikan model.
   // Kata "continuous" tidak ditambahkan bila nilai movement sudah memuatnya,
   // supaya tidak jadi "continuous slow continuous 360-degree orbit".
-  const movement = part.shot.movement.trim()
+  // Schema kini toleran terhadap field kosong, jadi lensa/framing yang hilang
+  // tidak boleh menghasilkan tanda kurung kosong "( , )".
+  const movement = part.shot.movement.trim() || "slow continuous drone orbit"
   const alreadyContinuous = /continuous|uninterrupted|unbroken/i.test(movement)
+  const optics = joinNonEmpty([part.shot.lens, part.shot.framing], ", ")
   const cameraBehavior =
     `The entire video is filmed with ${alreadyContinuous ? "a single" : "one smooth, continuous"} ` +
-    `${movement} (${part.shot.lens}, ${part.shot.framing}). The camera never cuts.`
+    `${movement}${optics ? ` (${optics})` : ""}. The camera never cuts.`
 
   const stagesLine = part.stages.length
     ? `During the shot, show realistic construction stages appearing naturally in order: ${part.stages.join(", ")}.`
     : part.timeline.map((b) => b.action).join(", ")
 
+  const place = joinNonEmpty(
+    [part.scene ? `in ${part.scene}` : "", part.lighting ? `lit by ${part.lighting}` : ""],
+    ", "
+  )
   const continuity =
     `The camera maintains the same path and perspective throughout the entire transformation ` +
-    `while the building grows, in ${part.scene}, lit by ${part.lighting}.`
+    `while the building grows${place ? `, ${place}` : ""}.`
 
   const reveal = part.finalReveal
     ? hasReference

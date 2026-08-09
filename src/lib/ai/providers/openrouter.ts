@@ -1,4 +1,5 @@
 import type { AiCompletionOptions, AiProvider } from "../types"
+import { fetchWithTimeout } from "../fetch-with-timeout"
 
 export const openrouterProvider: AiProvider = {
   name: "openrouter",
@@ -7,7 +8,7 @@ export const openrouterProvider: AiProvider = {
     const apiKey = process.env.OPENROUTER_API_KEY
     if (!apiKey) throw new Error("OPENROUTER_API_KEY tidak diset")
 
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

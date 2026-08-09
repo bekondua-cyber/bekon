@@ -4,88 +4,118 @@ import { z } from "zod"
 export const PROMPT_VERSION = 3
 
 /**
- * Gaya global yang diulang VERBATIM ke setiap part. Ini kunci supaya beberapa
- * klip 10 detik yang digenerate terpisah di Flow terlihat seperti satu video.
+ * Schema di berkas ini sengaja TOLERAN.
+ *
+ * Model bahasa rutin menyimpang sedikit dari format yang diminta: angka
+ * dikirim sebagai string, objek opsional dihilangkan, daftar ditulis sebagai
+ * teks berkoma. Sebelumnya penyimpangan sekecil apa pun menggagalkan seluruh
+ * generate dengan pesan "Format hasil AI tidak sesuai" — mahal dan
+ * membingungkan. Sekarang penyimpangan yang tidak mengubah makna dinormalkan,
+ * dan hanya kekurangan yang benar-benar fatal yang ditolak.
  */
+
+/** Teks yang menerima nilai non-string dan null tanpa menggagalkan parse. */
+const looseText = (fallback = "") =>
+  z.preprocess(
+    (v) => (typeof v === "string" ? v : v == null ? fallback : String(v)),
+    z.string()
+  )
+
+/** Angka yang menerima "10" maupun 10, lalu dijepit ke rentang aman. */
+const looseInt = (min: number, max: number, fallback: number) =>
+  z.preprocess((v) => {
+    const n = typeof v === "number" ? v : Number(v)
+    if (!Number.isFinite(n)) return fallback
+    return Math.min(max, Math.max(min, Math.round(n)))
+  }, z.number().int())
+
+/** Daftar yang menerima array maupun satu string berkoma. */
+const looseList = z.preprocess((v) => {
+  if (Array.isArray(v)) return v.map((x) => String(x).trim()).filter(Boolean)
+  if (typeof v === "string") return v.split(/[,\n]/).map((s) => s.trim()).filter(Boolean)
+  return []
+}, z.array(z.string()))
+
 export const styleBibleSchema = z.object({
-  visualStyle: z.string(),
-  colorPalette: z.string(),
-  lightingBase: z.string(),
-  negativePrompt: z.string(),
+  visualStyle: looseText("cinematic, photorealistic"),
+  colorPalette: looseText("natural colour grade"),
+  lightingBase: looseText("natural daylight"),
+  negativePrompt: looseText("on-screen text, watermark, distorted geometry"),
 })
 
-/** Subjek/karakter dengan deskripsi fisik yang dipakai ulang di tiap part. */
 export const subjectSchema = z.object({
-  id: z.string(),
-  role: z.string(),
-  identityAnchor: z.string(),
-  referenceImages: z.array(z.string()).default([]),
+  id: looseText(),
+  role: looseText(),
+  identityAnchor: looseText(),
+  referenceImages: looseList.default([]),
 })
 
 export const shotSchema = z.object({
-  type: z.string(),
-  lens: z.string(),
-  framing: z.string(),
-  movement: z.string(),
+  type: looseText(),
+  lens: looseText(),
+  framing: looseText(),
+  movement: looseText(),
 })
 
-/** Satu beat bertimestamp di dalam part. */
 export const beatSchema = z.object({
-  time: z.string(),
-  action: z.string(),
+  time: looseText(),
+  action: looseText(),
 })
 
 export const audioSchema = z.object({
-  dialogue: z.string().default(""),
-  sfx: z.string().default(""),
-  ambient: z.string().default(""),
+  dialogue: looseText().default(""),
+  sfx: looseText().default(""),
+  ambient: looseText().default(""),
 })
 
 export const editorNotesSchema = z.object({
-  textOverlay: z.string().default(""),
-  musicCue: z.string().default(""),
-  transitionToNext: z.string().default(""),
+  textOverlay: looseText().default(""),
+  musicCue: looseText().default(""),
+  transitionToNext: looseText().default(""),
 })
 
-/** Bagaimana part ini disambung ke part sebelumnya di Flow. */
-export const continuitySchema = z.enum(["new", "extend", "firstLastFrame"])
+/** Nilai continuity tak dikenal diperlakukan sebagai "new" — pilihan teraman. */
+export const continuitySchema = z.preprocess(
+  (v) => (v === "extend" || v === "firstLastFrame" ? v : "new"),
+  z.enum(["new", "extend", "firstLastFrame"])
+)
 
-/** Satu part = satu generate di Flow. */
 export const partSchema = z.object({
-  index: z.number().int().min(1),
-  label: z.string(),
-  durationSec: z.number().int().min(4).max(10),
+  index: looseInt(1, 99, 1),
+  label: looseText("Part"),
+  durationSec: looseInt(4, 10, 10),
   continuity: continuitySchema.default("new"),
-  ingredients: z.array(z.string()).default([]),
-  shot: shotSchema,
-  subject: z.string(),
-  action: z.string(),
-  scene: z.string(),
-  lighting: z.string(),
-  timeline: z.array(beatSchema).min(1),
-  audio: audioSchema,
-  editorNotes: editorNotesSchema,
+  ingredients: looseList.default([]),
+  shot: shotSchema.default({ type: "", lens: "", framing: "", movement: "" }),
+  subject: looseText(),
+  action: looseText(),
+  scene: looseText(),
+  lighting: looseText(),
+  timeline: z.array(beatSchema).default([]),
+  audio: audioSchema.default({ dialogue: "", sfx: "", ambient: "" }),
+  editorNotes: editorNotesSchema.default({ textOverlay: "", musicCue: "", transitionToNext: "" }),
 
   // --- Khusus resep `continuousTransformation` (timelapse) ---
-  // Opsional supaya hasil lama (promptVersion 2) tetap bisa diparse.
-
-  /**
-   * Enumerasi padat tahap konstruksi yang muncul di dalam SATU gerakan kamera
-   * menerus. Makin rapat tahapnya, makin meyakinkan transformasinya.
-   */
-  stages: z.array(z.string()).optional().default([]),
+  /** Enumerasi padat tahap konstruksi di dalam satu gerakan kamera menerus. */
+  stages: looseList.default([]),
   /** Klimaks yang menjangkar hasil akhir ke gambar referensi. */
-  finalReveal: z.string().optional().default(""),
-  /** Ringkasan gaya kamera, ditaruh di baris penutup prompt. */
-  cameraSummary: z.string().optional().default(""),
+  finalReveal: looseText().default(""),
+  /** Ringkasan gaya kamera untuk baris penutup prompt. */
+  cameraSummary: looseText().default(""),
 })
 
-/** Apa yang diminta DARI AI (tanpa prompt terkompilasi). */
 export const aiVideoPlanSchema = z.object({
-  title: z.string(),
-  styleBible: styleBibleSchema,
+  title: looseText("Video BEKON"),
+  styleBible: styleBibleSchema.default({
+    visualStyle: "cinematic, photorealistic",
+    colorPalette: "natural colour grade",
+    lightingBase: "natural daylight",
+    negativePrompt: "on-screen text, watermark, distorted geometry",
+  }),
   subjects: z.array(subjectSchema).default([]),
-  parts: z.array(partSchema).min(1),
+  // Satu-satunya syarat yang benar-benar fatal: harus ada minimal satu part
+  // yang punya isi. Sisanya bisa dinormalkan.
+  parts: z.array(partSchema).min(1, "AI tidak mengembalikan satu part pun"),
 })
 
 export type StyleBible = z.infer<typeof styleBibleSchema>

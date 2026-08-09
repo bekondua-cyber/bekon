@@ -1,4 +1,5 @@
 import type { AiCompletionOptions, AiProvider } from "../types"
+import { fetchWithTimeout } from "../fetch-with-timeout"
 
 export const groqProvider: AiProvider = {
   name: "groq",
@@ -7,7 +8,7 @@ export const groqProvider: AiProvider = {
     const apiKey = process.env.GROQ_API_KEY
     if (!apiKey) throw new Error("GROQ_API_KEY tidak diset")
 
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const res = await fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

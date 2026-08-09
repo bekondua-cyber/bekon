@@ -1,4 +1,5 @@
 import type { AiCompletionOptions, AiProvider } from "../types"
+import { fetchWithTimeout } from "../fetch-with-timeout"
 
 export const geminiProvider: AiProvider = {
   name: "gemini",
@@ -10,7 +11,7 @@ export const geminiProvider: AiProvider = {
     const systemMessages = messages.filter((m) => m.role === "system").map((m) => m.content).join("\n\n")
     const conversation = messages.filter((m) => m.role !== "system")
 
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",

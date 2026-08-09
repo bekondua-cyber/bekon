@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateCompletion } from "@/lib/ai"
-import { parseAiJson } from "@/lib/ai/parse"
+import { parseAiJson, AiParseError } from "@/lib/ai/parse"
 import { getCategory, ASPECT_RATIO_OPTIONS } from "@/lib/video-categories"
 import { buildMasterPrompt } from "@/lib/video-prompt/master-prompt"
 import { compilePart } from "@/lib/video-prompt/compile"
@@ -94,10 +94,15 @@ export async function POST(request: NextRequest) {
       hasAssets: subjectLines.length > 0,
     })
 
+    // Timelapse memuat 12–18 tahap per part sehingga responsnya jauh lebih
+    // panjang. Anggaran token dinaikkan seiring jumlah part, tapi tetap di
+    // bawah batas keluaran gemini-2.0-flash (8192) agar tidak terpotong.
+    const maxTokens = Math.min(8000, 2500 + sceneCount * 900)
+
     const raw = await generateCompletion({
       json: true,
-      temperature: 0.8,
-      maxTokens: 8000,
+      temperature: 0.7,
+      maxTokens,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: `Ide konten: ${idea}` },
@@ -178,6 +183,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: item })
   } catch (error) {
+    // Sebab spesifik dicatat supaya kegagalan bisa didiagnosis dari log,
+    // bukan cuma "Gagal generate prompt video".
+    if (error instanceof AiParseError) {
+      console.error("POST /api/admin/video-prompt/generate parse error:", {
+        reason: error.reason,
+        detail: error.detail,
+      })
+      return NextResponse.json({ error: error.message, reason: error.reason }, { status: 502 })
+    }
     console.error("POST /api/admin/video-prompt/generate error:", error)
     const message = error instanceof Error ? error.message : "Gagal generate prompt video"
     return NextResponse.json({ error: message }, { status: 502 })

@@ -19,6 +19,18 @@ interface HistoryItem {
   createdAt: string
 }
 
+/**
+ * Riwayat memuat hasil dari beberapa versi schema. JSON yang rusak tidak boleh
+ * membuat seluruh halaman crash, jadi parsing dibungkus guard.
+ */
+function prettyJson(raw: string): string {
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2)
+  } catch {
+    return raw
+  }
+}
+
 export default function VideoPromptHistoryPage() {
   const [items, setItems] = useState<HistoryItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -137,7 +149,7 @@ export default function VideoPromptHistoryPage() {
               </div>
               {expandedId === item.id && (
                 <pre className="mt-3 bg-gray-50 rounded-lg p-3 text-xs overflow-x-auto whitespace-pre-wrap">
-                  {JSON.stringify(JSON.parse(item.resultJson), null, 2)}
+                  {prettyJson(item.resultJson)}
                 </pre>
               )}
             </div>

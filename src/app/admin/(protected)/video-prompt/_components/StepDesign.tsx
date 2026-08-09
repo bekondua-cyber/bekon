@@ -131,8 +131,10 @@ export function StepDesign({
       <div>
         <FieldLabel>Jumlah part</FieldLabel>
         <div className="flex items-center gap-4">
+          {/* Dibatasi 6: di atas itu respons AI berisiko terpotong karena
+              menembus batas token, dan 60 detik sudah panjang untuk sosmed. */}
           <input
-            type="range" min={1} max={10} value={sceneCount}
+            type="range" min={1} max={6} value={sceneCount}
             onChange={(e) => setSceneCount(Number(e.target.value))}
             className="flex-1 accent-bekon-gold"
           />

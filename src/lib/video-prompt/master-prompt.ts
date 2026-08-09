@@ -49,9 +49,11 @@ BANGUNANNYA, bukan shot-nya.
    BENAR: "slow continuous 360-degree drone orbit", "steady rising crane shot"
    SALAH: "cut to close-up", "slow dolly-in lalu pindah ke wide"
 
-2. Isi "stages" dengan 12–18 tahap konstruksi berurutan yang muncul SELAMA gerakan
-   kamera itu. Makin rapat, makin meyakinkan transformasinya. Tulis singkat, dipisah koma.
-   Contoh: "empty land preparation", "survey workers marking the area",
+2. Isi "stages" sebagai ARRAY JSON berisi 12–18 tahap konstruksi berurutan yang muncul
+   SELAMA gerakan kamera itu. Makin rapat, makin meyakinkan transformasinya.
+   Tiap elemen array ditulis singkat. Contoh persis bentuknya:
+   "stages": ["empty land preparation", "survey workers marking the area", "excavators digging foundations"]
+   Contoh isi tahap: "empty land preparation", "survey workers marking the area",
    "excavators digging foundations", "workers installing steel reinforcement",
    "pouring concrete foundation", "building brick walls", "constructing columns and beams",
    "installing roof structures", "workers on scaffolding", "plastering", "painting",
@@ -63,15 +65,8 @@ BANGUNANNYA, bukan shot-nya.
 4. Isi "cameraSummary" dengan ringkasan gaya kamera.
    Contoh: "cinematic drone FPV, slow 360-degree orbit, smooth aerial tracking, parallax movement, rising reveal shot"
 
-5. "timeline" tetap diisi 3 beat sebagai ringkasan progres untuk dibaca admin,
-   TAPI beat ini tidak masuk ke prompt akhir. Fokuskan tenaga pada "stages".
-
-6. Tulis isi field "subject", "action", "scene", "lighting", "stages", "finalReveal",
-   "cameraSummary", dan seluruh "styleBible" dalam BAHASA INGGRIS — Veo jauh lebih
-   patuh pada instruksi berbahasa Inggris. Hanya "label", "editorNotes", dan
-   "timeline[].action" yang ditulis Bahasa Indonesia (itu untuk dibaca admin).
-
-7. Pakai "styleBible.negativePrompt" persis: "${TIMELAPSE_NEGATIVE_PROMPT}"
+5. "timeline" TETAP WAJIB diisi 3 beat sebagai ringkasan progres untuk dibaca admin.
+   Isinya ringkas saja; yang menentukan kualitas video adalah "stages".
 
 ${partCount > 1 ? `Karena ada ${partCount} part, bagi keseluruhan progres konstruksi menjadi ${partCount} rentang tahap yang berurutan dan tidak tumpang tindih. Tiap part tetap satu gerakan kamera menerus sendiri.` : ""}
 `
@@ -110,6 +105,22 @@ Setiap aset yang dipilih WAJIB dipakai di minimal satu part, dan id-nya dicantum
 Untuk video konstruksi, pakai bahan referensi sebagai acuan tampilan bangunan JADI — lampirkan di part akhir yang menampilkan hasil finishing. Karakter cocok ditempatkan sebagai arsitek/mandor yang meninjau proyek, bukan presenter yang berbicara ke kamera.
 `
     : ""
+
+  const isContinuous = categoryInfo.promptRecipe === "continuousTransformation"
+
+  // Satu aturan bahasa saja. Sebelumnya resep menerus meminta Bahasa Inggris
+  // sementara baris penutup meminta Bahasa Indonesia — model menerima dua
+  // perintah yang bertabrakan.
+  const languageRule = isContinuous
+    ? `=== BAHASA ===
+Tulis isi field "subject", "action", "scene", "lighting", "stages", "finalReveal", "cameraSummary", dan seluruh "styleBible" dalam BAHASA INGGRIS — Veo jauh lebih patuh pada instruksi berbahasa Inggris.
+Tulis "title", "label", "editorNotes", dan "timeline[].action" dalam Bahasa Indonesia (itu untuk dibaca admin, tidak dikirim ke Veo).`
+    : `=== BAHASA ===
+Tulis seluruh isi dalam Bahasa Indonesia, KECUALI istilah sinematografi dan awalan "SFX:"/"Ambient noise:" yang tetap dalam bahasa Inggris.`
+
+  // Satu instruksi negativePrompt saja, sesuai resep.
+  const negativePromptRule = `Untuk "styleBible.negativePrompt", gunakan PERSIS teks ini:
+"${isContinuous ? TIMELAPSE_NEGATIVE_PROMPT : CONSTRUCTION_NEGATIVE_PROMPT}"`
 
   const deliveryRule =
     deliveryMode === "onCameraDialogue"
@@ -171,7 +182,7 @@ Isi "audio.ambient" dengan awalan "Ambient noise: " (contoh: "Ambient noise: ang
 
 === KONSISTENSI ANTAR PART ===
 Isi "styleBible" SEKALI dan buat seluruh part patuh padanya — gaya visual, palet warna, dan dasar pencahayaan yang sama, supaya ${partCount} klip terpisah terlihat sebagai satu video utuh.
-Untuk "styleBible.negativePrompt", gunakan persis: "${CONSTRUCTION_NEGATIVE_PROMPT}"
+${negativePromptRule}
 
 Untuk setiap subjek/karakter yang tampil, tulis "identityAnchor" berisi ciri fisik konkret (usia, rambut, pakaian, atribut) dan ULANGI subjek yang sama di part manapun dia muncul. Cantumkan id subjek tersebut di "ingredients" part terkait.
 
@@ -223,5 +234,7 @@ Kembalikan HANYA JSON valid, tanpa markdown code fence, dengan struktur persis:
   ]
 }
 
-Buat tepat ${partCount} part. Tulis seluruh isi dalam Bahasa Indonesia, KECUALI istilah sinematografi dan awalan "SFX:"/"Ambient noise:" yang tetap dalam bahasa Inggris.`
+${languageRule}
+
+Buat tepat ${partCount} part. SELURUH field di atas wajib ada di setiap part — jangan hilangkan satu pun, termasuk "shot", "audio", "editorNotes", dan "timeline".`
 }
