@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     }
 
     const parts = plan.parts.map((p) =>
-      compilePart(p, plan.styleBible, subjects, aspectRatio, categoryInfo.promptRecipe)
+      compilePart(p, plan.styleBible, subjects, aspectRatio, categoryInfo.promptRecipe, plan.parts.length)
     )
 
     const result: VideoPromptResult = {

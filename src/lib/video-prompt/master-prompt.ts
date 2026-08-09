@@ -39,18 +39,43 @@ const CAMERA_VOCABULARY =
  * Veo jauh lebih patuh pada instruksi berbahasa Inggris.
  */
 function continuousRecipeRules(partCount: number, durationPerPart: number): string {
+  // Cakupan cerita per part. Untuk 1 part, klip itu harus menceritakan
+  // keseluruhan pembangunan — sebelumnya tidak ada aturan sama sekali untuk
+  // kasus ini sehingga AI berhenti di tahap pondasi.
+  const arcRule =
+    partCount === 1
+      ? `=== CAKUPAN (WAJIB) ===
+HANYA ADA 1 PART. Part tunggal ini WAJIB menceritakan SELURUH pembangunan dari
+lahan kosong sampai rumah JADI dan siap huni, dipadatkan pas ${durationPerPart} detik.
+DILARANG berhenti di tahap pondasi, dinding, atau atap. Akhir klip HARUS
+memperlihatkan rumah yang sudah selesai sepenuhnya beserta taman/landscaping.
+"subject" dan "action" harus menyatakan BUSUR PERUBAHAN itu, bukan tahap awal saja.
+  BENAR: subject "an empty 200 square metre plot of overgrown land",
+         action "transforming into a completed luxury two-storey modern house"
+  SALAH: action "being cleared by two workers installing wooden bowplank stakes"
+         ← itu cuma tahap pertama, bukan busur perubahan`
+      : `=== CAKUPAN (WAJIB) ===
+Ada ${partCount} part. Bagi keseluruhan progres konstruksi menjadi ${partCount} rentang
+tahap yang berurutan dan TIDAK tumpang tindih. Part TERAKHIR wajib berakhir pada
+rumah yang sudah JADI sepenuhnya beserta landscaping.
+"subject" dan "action" tiap part menyatakan busur perubahan part itu, bukan satu tahap saja.`
+
   return `
 === RESEP KHUSUS: TRANSFORMASI MENERUS (paling penting, baca dulu) ===
 Video ini BUKAN rangkaian potongan adegan. Setiap part adalah SATU gerakan kamera
 menerus selama ${durationPerPart} detik tanpa cut sama sekali. Yang berubah adalah
 BANGUNANNYA, bukan shot-nya.
 
+${arcRule}
+
 1. "shot.movement" harus satu gerakan menerus yang bisa berjalan penuh ${durationPerPart} detik.
    BENAR: "slow continuous 360-degree drone orbit", "steady rising crane shot"
    SALAH: "cut to close-up", "slow dolly-in lalu pindah ke wide"
 
-2. Isi "stages" sebagai ARRAY JSON berisi 12–18 tahap konstruksi berurutan yang muncul
-   SELAMA gerakan kamera itu. Makin rapat, makin meyakinkan transformasinya.
+2. Isi "stages" sebagai ARRAY JSON berisi MINIMAL 12 dan maksimal 18 tahap konstruksi
+   berurutan yang muncul SELAMA gerakan kamera itu. Kurang dari 12 membuat transformasi
+   terasa melompat dan tidak meyakinkan — hitung dulu sebelum mengirim.
+   ${partCount === 1 ? "Karena hanya ada 1 part, daftar ini WAJIB membentang dari persiapan lahan sampai landscaping rumah jadi." : ""}
    Tiap elemen array ditulis singkat. Contoh persis bentuknya:
    "stages": ["empty land preparation", "survey workers marking the area", "excavators digging foundations"]
    Contoh isi tahap: "empty land preparation", "survey workers marking the area",
@@ -59,14 +84,38 @@ BANGUNANNYA, bukan shot-nya.
    "installing roof structures", "workers on scaffolding", "plastering", "painting",
    "installing windows", "exterior stone finishing", "lighting installation", "landscaping"
 
-3. Isi "finalReveal" dengan klimaks: kamera naik lebih tinggi sambil tetap bergerak,
-   memperlihatkan rumah yang sudah jadi, ditutup pull-back gaya iklan properti premium.
+3. Isi "finalReveal" dengan klimaks yang KAYA, minimal 25 kata, bukan sekadar status.
+   Wajib memuat: kamera naik lebih tinggi sambil tetap mengorbit, rumah jadi terungkap
+   dengan rincian arsitekturnya, lalu pull-back sinematik gaya iklan properti premium.
+   BENAR: "As the timelapse completes, the drone gradually rises higher while continuing
+          the orbit, revealing the finished two-storey house with elegant white facade,
+          large windows, stone accents, balcony and manicured garden, ending with a slow
+          cinematic pull-back showcasing the entire property."
+   SALAH: "Lahan yang sudah dipersiapkan untuk pembangunan"  ← status, bukan klimaks
 
-4. Isi "cameraSummary" dengan ringkasan gaya kamera.
+4. Isi "cameraSummary" dengan ringkasan gaya kamera, huruf kecil semua.
    Contoh: "cinematic drone FPV, slow 360-degree orbit, smooth aerial tracking, parallax movement, rising reveal shot"
+
+4b. Isi "lighting" dengan pencahayaan yang BERUBAH seiring waktu, bukan statis —
+   itu ciri khas timelapse. Contoh: "natural sunlight progressing from early morning
+   through midday to golden hour as the build advances".
 
 5. "timeline" TETAP WAJIB diisi 3 beat sebagai ringkasan progres untuk dibaca admin.
    Isinya ringkas saja; yang menentukan kualitas video adalah "stages".
+
+6. BAHASA INGGRIS WAJIB untuk field yang dikirim ke Veo. Ini paling sering dilanggar —
+   panduan di atas berbahasa Indonesia, tapi ISI JAWABANMU untuk field berikut harus
+   Inggris seluruhnya: "subject", "action", "scene", "lighting", "stages",
+   "finalReveal", "cameraSummary", "shot.*", "audio.sfx", "audio.ambient",
+   dan SEMUA field di "styleBible".
+   BENAR: scene "the outskirts of Serang, clear sky, coconut palms in the distance"
+   SALAH: scene "pinggiran kota Serang, langit cerah, deretan pohon kelapa di kejauhan"
+   BENAR: lighting "morning sunlight from the right as key, sky bounce as fill"
+   SALAH: lighting "sinar matahari pagi dari sisi kanan sebagai key"
+   BENAR: styleBible.visualStyle "cinematic construction timelapse, photorealistic"
+   SALAH: styleBible.visualStyle "Cinematic Timelapse, Palet warna netral"
+   Nilai gaya/tone/struktur yang diberikan padamu berbahasa Indonesia —
+   TERJEMAHKAN dulu ke Inggris, jangan disalin apa adanya.
 
 ${partCount > 1 ? `Karena ada ${partCount} part, bagi keseluruhan progres konstruksi menjadi ${partCount} rentang tahap yang berurutan dan tidak tumpang tindih. Tiap part tetap satu gerakan kamera menerus sendiri.` : ""}
 `

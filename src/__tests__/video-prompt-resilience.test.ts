@@ -145,3 +145,56 @@ describe("compiler tidak menghasilkan kalimat rusak saat field kosong", () => {
     expect(p.naturalPrompt).toContain("The camera never cuts")
   })
 })
+
+describe("timelapse satu part harus menceritakan pembangunan penuh", () => {
+  const plan = aiVideoPlanSchema.parse({
+    title: "T",
+    parts: [{
+      index: 1, label: "Pembangunan", durationSec: 10,
+      subject: "an empty 200 square metre plot",
+      action: "transforming into a completed luxury two-storey house",
+      shot: { type: "wide", lens: "24mm", framing: "eye level", movement: "slow continuous 360-degree drone orbit" },
+      stages: ["empty land preparation", "landscaping"],
+      finalReveal: "The drone rises higher revealing the finished house.",
+    }],
+  })
+
+  it("menegaskan transformasi lengkap saat hanya ada satu part", () => {
+    const p = compilePart(plan.parts[0], plan.styleBible, [], "9:16", "continuousTransformation", 1)
+    expect(p.naturalPrompt).toContain("the complete transformation of")
+  })
+
+  it("tidak menegaskan itu saat part-nya lebih dari satu", () => {
+    const p = compilePart(plan.parts[0], plan.styleBible, [], "9:16", "continuousTransformation", 3)
+    expect(p.naturalPrompt).not.toContain("the complete transformation of")
+  })
+})
+
+describe("master prompt menyesuaikan cakupan dengan jumlah part", () => {
+  it("mewajibkan busur penuh saat satu part", async () => {
+    const { buildMasterPrompt } = await import("@/lib/video-prompt/master-prompt")
+    const { getCategory } = await import("@/lib/video-categories")
+    const p = buildMasterPrompt({
+      categoryInfo: getCategory("timelapse"), partCount: 1, durationPerPart: 10,
+      aspectRatio: "9:16", platform: "TikTok", tone: "Profesional", style: "Cinematic Timelapse",
+      structure: "Progres Bertahap", deliveryMode: "voiceover",
+      portfolioContext: "", subjectsContext: "", hasAssets: false,
+    })
+    expect(p).toContain("HANYA ADA 1 PART")
+    expect(p).toContain("sampai rumah JADI")
+    expect(p).toContain("DILARANG berhenti di tahap pondasi")
+  })
+
+  it("meminta pembagian rentang saat banyak part, dengan part terakhir rumah jadi", async () => {
+    const { buildMasterPrompt } = await import("@/lib/video-prompt/master-prompt")
+    const { getCategory } = await import("@/lib/video-categories")
+    const p = buildMasterPrompt({
+      categoryInfo: getCategory("timelapse"), partCount: 3, durationPerPart: 10,
+      aspectRatio: "9:16", platform: "TikTok", tone: "Profesional", style: "Cinematic Timelapse",
+      structure: "Progres Bertahap", deliveryMode: "voiceover",
+      portfolioContext: "", subjectsContext: "", hasAssets: false,
+    })
+    expect(p).not.toContain("HANYA ADA 1 PART")
+    expect(p).toContain("Part TERAKHIR wajib berakhir pada")
+  })
+})

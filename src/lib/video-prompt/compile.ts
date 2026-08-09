@@ -159,7 +159,8 @@ export function compileJsonPrompt(
 export function compileContinuousPrompt(
   part: VideoPart,
   styleBible: StyleBible,
-  subjects: Subject[]
+  subjects: Subject[],
+  isOnlyPart = false
 ): string {
   const used = subjects.filter((s) => part.ingredients.includes(s.id))
   const hasReference = used.length > 0
@@ -169,10 +170,13 @@ export function compileContinuousPrompt(
     ? `Using the provided images for ${used.map((s) => s.role).join(", ")}. `
     : ""
 
+  // Saat hanya ada satu part, klip itu harus menceritakan pembangunan penuh.
+  // Frasa ini menegaskannya meski isian AI kurang tegas.
+  const scope = isOnlyPart ? "the complete transformation of " : ""
   const focus = joinNonEmpty([part.subject, part.action], " ") || part.label
   const opening =
     `${ingredientLine}Create a cinematic ${part.durationSec}-second timelapse video showing ` +
-    `${focus}${referenceClause}.`
+    `${scope}${focus}${referenceClause}.`
 
   // Kamera dinyatakan menerus dua kali — di awal dan setelah daftar tahap —
   // karena inilah instruksi yang paling sering diabaikan model.
@@ -213,7 +217,7 @@ export function compileContinuousPrompt(
   )
   const audioLine = audio ? `Audio: ${audio}.` : ""
 
-  const cameraLine = part.cameraSummary ? `Camera: ${part.cameraSummary}.` : ""
+  const cameraLine = part.cameraSummary ? `Camera: ${lowerFirst(part.cameraSummary)}.` : ""
 
   const avoid = `Avoid: ${styleBible.negativePrompt}.`
 
@@ -228,11 +232,12 @@ export function compilePart(
   styleBible: StyleBible,
   subjects: Subject[],
   aspectRatio: string,
-  recipe: PromptRecipe = "beatSequence"
+  recipe: PromptRecipe = "beatSequence",
+  totalParts = 1
 ): CompiledPart {
   const naturalPrompt =
     recipe === "continuousTransformation"
-      ? compileContinuousPrompt(part, styleBible, subjects)
+      ? compileContinuousPrompt(part, styleBible, subjects, totalParts === 1)
       : compileNaturalPrompt(part, styleBible, subjects)
 
   return {
