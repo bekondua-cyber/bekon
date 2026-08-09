@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Bot } from "lucide-react";
+import { LinkedText } from "./LinkedText";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -37,8 +38,12 @@ export function ChatbotWidget() {
     const text = input.trim();
     if (!text || loading) return;
 
-    const nextMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
-    setMessages(nextMessages);
+    // `history` harus berisi percakapan SEBELUM pesan ini. Dulu yang dikirim
+    // adalah nextMessages, yang sudah memuat pesan baru — lalu route API
+    // menambahkannya lagi di akhir, sehingga model menerima pertanyaan yang
+    // sama dua kali berturut-turut dan token terbayar dobel.
+    const priorHistory = messages.slice(-8);
+    setMessages([...messages, { role: "user", content: text }]);
     setInput("");
     setLoading(true);
 
@@ -48,7 +53,7 @@ export function ChatbotWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text,
-          history: nextMessages.slice(-8),
+          history: priorHistory,
         }),
       });
       const json = await res.json();
@@ -105,7 +110,10 @@ export function ChatbotWidget() {
                             : "bg-white border border-gray-200 text-bekon-near-black"
                         }`}
                       >
-                        {m.content}
+                        {/* Hanya balasan asisten yang di-linkify. Gelembung
+                            user berlatar emas, dan warna tautan juga emas —
+                            tautan di sana akan tak terbaca. */}
+                        {m.role === "assistant" ? <LinkedText text={m.content} /> : m.content}
                       </div>
                     </div>
                   ))}

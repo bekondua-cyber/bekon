@@ -83,6 +83,7 @@ model Video {
   createdAt   DateTime @default(now())
 
   @@index([category])
+  @@index([isPublished, sortOrder])
   @@map("video")
 }
 
@@ -99,6 +100,7 @@ model Testimonial {
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
 
+  @@index([isPublished, sortOrder])
   @@map("testimonial")
 }
 
@@ -112,6 +114,7 @@ model TeamMember {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
+  @@index([isActive, sortOrder])
   @@map("team_member")
 }
 
@@ -129,7 +132,26 @@ model Lead {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([status, createdAt])
   @@map("lead")
+}
+
+/// Percakapan chatbot. Sebelumnya tidak pernah disimpan sama sekali: kita
+/// membayar token AI tanpa tahu apa yang ditanyakan calon klien. Isinya jadi
+/// bahan untuk mengisi KnowledgeEntry dan melihat pertanyaan apa yang belum
+/// terjawab (lihat `usedFallback`).
+model ChatConversation {
+  id           String   @id @default(cuid())
+  /// Seluruh percakapan sebagai JSON: [{ role, content }, ...]
+  messages     String
+  /// True kalau AI menyerah dan mengalihkan ke WhatsApp — sinyal paling
+  /// berguna: itu pertanyaan yang knowledge base belum bisa jawab.
+  usedFallback Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([usedFallback, createdAt])
+  @@map("chat_conversation")
 }
 
 model Media {

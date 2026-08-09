@@ -15,7 +15,14 @@ const FALLBACK_MARKER = "[TIDAK_YAKIN]"
 const chatSchema = z.object({
   message: z.string().min(1).max(1000),
   history: z
-    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        // Tanpa batas ini, sepuluh pesan riwayat bisa berisi teks sepanjang
+        // apa pun — endpoint publik yang langsung jadi biaya token AI.
+        content: z.string().max(1000),
+      })
+    )
     .max(10)
     .optional(),
 })
@@ -116,7 +123,27 @@ export async function POST(request: NextRequest) {
       ],
     })
 
-    const finalReply = reply.includes(FALLBACK_MARKER) ? fallbackReply : reply.trim()
+    const usedFallback = reply.includes(FALLBACK_MARKER)
+    const finalReply = usedFallback ? fallbackReply : reply.trim()
+
+    // Percakapan disimpan supaya token AI yang sudah dibayar menghasilkan data:
+    // pertanyaan apa yang sering muncul, dan mana yang belum bisa dijawab
+    // (usedFallback) sehingga layak ditambahkan ke Knowledge Base.
+    // Kegagalan pencatatan tidak boleh menggagalkan balasan ke pengunjung.
+    try {
+      await prisma.chatConversation.create({
+        data: {
+          messages: JSON.stringify([
+            ...history,
+            { role: "user", content: message },
+            { role: "assistant", content: finalReply },
+          ]),
+          usedFallback,
+        },
+      })
+    } catch (logError) {
+      console.error("Gagal mencatat percakapan chatbot:", logError)
+    }
 
     return NextResponse.json({ reply: finalReply })
   } catch (error) {
