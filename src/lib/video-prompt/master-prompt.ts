@@ -171,6 +171,15 @@ Tulis seluruh isi dalam Bahasa Indonesia, KECUALI istilah sinematografi dan awal
   const negativePromptRule = `Untuk "styleBible.negativePrompt", gunakan PERSIS teks ini:
 "${isContinuous ? TIMELAPSE_NEGATIVE_PROMPT : CONSTRUCTION_NEGATIVE_PROMPT}"`
 
+  // Contoh audio harus sebahasa dengan output yang diminta — model menyalin
+  // contoh apa adanya, sehingga contoh Indonesia membuat audio ikut Indonesia
+  // meski field ini seharusnya berbahasa Inggris.
+  const audioExamples = isContinuous
+    ? `Isi "audio.sfx" dengan awalan "SFX: " DALAM BAHASA INGGRIS (contoh: "SFX: heavy machinery rumble, shovels scraping gravel, concrete mixer churning").
+Isi "audio.ambient" dengan awalan "Ambient noise: " DALAM BAHASA INGGRIS (contoh: "Ambient noise: open wind across the site, distant construction clatter").`
+    : `Isi "audio.sfx" dengan awalan "SFX: " (contoh: "SFX: dentum alat berat, gesekan sekop").
+Isi "audio.ambient" dengan awalan "Ambient noise: " (contoh: "Ambient noise: angin terbuka, derik proyek di kejauhan").`
+
   const deliveryRule =
     deliveryMode === "onCameraDialogue"
       ? `Karakter BERBICARA langsung ke kamera. Isi "audio.dialogue" dengan format: Karakter berkata: "kalimat pendek". Maksimal 12 kata per part supaya pas dengan durasi dan lip-sync tetap wajar. Gunakan Bahasa Indonesia sehari-hari.`
@@ -226,8 +235,7 @@ Gunakan detail nyata: excavator, truk molen, vibrator beton, bekisting kayu, tuk
 
 === AUDIO ===
 ${deliveryRule}
-Isi "audio.sfx" dengan awalan "SFX: " (contoh: "SFX: dentum alat berat, gesekan sekop").
-Isi "audio.ambient" dengan awalan "Ambient noise: " (contoh: "Ambient noise: angin terbuka, derik proyek di kejauhan").
+${audioExamples}
 
 === KONSISTENSI ANTAR PART ===
 Isi "styleBible" SEKALI dan buat seluruh part patuh padanya — gaya visual, palet warna, dan dasar pencahayaan yang sama, supaya ${partCount} klip terpisah terlihat sebagai satu video utuh.

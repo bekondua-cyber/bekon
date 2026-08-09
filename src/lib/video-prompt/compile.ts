@@ -170,10 +170,13 @@ export function compileContinuousPrompt(
     ? `Using the provided images for ${used.map((s) => s.role).join(", ")}. `
     : ""
 
-  // Saat hanya ada satu part, klip itu harus menceritakan pembangunan penuh.
-  // Frasa ini menegaskannya meski isian AI kurang tegas.
-  const scope = isOnlyPart ? "the complete transformation of " : ""
   const focus = joinNonEmpty([part.subject, part.action], " ") || part.label
+
+  // Saat hanya ada satu part, klip itu harus menceritakan pembangunan penuh.
+  // Frasa penegas dilewati bila isian AI sudah menyebut transformasi sendiri,
+  // supaya tidak jadi "transformation of ... transforming into".
+  const alreadySaysTransform = /transform/i.test(focus)
+  const scope = isOnlyPart && !alreadySaysTransform ? "the complete transformation of " : ""
   const opening =
     `${ingredientLine}Create a cinematic ${part.durationSec}-second timelapse video showing ` +
     `${scope}${focus}${referenceClause}.`

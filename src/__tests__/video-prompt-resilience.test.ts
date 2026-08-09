@@ -159,14 +159,34 @@ describe("timelapse satu part harus menceritakan pembangunan penuh", () => {
     }],
   })
 
-  it("menegaskan transformasi lengkap saat hanya ada satu part", () => {
-    const p = compilePart(plan.parts[0], plan.styleBible, [], "9:16", "continuousTransformation", 1)
+  const planWithoutTransformWord = aiVideoPlanSchema.parse({
+    title: "T",
+    parts: [{
+      index: 1, label: "Pembangunan", durationSec: 10,
+      subject: "an empty 200 square metre plot",
+      action: "becoming a finished luxury two-storey house",
+      stages: ["empty land preparation", "landscaping"],
+    }],
+  })
+
+  it("menegaskan transformasi lengkap saat isian AI belum menyebutnya", () => {
+    const p = compilePart(
+      planWithoutTransformWord.parts[0], plan.styleBible, [], "9:16", "continuousTransformation", 1
+    )
     expect(p.naturalPrompt).toContain("the complete transformation of")
   })
 
   it("tidak menegaskan itu saat part-nya lebih dari satu", () => {
-    const p = compilePart(plan.parts[0], plan.styleBible, [], "9:16", "continuousTransformation", 3)
+    const p = compilePart(
+      planWithoutTransformWord.parts[0], plan.styleBible, [], "9:16", "continuousTransformation", 3
+    )
     expect(p.naturalPrompt).not.toContain("the complete transformation of")
+  })
+
+  it("tidak mengulang kata transformasi bila isian AI sudah memakainya", () => {
+    const p = compilePart(plan.parts[0], plan.styleBible, [], "9:16", "continuousTransformation", 1)
+    expect(p.naturalPrompt).not.toMatch(/transformation of .*transforming into/i)
+    expect(p.naturalPrompt).toContain("transforming into a completed luxury")
   })
 })
 
