@@ -15,6 +15,29 @@ function getProviderOrder(): string[] {
   return ["gemini", "groq", "openrouter"]
 }
 
+/**
+ * Apakah kegagalan ini layak dicoba ke provider berikutnya?
+ *
+ * Ketiga provider melampirkan `status` HTTP ke error-nya, tapi dulu itu
+ * diabaikan: SEMUA error memicu fallback. Untuk error 4xx — prompt cacat,
+ * kunci API salah, permintaan terlalu besar — ketiga provider pasti gagal
+ * dengan alasan yang sama, jadi mencobanya hanya membakar 3x biaya dan waktu.
+ *
+ * 429 (kena batas) dan 5xx (gangguan provider) memang khas satu provider,
+ * jadi keduanya tetap di-fallback. Error tanpa status (jaringan putus,
+ * timeout, respons kosong) juga di-fallback: sebabnya bukan permintaan kita.
+ */
+function shouldTryNextProvider(error: unknown): boolean {
+  const status =
+    typeof error === "object" && error !== null && "status" in error
+      ? Number((error as { status: unknown }).status)
+      : NaN
+
+  if (!Number.isFinite(status)) return true
+  if (status === 429) return true
+  return status >= 500
+}
+
 export async function generateCompletion(opts: AiCompletionOptions): Promise<string> {
   const order = getProviderOrder()
   const errors: string[] = []
@@ -29,6 +52,12 @@ export async function generateCompletion(opts: AiCompletionOptions): Promise<str
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       errors.push(`${name}: ${message}`)
+
+      if (!shouldTryNextProvider(error)) {
+        throw new Error(
+          `AI provider menolak permintaan dan provider lain tidak akan berbeda: ${message}`
+        )
+      }
     }
   }
 

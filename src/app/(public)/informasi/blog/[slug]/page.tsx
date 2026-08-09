@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 import { getArticleBySlug } from "@/lib/queries";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 interface Props {
   params: { slug: string };
@@ -91,7 +92,7 @@ export default async function BlogDetailPage({ params }: Props) {
     <div className="min-h-screen bg-bekon-off-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <article className="max-w-container mx-auto px-6 lg:px-20 pt-32 pb-20">
         <Link

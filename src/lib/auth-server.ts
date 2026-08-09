@@ -21,13 +21,18 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         })
 
+        // Pesan yang sama untuk email tidak ada maupun password salah.
+        // Membedakan keduanya membocorkan email admin mana yang terdaftar,
+        // sehingga penyerang bisa memetakan akun sebelum menebak password.
+        const INVALID_CREDENTIALS = "Email atau password salah"
+
         if (!user) {
-          throw new Error("Email tidak ditemukan")
+          throw new Error(INVALID_CREDENTIALS)
         }
 
         const isValid = await compare(credentials.password, user.password)
         if (!isValid) {
-          throw new Error("Password salah")
+          throw new Error(INVALID_CREDENTIALS)
         }
 
         return {

@@ -17,7 +17,7 @@ const leadSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
-    const limit = rateLimit(identifier, 5, 60000)
+    const limit = rateLimit(`leads:${identifier}`, 5, 60000)
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Terlalu banyak permintaan. Silakan coba lagi nanti." },

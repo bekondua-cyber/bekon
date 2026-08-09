@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
-    const limit = rateLimit(`ai-video:${identifier}`, 10, 60 * 60 * 1000)
+    // Jatah terpisah dari pencarian ide — lihat catatan di route ideas.
+    const limit = rateLimit(`ai-video-generate:${identifier}`, 10, 60 * 60 * 1000)
     if (!limit.allowed) {
       return NextResponse.json({ error: "Terlalu banyak permintaan. Coba lagi nanti." }, { status: 429 })
     }

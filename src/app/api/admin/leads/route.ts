@@ -8,6 +8,10 @@ export const dynamic = "force-dynamic"
 const leadUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   phone: z.string().optional().nullable(),
+  // Kolom email ditambahkan ke form leads tapi terlewat di sini. Karena Zod
+  // membuang kunci tak dikenal tanpa suara, nilainya hilang diam-diam saat
+  // admin menyuntingnya.
+  email: z.string().max(200).optional().nullable(),
   service: z.string().optional().nullable(),
   budget: z.string().optional().nullable(),
   location: z.string().optional().nullable(),

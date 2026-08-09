@@ -14,6 +14,7 @@ import {
   getPublishedVideos,
   getSettingsMap,
 } from "@/lib/queries";
+import { serializeJsonLd } from "@/lib/json-ld";
 import dynamic from "next/dynamic";
 
 const HeroSection = dynamic(
@@ -184,7 +185,7 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <Navbar />
       <main id="main">

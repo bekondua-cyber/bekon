@@ -33,7 +33,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
-    const limit = rateLimit(`ai-video:${identifier}`, 10, 60 * 60 * 1000)
+    // Jatah terpisah dari generate. Dulu keduanya memakai kunci `ai-video:`
+    // yang sama, sehingga 10x klik "Cari Ide" memblokir generate prompt
+    // selama sejam penuh — padahal alur kerjanya justru cari ide dulu.
+    const limit = rateLimit(`ai-video-ideas:${identifier}`, 15, 60 * 60 * 1000)
     if (!limit.allowed) {
       return NextResponse.json({ error: "Terlalu banyak permintaan. Coba lagi nanti." }, { status: 429 })
     }

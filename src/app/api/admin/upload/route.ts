@@ -1,17 +1,42 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
+import { rateLimit } from "@/lib/rate-limit"
 import { uploadImage, deleteImage } from "@/lib/cloudinary"
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_SIZE_MB } from "@/lib/upload-limits"
 
 export async function POST(request: NextRequest) {
   const unauthorized = await requireAdmin()
   if (unauthorized) return unauthorized
 
   try {
+    const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const limit = rateLimit(`upload:${identifier}`, 30, 60000)
+    if (!limit.allowed) {
+      return NextResponse.json({ error: "Terlalu banyak upload. Coba lagi sebentar." }, { status: 429 })
+    }
+
     const formData = await request.formData()
     const file = formData.get("file") as File | null
     if (!file) {
       return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 })
+    }
+
+    // Batas ukuran & tipe sebelumnya HANYA ada di browser (upload-client.ts),
+    // jadi POST langsung ke endpoint ini bisa melewatinya sepenuhnya.
+    // Dicek sebelum arrayBuffer() supaya berkas raksasa tidak masuk memori.
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { error: `File terlalu besar. Maksimal ${MAX_UPLOAD_SIZE_MB}MB.` },
+        { status: 413 }
+      )
+    }
+
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json(
+        { error: "Hanya berkas gambar yang diterima." },
+        { status: 415 }
+      )
     }
 
     const bytes = await file.arrayBuffer()
@@ -36,13 +61,9 @@ export async function POST(request: NextRequest) {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     })
-    return NextResponse.json(
-      { 
-        error: "Gagal mengupload file",
-        detail: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    )
+    // Detail teknis hanya ke log server, bukan ke respons — pesannya bisa
+    // memuat internal Cloudinary/infrastruktur.
+    return NextResponse.json({ error: "Gagal mengupload file" }, { status: 500 })
   }
 }
 

@@ -11,10 +11,13 @@ export interface UploadedMedia {
   createdAt: string
 }
 
-export const MAX_UPLOAD_SIZE_MB = 4
+// Diekspor ulang supaya pemanggil lama tidak perlu diubah; sumbernya kini
+// modul netral yang juga bisa dipakai route server.
+export { MAX_UPLOAD_SIZE_MB } from "./upload-limits"
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_SIZE_MB } from "./upload-limits"
 
 export async function uploadFile(file: File): Promise<UploadedMedia> {
-  if (file.size > MAX_UPLOAD_SIZE_MB * 1024 * 1024) {
+  if (file.size > MAX_UPLOAD_BYTES) {
     throw new Error(`File terlalu besar. Maksimal ${MAX_UPLOAD_SIZE_MB}MB.`)
   }
 
