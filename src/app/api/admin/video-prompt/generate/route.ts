@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
       deliveryMode: deliveryMode || categoryInfo.defaultDelivery,
       portfolioContext,
       subjectsContext,
+      hasAssets: subjectLines.length > 0,
     })
 
     const raw = await generateCompletion({

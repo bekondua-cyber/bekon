@@ -35,13 +35,27 @@ export interface MasterPromptInput {
   deliveryMode: "voiceover" | "onCameraDialogue"
   portfolioContext: string
   subjectsContext: string
+  /** True bila admin memilih karakter atau bahan referensi. */
+  hasAssets: boolean
 }
 
 export function buildMasterPrompt(input: MasterPromptInput): string {
   const {
     categoryInfo, partCount, durationPerPart, aspectRatio, platform,
-    tone, style, structure, deliveryMode, portfolioContext, subjectsContext,
+    tone, style, structure, deliveryMode, portfolioContext, subjectsContext, hasAssets,
   } = input
+
+  // Panduan kategori seperti Timelapse berbunyi "jangan pakai talent kecuali
+  // diminta eksplisit". Memilih aset di UI ADALAH permintaan eksplisit itu,
+  // jadi presedennya perlu dinyatakan supaya AI tidak mengabaikan pilihan admin.
+  const assetPrecedence = hasAssets
+    ? `
+=== PRIORITAS INSTRUKSI (penting) ===
+Admin SUDAH memilih karakter/bahan referensi (lihat bagian SUBJEK & BAHAN REFERENSI di bawah). Itu permintaan EKSPLISIT dan MENGALAHKAN panduan kategori yang menyarankan tanpa talent.
+Setiap aset yang dipilih WAJIB dipakai di minimal satu part, dan id-nya dicantumkan di "ingredients" part tersebut.
+Untuk video konstruksi, pakai bahan referensi sebagai acuan tampilan bangunan JADI — lampirkan di part akhir yang menampilkan hasil finishing. Karakter cocok ditempatkan sebagai arsitek/mandor yang meninjau proyek, bukan presenter yang berbicara ke kamera.
+`
+    : ""
 
   const deliveryRule =
     deliveryMode === "onCameraDialogue"
@@ -87,6 +101,7 @@ Jangan mengulang kata yang sama di "subject", "scene", dan "label".
 
 === KATEGORI: ${categoryInfo.label} ===
 ${categoryInfo.promptGuidance}
+${assetPrecedence}
 
 === DOMAIN KONSTRUKSI ===
 Bila video menampilkan progres pembangunan, ikuti urutan yang logis dan realistis:
