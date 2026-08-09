@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { trackConversion } from "@/lib/track-client";
 
 /**
@@ -15,11 +15,15 @@ import { trackConversion } from "@/lib/track-client";
 export function WhatsAppLink({
   href,
   className,
+  style,
   children,
   ariaLabel,
 }: {
   href: string;
   className?: string;
+  /** Dipakai global-error.tsx, yang berjalan tanpa globals.css sehingga
+   *  kelas Tailwind tidak tersedia di sana. */
+  style?: CSSProperties;
   children: ReactNode;
   ariaLabel?: string;
 }) {
@@ -31,6 +35,7 @@ export function WhatsAppLink({
       aria-label={ariaLabel}
       onClick={() => trackConversion("Contact")}
       className={className}
+      style={style}
     >
       {children}
     </a>
