@@ -31,7 +31,19 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' },
+          // TIDAK ADA Cache-Control menyeluruh di sini — sengaja.
+          //
+          // Dulu baris ini memaksa `public, max-age=3600,
+          // stale-while-revalidate=86400` ke SETIAP path, termasuk halaman HTML.
+          // Selama semua halaman dinamis, Next menimpanya dan tidak ada yang
+          // terasa. Begitu satu halaman menjadi statis, CDN langsung
+          // menyajikannya selama 1 jam dan versi basi sampai 24 jam — persis
+          // yang terjadi pada beranda: perubahan admin tidak muncul selama
+          // belasan jam tanpa satu pun tanda kesalahan.
+          //
+          // Next.js dan Vercel sudah mengeluarkan Cache-Control yang benar per
+          // rute (aset statis immutable, halaman dinamis no-store). Biarkan
+          // mereka yang menentukan; jangan pukul rata dari sini.
           { key: 'X-Robots-Tag', value: 'index, follow' },
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },

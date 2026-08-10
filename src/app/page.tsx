@@ -15,64 +15,76 @@ import {
   getSettingsMap,
 } from "@/lib/queries";
 import { serializeJsonLd } from "@/lib/json-ld";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 
-const HeroSection = dynamic(
+/**
+ * WAJIB ADA. Beranda membaca database lewat Prisma, dan Next tidak punya cara
+ * mengetahui itu — tanpa deklarasi ini halaman diprerender saat build lalu
+ * dibekukan, sehingga perubahan admin (bio anggota tim, testimoni, portfolio)
+ * tidak pernah muncul sampai deploy berikutnya.
+ *
+ * Dulu halaman ini dinamis secara tidak sengaja: `fetch(..., cache: "no-store")`
+ * ke API sendiri berfungsi sebagai sinyal dinamis. Sinyal itu hilang ketika
+ * pemanggilan diganti query Prisma langsung, dan tidak ada yang menggantikannya.
+ */
+export const dynamic = "force-dynamic";
+
+const HeroSection = dynamicImport(
   () => import("@/components/HeroSection").then(m => ({ default: m.HeroSection })),
   {}  
 );
 
-const ServicesSection = dynamic(
+const ServicesSection = dynamicImport(
   () => import("@/components/ServicesSection").then(m => ({ default: m.ServicesSection })),
   {}  
 );
 
-const PortfolioSection = dynamic(
+const PortfolioSection = dynamicImport(
   () => import("@/components/PortfolioSection").then(m => ({ default: m.PortfolioSection })),
   {}  
 );
 
-const WhyBekonSection = dynamic(
+const WhyBekonSection = dynamicImport(
   () => import("@/components/WhyBekonSection").then(m => ({ default: m.WhyBekonSection })),
   {}  
 );
 
-const TeamSection = dynamic(
+const TeamSection = dynamicImport(
   () => import("@/components/TeamSection").then(m => ({ default: m.TeamSection })),
   {}  
 );
 
-const ProcessSection = dynamic(
+const ProcessSection = dynamicImport(
   () => import("@/components/ProcessSection").then(m => ({ default: m.ProcessSection })),
   {}  
 );
 
-const TestimoniColumns = dynamic(
+const TestimoniColumns = dynamicImport(
   () => import("@/components/TestimoniColumns"),
   {}  
 );
 
-const VideoSection = dynamic(
+const VideoSection = dynamicImport(
   () => import("@/components/VideoSection").then(m => ({ default: m.VideoSection })),
   {}  
 );
 
-const BlogSection = dynamic(
+const BlogSection = dynamicImport(
   () => import("@/components/BlogSection").then(m => ({ default: m.BlogSection })),
   {}  
 );
 
-const CTASection = dynamic(
+const CTASection = dynamicImport(
   () => import("@/components/CTASection").then(m => ({ default: m.CTASection })),
   {}  
 );
 
-const ContactSection = dynamic(
+const ContactSection = dynamicImport(
   () => import("@/components/ContactSection").then(m => ({ default: m.ContactSection })),
   {}  
 );
 
-const FloatingWhatsApp = dynamic(
+const FloatingWhatsApp = dynamicImport(
   () => import("@/components/FloatingWhatsApp").then(m => ({ default: m.FloatingWhatsApp })),
   {}  
 );
