@@ -30,11 +30,19 @@ function validationErrorResponse(error: z.ZodError) {
   )
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const unauthorized = await requireAdmin()
   if (unauthorized) return unauthorized
 
   try {
+    // `?count=new` dipakai badge sidebar, yang memanggil ulang setiap menit.
+    // Tanpa jalur ini badge harus menarik SELURUH tabel lead hanya untuk
+    // menghitung satu angka — makin mahal seiring bertambahnya prospek.
+    if (new URL(request.url).searchParams.get("count") === "new") {
+      const count = await prisma.lead.count({ where: { status: "new" } })
+      return NextResponse.json({ data: { count } })
+    }
+
     const items = await prisma.lead.findMany({
       orderBy: { createdAt: "desc" },
     })

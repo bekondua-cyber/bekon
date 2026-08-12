@@ -2,9 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
-const sidebarLinks = [
+/** Jeda penyegaran badge. Cukup sering untuk terasa hidup, cukup jarang untuk
+ *  tidak membebani database saat panel dibiarkan terbuka seharian. */
+const LEAD_POLL_MS = 60_000;
+
+interface SidebarLink {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  /** Tampilkan hitungan lead yang belum diproses di sebelah label. */
+  showLeadBadge?: boolean;
+}
+
+const sidebarLinks: SidebarLink[] = [
   {
     label: "Dashboard",
     href: "/admin/dashboard",
@@ -87,6 +100,10 @@ const sidebarLinks = [
   {
     label: "Leads",
     href: "/admin/leads",
+    /** Satu-satunya menu yang menampilkan hitungan: prospek yang belum
+     *  diproses adalah satu-satunya hal di panel ini yang menuntut tindakan
+     *  cepat. Menaruh badge di menu lain akan mengencerkan artinya. */
+    showLeadBadge: true,
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
@@ -147,8 +164,48 @@ const sidebarLinks = [
   },
 ];
 
+/**
+ * Jumlah lead berstatus "new".
+ *
+ * Hitungan ini sebelumnya hanya ada di Dashboard, sehingga admin yang sedang
+ * membuka halaman Portfolio atau Artikel tidak punya cara tahu ada prospek
+ * masuk sampai ia kembali ke Dashboard. Badge di sidebar membuatnya terlihat
+ * dari halaman mana pun di panel.
+ *
+ * Disegarkan berkala DAN setiap pindah halaman — supaya angkanya langsung
+ * turun begitu admin menandai lead sebagai sudah dihubungi lalu beranjak.
+ */
+function useNewLeadCount(pathname: string): number {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    async function refresh() {
+      try {
+        const res = await fetch("/api/admin/leads?count=new", { credentials: "include" });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (active && typeof json?.data?.count === "number") setCount(json.data.count);
+      } catch {
+        // Gagal menghitung bukan alasan merusak navigasi — badge cukup diam.
+      }
+    }
+
+    refresh();
+    const timer = setInterval(refresh, LEAD_POLL_MS);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [pathname]);
+
+  return count;
+}
+
 export function AdminSidebar() {
   const pathname = usePathname();
+  const newLeads = useNewLeadCount(pathname);
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gray-900 text-white flex flex-col z-50">
@@ -174,7 +231,15 @@ export function AdminSidebar() {
               )}
             >
               {link.icon}
-              {link.label}
+              <span className="flex-1">{link.label}</span>
+              {link.showLeadBadge && newLeads > 0 && (
+                <span
+                  className="min-w-[20px] px-1.5 py-0.5 rounded-full bg-bekon-gold text-gray-900 text-[11px] font-bold leading-none text-center tabular-nums"
+                  aria-label={`${newLeads} lead baru belum diproses`}
+                >
+                  {newLeads > 99 ? "99+" : newLeads}
+                </span>
+              )}
             </Link>
           );
         })}

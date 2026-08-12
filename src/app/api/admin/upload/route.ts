@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
+import { getClientIp } from "@/lib/request-ip"
 import { uploadImage, deleteImage } from "@/lib/cloudinary"
+import { findImageUsage } from "@/lib/media-usage"
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_SIZE_MB } from "@/lib/upload-limits"
 
 export async function POST(request: NextRequest) {
@@ -10,7 +12,7 @@ export async function POST(request: NextRequest) {
   if (unauthorized) return unauthorized
 
   try {
-    const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const identifier = getClientIp(request)
     const limit = rateLimit(`upload:${identifier}`, 30, 60000)
     if (!limit.allowed) {
       return NextResponse.json({ error: "Terlalu banyak upload. Coba lagi sebentar." }, { status: 429 })
@@ -74,19 +76,42 @@ export async function DELETE(request: NextRequest) {
   try {
     const { public_id } = await request.json()
 
-    if (!public_id) {
+    if (!public_id || typeof public_id !== "string") {
       return NextResponse.json(
         { error: "public_id wajib diisi" },
         { status: 400 }
       )
     }
 
-    await deleteImage(public_id)
-
+    // Baris Media dicari LEBIH DULU. Dulu `deleteImage()` dipanggil langsung
+    // atas public_id apa pun yang dikirim, sehingga endpoint ini bisa menghapus
+    // aset Cloudinary mana saja di akun — termasuk yang tidak pernah diunggah
+    // lewat situs ini dan tidak ada catatannya di database.
     const media = await prisma.media.findFirst({ where: { publicId: public_id } })
-    if (media) {
-      await prisma.media.delete({ where: { id: media.id } })
+    if (!media) {
+      return NextResponse.json(
+        { error: "Media tidak ditemukan" },
+        { status: 404 }
+      )
     }
+
+    // Proteksi yang sama dengan route media. Halaman Media memakai endpoint ini
+    // untuk hapus satuan, jadi tanpa pemeriksaan di sini celahnya tetap terbuka
+    // lewat tombol hapus per gambar.
+    const usage = await findImageUsage([media.url])
+    const usedIn = usage.get(media.url)
+    if (usedIn?.length) {
+      return NextResponse.json(
+        {
+          error: `Gambar masih dipakai di ${usedIn.length} tempat. Lepas dulu sebelum menghapus.`,
+          inUse: [{ filename: media.filename, usedIn }],
+        },
+        { status: 409 }
+      )
+    }
+
+    await deleteImage(media.publicId)
+    await prisma.media.delete({ where: { id: media.id } })
 
     return NextResponse.json({ success: true })
   } catch (error) {

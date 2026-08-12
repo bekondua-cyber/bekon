@@ -93,14 +93,20 @@ export function BlogSection({ items }: { items: ArticleItem[] }) {
                 href={`/informasi/blog/${article.slug}`}
                 className="block bg-white rounded-xl overflow-hidden border border-bekon-border group hover:shadow-md transition-shadow"
               >
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <Image
-                    src={article.thumbnail ?? ""}
-                    alt={article.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+                {/* `src={thumbnail ?? ""}` menembus proteksi tipe: kolomnya
+                    `string | null`, dan string kosong membuat next/image
+                    melempar saat dirender. Dijaga dengan pola yang sama seperti
+                    kartu portfolio. */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-bekon-cream">
+                  {article.thumbnail && (
+                    <Image
+                      src={article.thumbnail}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  )}
                 </div>
                 <div className="p-5">
                   {article.category && (

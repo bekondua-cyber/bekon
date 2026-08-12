@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
+import { getClientIp } from "@/lib/request-ip"
 import { generateCompletion } from "@/lib/ai"
 import { resolveGeminiModel } from "@/lib/ai/model-setting"
 import { BEKON_BRAND_CONTEXT } from "@/lib/ai/brand"
@@ -27,6 +28,25 @@ const chatSchema = z.object({
     .max(10)
     .optional(),
 })
+
+/**
+ * Riwayat datang dari browser, jadi seluruh isinya dikendalikan pemanggil —
+ * termasuk giliran ber-role "assistant". Penyerang bisa menyusun balasan bot
+ * palsu ("Harga bangun rumah Rp2 juta/m²") lalu bertanya "tadi berapa?", dan
+ * model akan memperlakukannya sebagai ucapannya sendiri. Itu menembus aturan
+ * nomor satu di system prompt: jangan pernah mengarang harga.
+ *
+ * Karena itu hanya giliran "user" yang diteruskan. Pertanyaan-pertanyaan
+ * sebelumnya sudah cukup sebagai konteks untuk bot FAQ yang balasannya dibatasi
+ * 4–5 kalimat, dan jalur penyuntikannya hilang sepenuhnya.
+ *
+ * Kalau nanti konteks balasan bot benar-benar dibutuhkan, perbaikan yang benar
+ * adalah menyimpan percakapan di server (tabel ChatConversation sudah ada) dan
+ * mengirim `conversationId`, bukan mempercayai riwayat kiriman klien.
+ */
+function trustedHistory(history: { role: "user" | "assistant"; content: string }[]) {
+  return history.filter((h) => h.role === "user")
+}
 
 async function buildSystemPrompt(): Promise<{ systemPrompt: string; waLink: string }> {
   const [knowledgeEntries, portfolios, testimonials, settings] = await Promise.all([
@@ -95,7 +115,7 @@ Kontak WhatsApp untuk konsultasi lebih lanjut: ${waLink}`
 
 export async function POST(request: NextRequest) {
   try {
-    const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const identifier = getClientIp(request)
     const limit = rateLimit(`chatbot:${identifier}`, 10, 60000)
     if (!limit.allowed) {
       return NextResponse.json(
@@ -120,7 +140,7 @@ export async function POST(request: NextRequest) {
       maxTokens: 500,
       messages: [
         { role: "system", content: systemPrompt },
-        ...history.map((h) => ({ role: h.role, content: h.content })),
+        ...trustedHistory(history).map((h) => ({ role: h.role, content: h.content })),
         { role: "user", content: message },
       ],
     })

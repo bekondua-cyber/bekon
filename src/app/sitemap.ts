@@ -1,6 +1,18 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * WAJIB ADA — kelas bug yang sama persis dengan yang dulu membekukan beranda.
+ *
+ * Berkas ini membaca database lewat Prisma, tapi panggilan Prisma bukan sinyal
+ * dinamis bagi Next. Tanpa deklarasi ini, sitemap diprerender saat build lalu
+ * disajikan statis selamanya: artikel dan portfolio baru tidak pernah masuk
+ * sampai ada deploy berikutnya, dan Google menemukannya jauh lebih lambat.
+ *
+ * Satu jam cukup — sitemap tidak perlu seketika, tapi juga tidak boleh beku.
+ */
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://bangunrumahbekon.com";
 

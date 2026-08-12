@@ -3,6 +3,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
+import { getClientIp } from "@/lib/request-ip"
 import { generateCompletion } from "@/lib/ai"
 import { resolveGeminiModel } from "@/lib/ai/model-setting"
 import { parseAiJson } from "@/lib/ai/parse"
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
   if (unauthorized) return unauthorized
 
   try {
-    const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const identifier = getClientIp(request)
     // Jatah terpisah dari generate. Dulu keduanya memakai kunci `ai-video:`
     // yang sama, sehingga 10x klik "Cari Ide" memblokir generate prompt
     // selama sejam penuh — padahal alur kerjanya justru cari ide dulu.

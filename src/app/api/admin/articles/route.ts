@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isPrismaErrorCode } from "@/lib/api-admin"
+import { revalidatePublic } from "@/lib/revalidate"
+import { cleanupUnusedImages } from "@/lib/media-usage"
 
 export const dynamic = "force-dynamic"
 
@@ -75,6 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     const item = await prisma.article.create({ data: validation.data })
+    revalidatePublic("articles")
     return NextResponse.json({ data: item })
   } catch (error) {
     if (isPrismaErrorCode(error, "P2002")) {
@@ -115,6 +118,7 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: validation.data,
     })
+    revalidatePublic("articles")
     return NextResponse.json({ data: item })
   } catch (error) {
     if (isPrismaErrorCode(error, "P2002")) {
@@ -152,7 +156,20 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
+    // Dikumpulkan sebelum dihapus — lihat catatan di route portfolio.
+    const item = await prisma.article.findUnique({
+      where: { id },
+      select: { thumbnail: true, ogImage: true },
+    })
+
     await prisma.article.delete({ where: { id } })
+
+    if (item) {
+      await cleanupUnusedImages([item.thumbnail, item.ogImage])
+    }
+
+    revalidatePublic("articles")
+
     return NextResponse.json({ success: true })
   } catch (error) {
     if (isPrismaErrorCode(error, "P2025")) {

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { siteConfig } from "@/data/site-config";
 import PortfolioHeroCarousel from "@/components/PortfolioHeroCarousel";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { getPortfolioBySlug, getPublishedPortfolio } from "@/lib/queries";
 
-export const dynamic = "force-dynamic";
+/** ISR + revalidatePublic("portfolio") — lihat src/lib/revalidate.ts. */
+export const revalidate = 60;
 
 interface Props {
   params: { slug: string };
@@ -66,7 +66,7 @@ export default async function PortfolioDetailPage({ params }: Props) {
     item.bathrooms && { label: "Kamar Mandi", value: `${item.bathrooms} Kamar` },
   ].filter(Boolean) as { label: string; value: string }[];
 
-  const waUrl = `https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20tertarik%20dengan%20proyek%20${encodeURIComponent(item.title)}`;
+  const waMessage = `Halo BEKON, saya tertarik dengan proyek ${item.title}`;
 
   return (
     <div className="min-h-screen bg-bekon-off-white">
@@ -130,7 +130,8 @@ export default async function PortfolioDetailPage({ params }: Props) {
                   Konsultasikan kebutuhan bangunan Anda bersama tim BEKON secara gratis.
                 </p>
                 <WhatsAppLink
-                  href={waUrl}
+                  waKey="wa_admin_1"
+                  message={waMessage}
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-bekon-gold text-white rounded-lg text-sm font-semibold hover:bg-bekon-gold/90 transition-colors"
                 >
                   Konsultasi Gratis
@@ -188,7 +189,8 @@ export default async function PortfolioDetailPage({ params }: Props) {
             Tertarik dengan Proyek Serupa?
           </h2>
           <WhatsAppLink
-            href={waUrl}
+            waKey="wa_admin_1"
+            message={waMessage}
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-bekon-gold rounded-full text-sm font-semibold hover:bg-bekon-near-black hover:text-white transition-all"
           >
             Konsultasi Gratis

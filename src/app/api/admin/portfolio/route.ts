@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isPrismaErrorCode } from "@/lib/api-admin"
+import { revalidatePublic } from "@/lib/revalidate"
+import { cleanupUnusedImages } from "@/lib/media-usage"
 
 export const dynamic = "force-dynamic"
 
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     const item = await prisma.portfolio.create({ data: validation.data })
+    revalidatePublic("portfolio")
     return NextResponse.json({ data: item })
   } catch (error) {
     if (isPrismaErrorCode(error, "P2002")) {
@@ -123,6 +126,7 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: validation.data,
     })
+    revalidatePublic("portfolio")
     return NextResponse.json({ data: item })
   } catch (error) {
     if (isPrismaErrorCode(error, "P2002")) {
@@ -154,13 +158,40 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id")
 
     if (id) {
+      // Gambar dikumpulkan SEBELUM baris dihapus — sesudahnya tidak ada lagi
+      // cara mengetahui aset Cloudinary mana yang milik portfolio ini.
+      const item = await prisma.portfolio.findUnique({
+        where: { id },
+        select: { coverImage: true, images: true, beforeImage: true, afterImage: true },
+      })
+
       await prisma.portfolio.delete({ where: { id } })
+
+      if (item) {
+        await cleanupUnusedImages([
+          item.coverImage,
+          item.beforeImage,
+          item.afterImage,
+          ...item.images,
+        ])
+      }
+      revalidatePublic("portfolio")
       return NextResponse.json({ success: true })
     }
 
     const body = await request.json().catch(() => ({}))
     if (body.ids && Array.isArray(body.ids) && body.ids.length > 0) {
+      const items = await prisma.portfolio.findMany({
+        where: { id: { in: body.ids } },
+        select: { coverImage: true, images: true, beforeImage: true, afterImage: true },
+      })
+
       await prisma.portfolio.deleteMany({ where: { id: { in: body.ids } } })
+
+      await cleanupUnusedImages(
+        items.flatMap((i) => [i.coverImage, i.beforeImage, i.afterImage, ...i.images])
+      )
+      revalidatePublic("portfolio")
       return NextResponse.json({ success: true })
     }
 
@@ -203,6 +234,8 @@ export async function PATCH(request: NextRequest) {
         prisma.portfolio.update({ where: { id }, data: { sortOrder } })
       )
     )
+
+    revalidatePublic("portfolio")
 
     return NextResponse.json({ success: true })
   } catch (error) {

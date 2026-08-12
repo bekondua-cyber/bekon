@@ -17,10 +17,16 @@ export const geminiProvider: AiProvider = {
     const conversation = messages.filter((m) => m.role !== "system")
 
     const res = await fetchWithTimeout(
-      `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
+      // Kunci dikirim lewat header, bukan query string. Sebagai `?key=...` ia
+      // ikut tercatat di log request, log proxy, dan pesan error — tempat yang
+      // tidak seharusnya menyimpan kredensial.
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
         body: JSON.stringify({
           systemInstruction: systemMessages ? { parts: [{ text: systemMessages }] } : undefined,
           contents: conversation.map((m) => ({

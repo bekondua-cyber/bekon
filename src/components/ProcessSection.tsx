@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { processSteps } from "@/data/process";
-import { siteConfig } from "@/data/site-config";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -103,7 +102,8 @@ export function ProcessSection() {
           className="text-center mt-12"
         >
           <WhatsAppLink
-            href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi`}
+            waKey="wa_admin_1"
+            message="Halo BEKON, saya ingin konsultasi"
             className="inline-flex items-center gap-2 px-7 py-3 bg-bekon-gold text-white rounded-full text-sm font-medium transition-all duration-200 hover:bg-bekon-gold-dark"
           >
             Mulai Konsultasi

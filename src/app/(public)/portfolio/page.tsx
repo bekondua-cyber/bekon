@@ -9,6 +9,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/portfolio" },
 };
 
+/**
+ * Tetap dinamis, dan memang TIDAK BISA lain.
+ *
+ * Halaman ini membaca `searchParams.category`, dan Next menjadikan halaman
+ * yang menyentuh searchParams dinamis secara otomatis — `revalidate` di sini
+ * tidak akan berpengaruh apa pun. Dinyatakan eksplisit supaya alasannya jelas
+ * dan tidak ada yang mencoba "memperbaikinya" jadi ISR.
+ */
 export const dynamic = "force-dynamic";
 
 export default async function PortfolioPage({

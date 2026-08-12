@@ -8,7 +8,7 @@ import { siteConfig } from "@/data/site-config";
 import {
   getActiveHeroSlides,
   getActiveTeam,
-  getPublishedArticles,
+  getPublishedArticleCards,
   getPublishedPortfolio,
   getPublishedTestimonials,
   getPublishedVideos,
@@ -19,15 +19,18 @@ import dynamicImport from "next/dynamic";
 
 /**
  * WAJIB ADA. Beranda membaca database lewat Prisma, dan Next tidak punya cara
- * mengetahui itu — tanpa deklarasi ini halaman diprerender saat build lalu
- * dibekukan, sehingga perubahan admin (bio anggota tim, testimoni, portfolio)
- * tidak pernah muncul sampai deploy berikutnya.
+ * mengetahui itu — tanpa deklarasi mode render, halaman diprerender saat build
+ * lalu dibekukan, sehingga perubahan admin (bio anggota tim, testimoni,
+ * portfolio) tidak pernah muncul sampai deploy berikutnya.
  *
- * Dulu halaman ini dinamis secara tidak sengaja: `fetch(..., cache: "no-store")`
- * ke API sendiri berfungsi sebagai sinyal dinamis. Sinyal itu hilang ketika
- * pemanggilan diganti query Prisma langsung, dan tidak ada yang menggantikannya.
+ * Dulu halaman ini `force-dynamic`, yang benar tapi mahal: setiap pengunjung
+ * memicu tujuh query Neon untuk data yang sama. Sekarang ISR dengan TTL pendek,
+ * dipasangkan dengan `revalidatePublic()` di route admin supaya perubahan tetap
+ * muncul seketika. TTL-nya adalah jaring pengaman — kalau ada jalur tulis yang
+ * lupa memanggil invalidasi, halaman ini paling lama basi satu menit dan tidak
+ * bisa membeku seperti dulu.
  */
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const HeroSection = dynamicImport(
   () => import("@/components/HeroSection").then(m => ({ default: m.HeroSection })),
@@ -86,7 +89,20 @@ const ContactSection = dynamicImport(
 
 const FloatingWhatsApp = dynamicImport(
   () => import("@/components/FloatingWhatsApp").then(m => ({ default: m.FloatingWhatsApp })),
-  {}  
+  {}
+);
+
+/**
+ * PERHATIKAN: beranda ada di `src/app/page.tsx`, DI LUAR route group `(public)`.
+ *
+ * Artinya ia TIDAK mewarisi `src/app/(public)/layout.tsx`, dan setiap widget
+ * global yang ditambahkan di sana harus ditambahkan manual juga di sini.
+ * Chatbot sempat hilang persis karena ini: ia dirender di layout `(public)`,
+ * jadi aktif di semua halaman KECUALI halaman dengan trafik tertinggi.
+ */
+const ChatbotWidget = dynamicImport(
+  () => import("@/components/chatbot/ChatbotWidget").then(m => ({ default: m.ChatbotWidget })),
+  {}
 );
 
 export default async function HomePage() {
@@ -100,7 +116,10 @@ export default async function HomePage() {
       getPublishedPortfolio(),
       getPublishedTestimonials(),
       getPublishedVideos(),
-      getPublishedArticles(),
+      // BlogSection hanya menampilkan tiga kartu. Dulu di sini seluruh artikel
+      // diambil lengkap dengan kolom `content`, lalu ikut terkirim ke browser
+      // karena BlogSection adalah komponen klien.
+      getPublishedArticleCards({ take: 3 }),
       getActiveTeam(),
       getActiveHeroSlides(),
       getSettingsMap(),
@@ -184,13 +203,17 @@ export default async function HomePage() {
         { "@type": "Offer", itemOffered: { "@type": "Service", name: "Bangun Kost & Ruko" } },
       ],
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      bestRating: "5",
-      ratingCount: "100",
-      reviewCount: "100",
-    },
+    // TIDAK ADA aggregateRating di sini — sengaja.
+    //
+    // Dulu blok ini mengklaim rating 4,9 dari 100 ulasan, angka yang murni
+    // dikarang dan tidak berasal dari data mana pun. Kebijakan structured data
+    // Google melarang bisnis memasang rating agregat untuk dirinya sendiri
+    // tanpa ulasan terverifikasi, dan sanksinya bisa berupa manual action pada
+    // domain — jauh lebih mahal daripada manfaat bintang di hasil pencarian.
+    //
+    // Kalau nanti ingin dihidupkan lagi, sumbernya harus ulasan asli yang bisa
+    // diverifikasi pihak ketiga (mis. Google Business Profile), bukan kolom
+    // rating di tabel testimoni yang diisi sendiri lewat admin.
   }
 
   return (
@@ -200,7 +223,7 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <Navbar />
-      <main id="main">
+      <main id="main" tabIndex={-1}>
         <HeroSection initialSlides={heroSlides} heroLabel={settings.hero_label} />
         <SocialProofBar stats={stats} />
         <ServicesSection />
@@ -215,6 +238,7 @@ export default async function HomePage() {
         <ContactSection settings={settings} />
       </main>
       <Footer />
+      <ChatbotWidget />
       <FloatingWhatsApp settings={settings} />
     </>
   );

@@ -5,7 +5,8 @@ import { teamMembers } from "@/data/team";
 import { whyBekon, type WhyBekonItem } from "@/data/why-bekon";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
+/** ISR + revalidatePublic("team"/"settings") — lihat src/lib/revalidate.ts. */
+export const revalidate = 60;
 
 function getInitials(name: string): string {
   return name

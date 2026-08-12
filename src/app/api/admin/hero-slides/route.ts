@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isPrismaErrorCode } from "@/lib/api-admin"
+import { revalidatePublic } from "@/lib/revalidate"
 
 export const dynamic = "force-dynamic"
 
@@ -156,6 +157,7 @@ export async function PUT(request: NextRequest) {
         })
       )
       await prisma.$transaction(updates)
+      revalidatePublic("hero")
       return NextResponse.json({ success: true })
     }
 
@@ -191,6 +193,8 @@ export async function PUT(request: NextRequest) {
       },
     })
 
+    revalidatePublic("hero")
+
     return NextResponse.json({ data: slide })
   } catch (error) {
     console.error("PUT /api/admin/hero-slides error:", error)
@@ -217,6 +221,7 @@ export async function DELETE(request: NextRequest) {
         }
         throw deleteError
       }
+      revalidatePublic("hero")
       return NextResponse.json({ success: true })
     }
 
@@ -224,6 +229,7 @@ export async function DELETE(request: NextRequest) {
     const ids = body.ids
     if (ids && Array.isArray(ids) && ids.length > 0) {
       await prisma.heroSlide.deleteMany({ where: { id: { in: ids } } })
+      revalidatePublic("hero")
       return NextResponse.json({ success: true })
     }
 

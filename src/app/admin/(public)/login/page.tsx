@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
+    <main id="main" tabIndex={-1} className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
       <div className="w-full max-w-sm">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
@@ -82,6 +82,6 @@ export default function AdminLoginPage() {
           </form>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

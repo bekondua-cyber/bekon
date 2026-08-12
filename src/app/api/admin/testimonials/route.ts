@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isPrismaErrorCode } from "@/lib/api-admin"
+import { revalidatePublic } from "@/lib/revalidate"
 
 export const dynamic = "force-dynamic"
 
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     const item = await prisma.testimonial.create({ data: validation.data })
+    revalidatePublic("testimonials")
     return NextResponse.json({ data: item })
   } catch (error) {
     console.error("POST /api/admin/testimonials error:", error)
@@ -93,6 +95,7 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: validation.data,
     })
+    revalidatePublic("testimonials")
     return NextResponse.json({ data: item })
   } catch (error) {
     if (isPrismaErrorCode(error, "P2025")) {
@@ -125,6 +128,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.testimonial.delete({ where: { id } })
+    revalidatePublic("testimonials")
     return NextResponse.json({ success: true })
   } catch (error) {
     if (isPrismaErrorCode(error, "P2025")) {

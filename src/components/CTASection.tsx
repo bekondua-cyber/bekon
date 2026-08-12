@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { siteConfig } from "@/data/site-config";
 import { normalizeWA } from "@/lib/utils";
+import { getPublicSettings } from "@/lib/settings-client";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 export function CTASection({ settings: initialSettings }: { settings?: Record<string, string> }) {
@@ -9,12 +10,14 @@ export function CTASection({ settings: initialSettings }: { settings?: Record<st
 
   useEffect(() => {
     if (initialSettings) return;
-    fetch("/api/settings")
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.data) setSettings(json.data);
-      })
-      .catch(() => {});
+    let active = true;
+    // Lewat cache bersama — lihat catatan di settings-client.ts.
+    getPublicSettings().then((data) => {
+      if (active) setSettings(data);
+    });
+    return () => {
+      active = false;
+    };
   }, [initialSettings]);
   return (
     <section

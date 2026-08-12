@@ -5,7 +5,6 @@ import { ChevronDown } from "lucide-react"
 import { WhatsAppIcon } from "@/components/Icons"
 import { WhatsAppLink } from "@/components/WhatsAppLink"
 import Link from "next/link"
-import { siteConfig } from "@/data/site-config"
 import type { HeroSlide } from "@/types/hero"
 
 
@@ -15,7 +14,11 @@ const STATIC_CONTENT = {
   subtitle: "BEKON adalah mitra jangka panjang yang mewujudkan investasi hunian berkualitas dengan transparansi, estetika, dan ketepatan. Berpengalaman sejak 2009.",
   ctaPrimary: {
     text: "Konsultasi Gratis",
-    link: `https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20konsultasi%20gratis%20untuk%20proyek%20saya`,
+    // Nomornya TIDAK dirakit di sini. Dulu baris ini menyusun URL dari
+    // `siteConfig.whatsapp1`, sehingga tombol paling menonjol di seluruh situs
+    // mengabaikan nomor yang diatur admin di halaman Settings. Sekarang
+    // WhatsAppLink yang menyelesaikannya lewat `waKey`.
+    message: "Halo BEKON, saya ingin konsultasi gratis untuk proyek saya",
   },
   ctaSecondary: {
     text: "Lihat Portfolio",
@@ -147,7 +150,8 @@ function HeroFallback() {
           </div>
           <div className="flex flex-col sm:flex-row gap-4 self-start">
             <WhatsAppLink
-              href={STATIC_CONTENT.ctaPrimary.link}
+              waKey="wa_admin_1"
+              message={STATIC_CONTENT.ctaPrimary.message}
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
             >
               {STATIC_CONTENT.ctaPrimary.text}
@@ -194,7 +198,8 @@ function DesktopContent({ label }: { label: string }) {
 
       <div className="flex flex-col sm:flex-row gap-4 self-start">
         <WhatsAppLink
-          href={STATIC_CONTENT.ctaPrimary.link}
+          waKey="wa_admin_1"
+          message={STATIC_CONTENT.ctaPrimary.message}
           className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bekon-gold text-black rounded-full transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5 hover:shadow-gold text-sm font-medium"
         >
           <WhatsAppIcon className="w-[18px] h-[18px]" aria-hidden="true" />

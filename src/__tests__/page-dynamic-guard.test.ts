@@ -18,12 +18,24 @@ import { join } from "path"
 
 const APP_DIR = join(process.cwd(), "src", "app")
 
+/**
+ * `sitemap.ts` dan `robots.ts` ikut diperiksa.
+ *
+ * Penjaga ini semula hanya mengumpulkan `page.tsx` dan `layout.tsx`, dan
+ * lubang itu memang termanfaatkan: `sitemap.ts` membaca Prisma tanpa deklarasi
+ * mode render sama sekali, jadi ia diprerender saat build lalu beku — artikel
+ * dan portfolio baru tidak pernah masuk sitemap sampai deploy berikutnya, dan
+ * tidak ada satu pun tanda kesalahan. Setiap berkas rute yang bisa menyentuh
+ * database harus lewat sini, bukan cuma halaman.
+ */
+const ROUTE_FILES = new Set(["page.tsx", "layout.tsx", "sitemap.ts", "robots.ts"])
+
 function collectPageFiles(dir: string, found: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) {
       collectPageFiles(full, found)
-    } else if (entry === "page.tsx" || entry === "layout.tsx") {
+    } else if (ROUTE_FILES.has(entry)) {
       found.push(full)
     }
   }
@@ -65,10 +77,40 @@ describe("halaman yang membaca database wajib menyatakan mode render", () => {
     ).toEqual([])
   })
 
-  it("beranda secara khusus dinyatakan dinamis", () => {
+  it("beranda menyatakan mode render secara eksplisit", () => {
     const home = readFileSync(join(APP_DIR, "page.tsx"), "utf8")
     expect(readsDatabase(home)).toBe(true)
-    expect(home).toMatch(/export\s+const\s+dynamic\s*=\s*"force-dynamic"/)
+    // Dulu wajib `force-dynamic`. Sekarang ISR dengan `revalidate`, karena
+    // force-dynamic berarti tujuh query Neon per pengunjung. Yang penting dan
+    // tidak boleh hilang adalah ADANYA deklarasi — tanpa itu halaman beku.
+    expect(declaresRenderMode(home)).toBe(true)
+  })
+
+  it("halaman ber-ISR punya TTL yang masuk akal sebagai jaring pengaman", () => {
+    // TTL terlalu panjang mengembalikan gejala lama: perubahan admin tidak
+    // muncul dan tidak ada yang tahu kenapa. Invalidasi on-demand tetap jalur
+    // utamanya; ini cuma batas atas kalau ada jalur tulis yang terlewat.
+    const offenders: string[] = []
+
+    for (const file of pages) {
+      const source = readFileSync(file, "utf8")
+      const match = source.match(/export\s+const\s+revalidate\s*=\s*(\d+)/)
+      if (match && Number(match[1]) > 3600) {
+        offenders.push(`${file.replace(process.cwd(), "").replace(/\\/g, "/")} (${match[1]}s)`)
+      }
+    }
+
+    expect(offenders, `TTL di atas 1 jam terlalu lama:\n${offenders.join("\n")}`).toEqual([])
+  })
+
+  it("sitemap tidak boleh beku — artikel & portfolio baru harus bisa masuk", () => {
+    const sitemap = readFileSync(join(APP_DIR, "sitemap.ts"), "utf8")
+    expect(readsDatabase(sitemap)).toBe(true)
+    expect(
+      declaresRenderMode(sitemap),
+      "sitemap.ts membaca database. Tanpa `revalidate` atau `dynamic`, Next " +
+        "memprerendernya saat build dan isinya beku sampai deploy berikutnya."
+    ).toBe(true)
   })
 })
 

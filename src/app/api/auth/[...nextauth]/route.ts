@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import NextAuth from "next-auth"
 import { authOptions } from "@/lib/auth-server"
 import { rateLimit } from "@/lib/rate-limit"
+import { getClientIp } from "@/lib/request-ip"
 
 const handler = NextAuth(authOptions)
 
@@ -16,8 +17,7 @@ export async function POST(
     context.params.nextauth?.[1] === "credentials"
 
   if (isLoginAttempt) {
-    const identifier =
-      request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const identifier = getClientIp(request)
     const limit = rateLimit(`login:${identifier}`, 5, 15 * 60 * 1000)
     if (!limit.allowed) {
       return NextResponse.json(

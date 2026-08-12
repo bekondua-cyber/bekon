@@ -75,9 +75,13 @@ export default function RootLayout({
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-bekon-gold focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
           Langsung ke konten utama
         </a>
-        <main id="main" role="main" tabIndex={-1}>
-          {children}
-        </main>
+        {/* Pembungkus biasa, BUKAN <main>. Setiap halaman sudah merender
+            <main id="main"> miliknya sendiri (beranda langsung, halaman lain
+            lewat layout `(public)`), jadi <main> di sini membuat dua landmark
+            bersarang dengan id yang sama — HTML tidak valid, membingungkan
+            pembaca layar, dan membuat skip link "#main" menunjuk ke pembungkus
+            terluar alih-alih ke konten. */}
+        <div id="app-shell">{children}</div>
       </body>
     </html>
   );

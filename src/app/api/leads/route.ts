@@ -2,21 +2,35 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
+import { getClientIp } from "@/lib/request-ip"
+import { isValidWA, normalizeWA } from "@/lib/utils"
 
+/**
+ * Input dinormalisasi dulu lewat normalizeWA() — util yang sama yang dipakai
+ * seluruh tautan WhatsApp dan kedua form — baru diuji dengan isValidWA().
+ * Bentuk ternormalisasi itu pula yang disimpan, supaya nomor di CMS langsung
+ * bisa dipakai sebagai link wa.me tanpa diproses ulang.
+ */
 const leadSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter").max(100, "Nama maksimal 100 karakter"),
-  phone: z.string().regex(/^(\+62|62|0)8[1-9][0-9]{6,11}$/, "Format nomor telepon tidak valid"),
+  phone: z
+    .string()
+    .max(30, "Nomor telepon terlalu panjang")
+    .refine(isValidWA, "Format nomor telepon tidak valid. Contoh: 081234567890")
+    .transform(normalizeWA),
   email: z.string().email("Format email tidak valid").max(200).optional().or(z.literal("")),
   service: z.string().max(100).optional().default(""),
   budget: z.string().max(100).optional().default(""),
   location: z.string().max(200).optional().default(""),
-  message: z.string().min(10, "Pesan minimal 10 karakter").max(1000, "Pesan maksimal 1000 karakter"),
+  // Tanpa batas bawah — pesan pendek tetap prospek yang sah. Batas 10 karakter
+  // yang lama membuang lead hanya karena orangnya menulis "halo".
+  message: z.string().max(1000, "Pesan maksimal 1000 karakter").optional().default(""),
   company_website: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
   try {
-    const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const identifier = getClientIp(request)
     const limit = rateLimit(`leads:${identifier}`, 5, 60000)
     if (!limit.allowed) {
       return NextResponse.json(

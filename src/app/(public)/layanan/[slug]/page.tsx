@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { services } from "@/data/services";
-import { siteConfig } from "@/data/site-config";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 interface Props {
@@ -88,7 +87,8 @@ export default function LayananDetailPage({ params }: Props) {
                 {service.description}
               </p>
               <WhatsAppLink
-                href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20tertarik%20dengan%20${encodeURIComponent(service.title)}`}
+                waKey="wa_admin_1"
+                message={`Halo BEKON, saya tertarik dengan ${service.title}`}
                 className="inline-flex items-center gap-2 px-7 py-3 bg-bekon-gold text-white rounded-full text-sm font-medium transition-all hover:bg-bekon-gold-dark"
               >
                 Konsultasi Gratis
@@ -175,7 +175,8 @@ export default function LayananDetailPage({ params }: Props) {
             Konsultasi gratis tanpa komitmen bersama tim BEKON.
           </p>
           <WhatsAppLink
-            href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20tertarik%20dengan%20${encodeURIComponent(service.title)}`}
+            waKey="wa_admin_1"
+            message={`Halo BEKON, saya tertarik dengan ${service.title}`}
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-bekon-gold rounded-full text-sm font-semibold hover:bg-bekon-near-black hover:text-white transition-all"
           >
             Konsultasi Gratis

@@ -2,19 +2,32 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-const FILTERS = [
-  { value: "semua", label: "Semua" },
-  { value: "eksterior", label: "Eksterior" },
-  { value: "interior", label: "Interior" },
-  { value: "umum", label: "Umum" },
-];
+/** Label ramah untuk kategori yang sudah dikenal; sisanya dirapikan apa adanya. */
+const CATEGORY_LABELS: Record<string, string> = {
+  eksterior: "Eksterior",
+  interior: "Interior",
+  umum: "Umum",
+};
+
+function labelFor(category: string): string {
+  return CATEGORY_LABELS[category] ?? category.replace(/-/g, " ");
+}
 
 interface Props {
   current: string;
   currentQ?: string;
+  /** Kategori yang benar-benar ada di database, bukan daftar tetap.
+   *  Daftar hardcoded yang lama membuat artikel berkategori lain tidak pernah
+   *  bisa dipilih — sekaligus tidak pernah muncul di daftar. */
+  categories: string[];
 }
 
-export default function BlogFilterDropdown({ current, currentQ = "" }: Props) {
+export default function BlogFilterDropdown({ current, currentQ = "", categories }: Props) {
+  const filters = [
+    { value: "semua", label: "Semua" },
+    ...categories.map((c) => ({ value: c, label: labelFor(c) })),
+  ];
+
   const router = useRouter();
   const [q, setQ] = useState(currentQ);
   const [, startTransition] = useTransition();
@@ -52,7 +65,7 @@ export default function BlogFilterDropdown({ current, currentQ = "" }: Props) {
 
       {/* Filter Pills */}
       <div className="flex flex-wrap justify-center gap-2">
-        {FILTERS.map((f) => (
+        {filters.map((f) => (
           <button
             key={f.value}
             onClick={() => handleFilter(f.value)}

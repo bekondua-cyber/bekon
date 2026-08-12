@@ -31,7 +31,7 @@ export default function PublicError({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bekon-off-white px-6">
+    <main id="main" tabIndex={-1} className="min-h-screen flex items-center justify-center bg-bekon-off-white px-6">
       <div className="text-center max-w-md">
         <h1 className="font-display text-[clamp(28px,4vw,40px)] text-bekon-near-black mb-3">
           Halaman gagal dimuat
@@ -63,6 +63,6 @@ export default function PublicError({
           Kembali ke Beranda
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

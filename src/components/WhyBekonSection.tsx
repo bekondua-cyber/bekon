@@ -110,7 +110,8 @@ export function WhyBekonSection({ label, title, image, items, since }: WhyBekonS
               className="mt-8"
             >
               <WhatsAppLink
-                href={`https://wa.me/${siteConfig.whatsapp1}?text=Halo%20BEKON%2C%20saya%20ingin%20tahu%20lebih%20lanjut`}
+                waKey="wa_admin_1"
+                message="Halo BEKON, saya ingin tahu lebih lanjut"
                 className="inline-flex items-center gap-2 px-7 py-3 bg-bekon-gold text-white rounded-full text-sm font-medium transition-all duration-200 hover:bg-bekon-gold-dark hover:-translate-y-0.5"
               >
                 Konsultasi Gratis

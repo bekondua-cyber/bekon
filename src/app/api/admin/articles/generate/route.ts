@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { requireAdmin } from "@/lib/api-admin"
 import { rateLimit } from "@/lib/rate-limit"
+import { getClientIp } from "@/lib/request-ip"
 import { generateCompletion } from "@/lib/ai"
 import { resolveGeminiModel } from "@/lib/ai/model-setting"
 import { parseAiJson } from "@/lib/ai/parse"
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
   if (unauthorized) return unauthorized
 
   try {
-    const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const identifier = getClientIp(request)
     const limit = rateLimit(`ai-article:${identifier}`, 5, 60 * 60 * 1000)
     if (!limit.allowed) {
       return NextResponse.json({ error: "Terlalu banyak permintaan generate AI. Coba lagi nanti." }, { status: 429 })

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-bekon-off-white flex items-center justify-center px-6">
+    <main id="main" tabIndex={-1} className="min-h-screen bg-bekon-off-white flex items-center justify-center px-6">
       <div className="text-center max-w-md">
         <div className="font-display text-[120px] font-light text-bekon-gold/20 leading-none mb-4">
           404
@@ -20,6 +20,6 @@ export default function NotFound() {
           Kembali ke Beranda
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

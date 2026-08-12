@@ -6,7 +6,8 @@ import { ContactForm } from "./contact-form";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { MapPin, Phone, Mail } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+/** ISR + revalidateAllPublic() saat settings berubah — lihat src/lib/revalidate.ts. */
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Kontak",

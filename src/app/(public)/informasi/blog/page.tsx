@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import BlogFilterDropdown from "@/components/BlogFilterDropdown";
-import { getPublishedArticles } from "@/lib/queries";
+import { getArticleCategories, getPublishedArticles } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/informasi/blog" },
 };
 
+/**
+ * Tetap dinamis: halaman ini membaca `searchParams.filter` dan `searchParams.q`,
+ * dan Next otomatis menjadikan halaman yang menyentuh searchParams dinamis —
+ * lihat catatan lebih panjang di halaman portfolio.
+ */
 export const dynamic = "force-dynamic";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -39,10 +44,15 @@ export default async function BlogPage({
 }) {
   const filter = searchParams.filter || "semua";
   const q = searchParams.q || "";
-  const categories =
-    filter === "semua" ? ["eksterior", "interior", "umum"] : [filter];
 
-  const articles = await getPublishedArticles({ categories, q });
+  // "Semua" berarti benar-benar semua. Dulu ia diterjemahkan jadi daftar
+  // kategori tetap ["eksterior","interior","umum"], sehingga artikel terbit
+  // dengan kategori lain — atau tanpa kategori — tidak pernah muncul di sini,
+  // padahal tetap masuk sitemap dan tetap tampil di beranda.
+  const [articles, availableCategories] = await Promise.all([
+    getPublishedArticles({ categories: filter === "semua" ? null : [filter], q }),
+    getArticleCategories(),
+  ]);
 
   return (
     <div className="min-h-screen bg-bekon-cream">
@@ -56,7 +66,7 @@ export default async function BlogPage({
           </p>
         </div>
 
-        <BlogFilterDropdown current={filter} currentQ={q} />
+        <BlogFilterDropdown current={filter} currentQ={q} categories={availableCategories} />
 
         {articles.length === 0 ? (
           <p className="text-center text-bekon-text-muted">
@@ -70,14 +80,16 @@ export default async function BlogPage({
                 href={`/informasi/blog/${article.slug}`}
                 className="block bg-white rounded-xl overflow-hidden border border-bekon-border group hover:shadow-md transition-shadow"
               >
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <Image
-                    src={article.thumbnail ?? ""}
-                    alt={article.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+                <div className="relative aspect-[16/10] overflow-hidden bg-bekon-cream">
+                  {article.thumbnail && (
+                    <Image
+                      src={article.thumbnail}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  )}
                 </div>
                 <div className="p-5">
                   <span className="inline-block px-3 py-1 rounded-full bg-bekon-gold/10 text-bekon-gold text-[11px] font-semibold uppercase tracking-wider mb-3">

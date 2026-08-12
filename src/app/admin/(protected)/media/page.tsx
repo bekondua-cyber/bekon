@@ -21,6 +21,23 @@ function formatSize(bytes: number | null): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+interface InUseEntry {
+  filename: string
+  usedIn: string[]
+}
+
+/**
+ * Sebutkan di mana gambarnya masih dipakai. Pesan "gagal menghapus" saja tidak
+ * cukup — admin perlu tahu persis apa yang harus dilepas lebih dulu.
+ */
+function describeInUse(inUse: InUseEntry[] | undefined): string | undefined {
+  if (!inUse?.length) return undefined
+  return inUse
+    .slice(0, 5)
+    .map((e) => `${e.filename} → ${e.usedIn.join(", ")}`)
+    .join("\n")
+}
+
 export default function AdminMediaPage() {
   const [items, setItems] = useState<MediaItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -87,7 +104,11 @@ export default function AdminMediaPage() {
         toast.success("File berhasil dihapus")
         fetchItems()
       } else {
-        toast.error("Gagal menghapus file")
+        const json = await res.json().catch(() => ({}))
+        toast.error(json.error || "Gagal menghapus file", {
+          description: describeInUse(json.inUse),
+          duration: 8000,
+        })
       }
     } catch {
       toast.error("Gagal menghapus file")
@@ -113,7 +134,10 @@ export default function AdminMediaPage() {
         setSelectedIds([])
       } else {
         const json = await res.json()
-        toast.error(json.error || "Gagal menghapus gambar")
+        toast.error(json.error || "Gagal menghapus gambar", {
+          description: describeInUse(json.inUse),
+          duration: 8000,
+        })
       }
     } catch {
       toast.error("Gagal menghapus gambar")

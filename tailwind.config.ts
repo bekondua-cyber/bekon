@@ -23,6 +23,11 @@ const config: Config = {
           'text-muted': '#6B6560',
           'text-secondary': '#3D3936',
           'whatsapp': '#25D366',
+          // Sudah dipakai `text-bekon-error` di form kontak sejak lama, tapi
+          // tidak pernah didefinisikan di sini — Tailwind tidak membangkitkan
+          // kelas untuk warna yang tak ada, jadi pesan error tampil dengan
+          // warna teks biasa dan tidak terbaca sebagai peringatan.
+          'error': '#B3261E',
         },
         background: "var(--background)",
         foreground: "var(--foreground)",

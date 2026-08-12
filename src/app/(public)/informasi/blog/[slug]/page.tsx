@@ -10,7 +10,10 @@ interface Props {
   params: { slug: string };
 }
 
-export const dynamic = "force-dynamic";
+/** ISR + revalidatePublic("articles") — lihat src/lib/revalidate.ts.
+ *  Penting juga untuk biaya: halaman ini menjalankan DOMPurify di server,
+ *  yang tadinya berjalan ulang untuk SETIAP pengunjung. */
+export const revalidate = 60;
 
 const CATEGORY_LABELS: Record<string, string> = {
   eksterior: "Eksterior",

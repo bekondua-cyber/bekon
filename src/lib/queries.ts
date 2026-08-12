@@ -50,6 +50,24 @@ export const TEAM_FIELDS = {
   photo: true,
 } as const
 
+/**
+ * Field yang benar-benar dipakai kartu artikel — tanpa `content`.
+ *
+ * Beranda mengirim daftar artikel sebagai prop ke `BlogSection`, sebuah
+ * komponen KLIEN, sehingga seluruh isinya ikut diserialisasi ke RSC payload
+ * dan dikirim ke browser setiap pengunjung. Tanpa `select`, itu berarti badan
+ * HTML lengkap SEMUA artikel terbit dikirim hanya untuk menampilkan tiga judul.
+ */
+export const ARTICLE_CARD_FIELDS = {
+  id: true,
+  title: true,
+  slug: true,
+  category: true,
+  excerpt: true,
+  thumbnail: true,
+  publishedAt: true,
+} as const
+
 /** Default 8 item; `all: true` mengambil seluruhnya (halaman daftar portfolio). */
 export function getPublishedPortfolio(options?: {
   featured?: boolean
@@ -81,8 +99,12 @@ export function getPortfolioBySlug(slug: string) {
   return prisma.portfolio.findUnique({ where: { slug, isPublished: true } })
 }
 
-export function getPublishedArticles(options?: { categories?: string[] | null; q?: string | null }) {
-  const { categories, q } = options ?? {}
+export function getPublishedArticles(options?: {
+  categories?: string[] | null
+  q?: string | null
+  take?: number
+}) {
+  const { categories, q, take } = options ?? {}
 
   const where: Record<string, unknown> = { isPublished: true }
   if (categories && categories.length === 1) {
@@ -97,7 +119,35 @@ export function getPublishedArticles(options?: { categories?: string[] | null; q
     ]
   }
 
-  return prisma.article.findMany({ where, orderBy: { publishedAt: "desc" } })
+  return prisma.article.findMany({
+    where,
+    // `nulls: "last"` WAJIB. Default Postgres untuk DESC adalah NULLS FIRST,
+    // dan `publishedAt` opsional — satu artikel yang diterbitkan tanpa mengisi
+    // tanggal akan menempel di urutan teratas selamanya.
+    orderBy: { publishedAt: { sort: "desc", nulls: "last" } },
+    ...(take ? { take } : {}),
+  })
+}
+
+/** Versi ringan untuk kartu: tanpa kolom `content`. Lihat ARTICLE_CARD_FIELDS. */
+export function getPublishedArticleCards(options?: { take?: number }) {
+  return prisma.article.findMany({
+    where: { isPublished: true },
+    orderBy: { publishedAt: { sort: "desc", nulls: "last" } },
+    ...(options?.take ? { take: options.take } : {}),
+    select: ARTICLE_CARD_FIELDS,
+  })
+}
+
+/** Kategori yang benar-benar dipakai artikel terbit, untuk mengisi filter blog. */
+export async function getArticleCategories(): Promise<string[]> {
+  const rows = await prisma.article.findMany({
+    where: { isPublished: true, category: { not: null } },
+    distinct: ["category"],
+    select: { category: true },
+    orderBy: { category: "asc" },
+  })
+  return rows.map((r) => r.category).filter((c): c is string => !!c)
 }
 
 export function getArticleBySlug(slug: string) {

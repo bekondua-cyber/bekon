@@ -11,7 +11,12 @@ export default function PublicLayout({
   return (
     <>
       <Navbar />
-      <main>{children}</main>
+      {/* Satu-satunya <main> di rute ini, dan pemegang anchor "#main" yang
+          dituju skip link di root layout. Navbar dan Footer sengaja berada di
+          luar: keduanya bukan konten utama. */}
+      <main id="main" tabIndex={-1}>
+        {children}
+      </main>
       <Footer />
       <ChatbotWidget />
       <FloatingWhatsApp />

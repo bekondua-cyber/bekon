@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/api-admin"
+import { revalidateAllPublic } from "@/lib/revalidate"
 
 const settingsSchema = z.record(z.string(), z.string())
 
@@ -31,6 +32,11 @@ export async function PUT(request: NextRequest) {
         })
       )
     )
+
+    // Seluruh situs, bukan satu rute: settings mengisi Footer, dan Footer ada
+    // di setiap halaman. Mengganti satu nomor WhatsApp atau alamat kantor
+    // menyentuh semuanya sekaligus.
+    revalidateAllPublic()
 
     return NextResponse.json({ success: true })
   } catch (error) {

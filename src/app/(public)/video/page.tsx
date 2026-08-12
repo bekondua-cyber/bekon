@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/video" },
 };
 
-export const dynamic = "force-dynamic";
+/** ISR + revalidatePublic("videos") — lihat src/lib/revalidate.ts. */
+export const revalidate = 60;
 
 export interface VideoItem {
   id: string;

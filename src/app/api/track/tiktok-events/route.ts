@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 import { createHash } from "crypto"
 import { z } from "zod"
 import { rateLimit } from "@/lib/rate-limit"
+import { getClientIp } from "@/lib/request-ip"
 import { normalizeWA } from "@/lib/utils"
 import { LEAD_CURRENCY, valueForEvent } from "@/lib/lead-value"
 
 export const dynamic = "force-dynamic"
 
+/** Daftar putih yang sama dengan route Meta CAPI — lihat catatan di sana. */
+const ALLOWED_EVENTS = ["Lead", "Contact"] as const
+
 const eventSchema = z.object({
-  eventName: z.string().min(1).max(100),
+  eventName: z.enum(ALLOWED_EVENTS),
   eventId: z.string().min(1).max(200),
   eventSourceUrl: z.string().max(500).optional(),
   phone: z.string().max(30).optional(),
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const identifier = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const identifier = getClientIp(request)
     const limit = rateLimit(`tiktok-events:${identifier}`, 30, 60000)
     if (!limit.allowed) {
       return NextResponse.json({ error: "Terlalu banyak permintaan." }, { status: 429 })

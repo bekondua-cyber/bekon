@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { siteConfig } from "@/data/site-config";
 import { normalizeWA } from "@/lib/utils";
+import { getPublicSettings } from "@/lib/settings-client";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 export function FloatingWhatsApp({ settings: initialSettings }: { settings?: Record<string, string> }) {
@@ -18,12 +19,15 @@ export function FloatingWhatsApp({ settings: initialSettings }: { settings?: Rec
 
   useEffect(() => {
     if (initialSettings) return;
-    fetch("/api/settings")
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.data) setSettings(json.data);
-      })
-      .catch(() => {});
+    let active = true;
+    // Lewat cache bersama, bukan fetch sendiri: beberapa komponen di halaman
+    // yang sama membutuhkan settings yang persis sama.
+    getPublicSettings().then((data) => {
+      if (active) setSettings(data);
+    });
+    return () => {
+      active = false;
+    };
   }, [initialSettings]);
 
   useEffect(() => {
