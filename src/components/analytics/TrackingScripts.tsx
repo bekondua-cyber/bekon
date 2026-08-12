@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { captureFbclid } from "@/lib/fbc";
 
 declare global {
   interface Window {
@@ -22,6 +23,14 @@ const GTAG_LOADER_ID = GA4_ID || GOOGLE_ADS_ID;
 export function TrackingScripts() {
   const pathname = usePathname();
   const isFirstRender = useRef(true);
+
+  // Dijalankan SEBELUM efek PageView di bawah, dan sengaja tanpa penjaga
+  // "lewati render pertama": justru pemuatan pertamalah yang membawa `fbclid`
+  // dari klik iklan. Efek ini mendahului pixel yang dimuat afterInteractive,
+  // sehingga fbc tetap ada meski pixel lambat atau diblokir.
+  useEffect(() => {
+    captureFbclid();
+  }, [pathname]);
 
   useEffect(() => {
     if (isFirstRender.current) {

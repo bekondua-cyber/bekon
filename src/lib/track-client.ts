@@ -9,6 +9,7 @@ declare global {
 }
 
 import { LEAD_CURRENCY, valueForEvent } from "./lead-value"
+import { getFbc } from "./fbc"
 
 const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID
 const GOOGLE_ADS_CONVERSION_LABEL = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL
@@ -55,7 +56,9 @@ export function trackConversion(eventName: string, data?: { phone?: string; emai
       eventName,
       eventId,
       eventSourceUrl: typeof window !== "undefined" ? window.location.href : undefined,
-      fbc: getCookie("_fbc"),
+      // Lewat getFbc(), bukan cookie mentah: kalau pixel belum sempat menulis
+      // `_fbc`, nilainya sudah kita susun sendiri dari `fbclid` saat mendarat.
+      fbc: getFbc(),
       fbp: getCookie("_fbp"),
       ...data,
     }),
