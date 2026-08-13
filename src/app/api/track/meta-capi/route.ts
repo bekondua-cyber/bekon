@@ -24,6 +24,7 @@ const capiSchema = z.object({
   email: z.string().max(200).optional(),
   fbc: z.string().max(300).optional(),
   fbp: z.string().max(300).optional(),
+  externalId: z.string().max(100).optional(),
 })
 
 function sha256(value: string): string {
@@ -51,7 +52,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Data event tidak valid" }, { status: 400 })
     }
 
-    const { eventName, eventId, eventSourceUrl, phone, email, fbc, fbp } = validation.data
+    const { eventName, eventId, eventSourceUrl, phone, email, fbc, fbp, externalId } =
+      validation.data
 
     const userData: Record<string, string | string[]> = {}
     if (identifier !== "unknown") userData.client_ip_address = identifier
@@ -61,6 +63,12 @@ export async function POST(request: NextRequest) {
     if (email) userData.em = [sha256(email)]
     if (fbc) userData.fbc = fbc
     if (fbp) userData.fbp = fbp
+    // Satu-satunya penanda yang bisa dilampirkan ke event Contact — klik tombol
+    // WhatsApp tidak membawa email maupun telepon. Pixel mengirim nilai mentah
+    // lalu meng-hash sendiri; sha256() di sini sudah trim + huruf kecil, jadi
+    // hasilnya identik. Kalau normalisasinya menyimpang, Meta membacanya sebagai
+    // dua orang berbeda.
+    if (externalId) userData.external_id = [sha256(externalId)]
 
     const res = await fetch(
       `https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${accessToken}`,

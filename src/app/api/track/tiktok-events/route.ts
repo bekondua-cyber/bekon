@@ -19,6 +19,7 @@ const eventSchema = z.object({
   email: z.string().max(200).optional(),
   ttclid: z.string().max(300).optional(),
   ttp: z.string().max(300).optional(),
+  externalId: z.string().max(100).optional(),
 })
 
 function sha256(value: string): string {
@@ -46,7 +47,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Data event tidak valid" }, { status: 400 })
     }
 
-    const { eventName, eventId, eventSourceUrl, phone, email, ttclid, ttp } = validation.data
+    const { eventName, eventId, eventSourceUrl, phone, email, ttclid, ttp, externalId } =
+      validation.data
 
     const userData: Record<string, string | string[]> = {}
     if (identifier !== "unknown") userData.ip = identifier
@@ -56,6 +58,9 @@ export async function POST(request: NextRequest) {
     if (email) userData.email = [sha256(email)]
     if (ttclid) userData.ttclid = ttclid
     if (ttp) userData.ttp = ttp
+    // Sama seperti route Meta: penanda anonim yang membuat klik WhatsApp bisa
+    // dicocokkan dengan orang yang sama saat ia kembali dan mengisi form.
+    if (externalId) userData.external_id = sha256(externalId)
 
     const res = await fetch("https://business-api.tiktok.com/open_api/v1.3/event/track/", {
       method: "POST",

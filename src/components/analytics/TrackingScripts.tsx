@@ -5,12 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { captureFbclid } from "@/lib/fbc";
 
-declare global {
-  interface Window {
-    fbq?: (...args: unknown[]) => void;
-    ttq?: { page: () => void; track: (...args: unknown[]) => void };
-  }
-}
+// Tipe window.fbq / gtag / ttq tinggal di src/types/tracking.d.ts.
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
