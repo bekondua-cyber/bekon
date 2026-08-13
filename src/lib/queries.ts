@@ -139,6 +139,41 @@ export function getPublishedArticleCards(options?: { take?: number }) {
   })
 }
 
+/**
+ * Artikel lain untuk ditawarkan di akhir sebuah artikel.
+ *
+ * Sekategori lebih dulu; kalau tidak cukup, dilengkapi artikel terbaru mana pun
+ * supaya bloknya tidak pernah tampil setengah kosong.
+ */
+export async function getRelatedArticles(options: {
+  category?: string | null
+  excludeSlug: string
+  take?: number
+}) {
+  const { category, excludeSlug, take = 3 } = options
+
+  const sekategori = category
+    ? await prisma.article.findMany({
+        where: { isPublished: true, category, NOT: { slug: excludeSlug } },
+        orderBy: { publishedAt: { sort: "desc", nulls: "last" } },
+        take,
+        select: ARTICLE_CARD_FIELDS,
+      })
+    : []
+
+  if (sekategori.length >= take) return sekategori
+
+  const sudahAda = sekategori.map((a) => a.slug)
+  const pelengkap = await prisma.article.findMany({
+    where: { isPublished: true, NOT: { slug: { in: [excludeSlug, ...sudahAda] } } },
+    orderBy: { publishedAt: { sort: "desc", nulls: "last" } },
+    take: take - sekategori.length,
+    select: ARTICLE_CARD_FIELDS,
+  })
+
+  return [...sekategori, ...pelengkap]
+}
+
 /** Kategori yang benar-benar dipakai artikel terbit, untuk mengisi filter blog. */
 export async function getArticleCategories(): Promise<string[]> {
   const rows = await prisma.article.findMany({

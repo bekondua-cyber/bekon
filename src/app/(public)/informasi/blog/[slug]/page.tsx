@@ -3,8 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
-import { getArticleBySlug } from "@/lib/queries";
+import { getArticleBySlug, getRelatedArticles } from "@/lib/queries";
 import { serializeJsonLd } from "@/lib/json-ld";
+import { ArticleFooterLinks } from "@/components/blog/ArticleFooterLinks";
 
 interface Props {
   params: { slug: string };
@@ -78,6 +79,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BlogDetailPage({ params }: Props) {
   const article = await fetchArticle(params.slug);
   if (!article) notFound();
+
+  const related = await getRelatedArticles({
+    category: article.category,
+    excludeSlug: article.slug,
+  });
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -153,6 +159,15 @@ export default async function BlogDetailPage({ params }: Props) {
               </p>
             </div>
           )}
+
+          {/* Sebelum ini halaman artikel adalah jalan buntu: satu-satunya
+              tautan hanyalah "kembali ke blog". Pembaca dari pencarian tidak
+              punya jalan menuju layanan, portfolio, maupun WhatsApp. */}
+          <ArticleFooterLinks
+            title={article.title}
+            category={article.category}
+            related={related}
+          />
 
           <div className="mt-12 pt-8 border-t border-bekon-border">
             <Link
