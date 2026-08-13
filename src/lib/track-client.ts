@@ -71,6 +71,26 @@ export function buildMatchData(data?: { phone?: string; email?: string }): Match
   return match
 }
 
+/**
+ * Data pencocokan untuk Enhanced Conversions Google.
+ *
+ * Berbeda dari Meta dan TikTok yang menerima nomor apa adanya, Google menuntut
+ * format **E.164** — harus diawali tanda `+` beserta kode negara. Nomor tanpa
+ * `+` diabaikan diam-diam, jadi kesalahan ini tidak memunculkan error apa pun,
+ * hanya cakupan pencocokan yang tidak pernah naik.
+ *
+ * Mengembalikan undefined kalau tidak ada satu pun penanda, supaya kita tidak
+ * memanggil gtag dengan objek kosong.
+ */
+export function buildGoogleUserData(match: MatchData): Record<string, string> | undefined {
+  const userData: Record<string, string> = {}
+
+  if (match.email) userData.email = match.email
+  if (match.phone) userData.phone_number = `+${match.phone}`
+
+  return Object.keys(userData).length > 0 ? userData : undefined
+}
+
 export function trackConversion(eventName: string, data?: { phone?: string; email?: string }) {
   const eventId = generateEventId()
 
@@ -100,6 +120,16 @@ export function trackConversion(eventName: string, data?: { phone?: string; emai
 
   const adsLabel = googleAdsLabel(eventName)
   if (typeof window !== "undefined" && window.gtag && GOOGLE_ADS_ID && adsLabel) {
+    // Enhanced Conversions — padanan Advanced Matching milik Google, dan satu-
+    // satunya dari tiga platform yang tadinya tidak menerima penanda orang sama
+    // sekali. Conversion action di Google Ads sudah disetel "Dikelola melalui
+    // Tag Google", artinya data ini yang dipakainya.
+    //
+    // `set` sebelum `event`, bukan digabung ke dalamnya: gtag menyimpan
+    // user_data di scope dan menerapkannya ke event berikutnya.
+    const userData = buildGoogleUserData(match)
+    if (userData) window.gtag("set", "user_data", userData)
+
     window.gtag("event", "conversion", {
       send_to: `${GOOGLE_ADS_ID}/${adsLabel}`,
       value,

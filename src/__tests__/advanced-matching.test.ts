@@ -131,6 +131,43 @@ describe("nilai yang dikirim ke pixel adalah bentuk MENTAH", () => {
   })
 })
 
+describe("Enhanced Conversions Google menuntut format E.164", () => {
+  it("menambahkan tanda + di depan nomor", async () => {
+    const { buildGoogleUserData } = await import("@/lib/track-client")
+    const hasil = buildGoogleUserData(buildMatchData({ phone: "081234567890" }))
+    // Tanpa tanda +, Google mengabaikan nomornya DIAM-DIAM — tidak ada error,
+    // cakupan pencocokan saja yang tidak pernah naik.
+    expect(hasil?.phone_number).toBe("+6281234567890")
+  })
+
+  it("menyatukan berbagai bentuk telepon ke satu nilai E.164", async () => {
+    const { buildGoogleUserData } = await import("@/lib/track-client")
+    const bentuk = ["+62 812-3456-7890", "081234567890", "6281234567890"]
+    const hasil = new Set(
+      bentuk.map((p) => buildGoogleUserData(buildMatchData({ phone: p }))?.phone_number)
+    )
+    expect(hasil).toEqual(new Set(["+6281234567890"]))
+  })
+
+  it("meneruskan email apa adanya, sudah huruf kecil", async () => {
+    const { buildGoogleUserData } = await import("@/lib/track-client")
+    const hasil = buildGoogleUserData(buildMatchData({ email: " Budi@Example.COM " }))
+    expect(hasil?.email).toBe("budi@example.com")
+  })
+
+  it("tidak mengirim externalId — Google tidak memakainya di enhanced conversions", async () => {
+    const { buildGoogleUserData } = await import("@/lib/track-client")
+    const hasil = buildGoogleUserData(buildMatchData({ email: "a@b.com" }))
+    expect(hasil).not.toHaveProperty("external_id")
+  })
+
+  it("mengembalikan undefined kalau tidak ada penanda — jangan panggil gtag dengan objek kosong", async () => {
+    const { buildGoogleUserData } = await import("@/lib/track-client")
+    // Klik WhatsApp anonim: hanya punya externalId, yang tidak dipakai Google.
+    expect(buildGoogleUserData(buildMatchData())).toBeUndefined()
+  })
+})
+
 describe("pemilihan label conversion Google Ads", () => {
   /** Env dibaca saat modul dimuat, jadi modulnya harus diimpor ulang. */
   async function labelUntuk(eventName: string, contactLabel: string) {
