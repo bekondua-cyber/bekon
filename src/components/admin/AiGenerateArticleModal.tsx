@@ -41,7 +41,15 @@ export function AiGenerateArticleModal({ onGenerated }: AiGenerateArticleModalPr
         return
       }
       onGenerated(json.data)
-      toast.success("Artikel berhasil digenerate, silakan review sebelum simpan")
+      // Panjang dan jumlah tautan ditampilkan supaya admin bisa menilai
+      // hasilnya sebelum menyimpan — dua hal itu yang menentukan artikel ini
+      // punya peluang meraih peringkat atau tidak.
+      const m = json.meta as { words?: number; internalLinks?: number } | undefined
+      toast.success("Artikel berhasil digenerate, silakan review sebelum simpan", {
+        description: m
+          ? `${m.words} kata · ${m.internalLinks} tautan internal`
+          : undefined,
+      })
       setOpen(false)
     } catch {
       toast.error("Gagal generate artikel")
