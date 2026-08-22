@@ -17,6 +17,17 @@ const teamCreateSchema = z.object({
 
 const teamUpdateSchema = teamCreateSchema.partial()
 
+/**
+ * Penyusunan ulang lewat drag and drop mengirim SELURUH daftar id sesuai urutan
+ * barunya, bukan satu id dengan sortOrder baru. Alasannya: memindahkan satu
+ * kartu menggeser posisi semua kartu setelahnya, jadi mengirim satu per satu
+ * berarti puluhan request yang bisa datang tidak berurutan dan meninggalkan
+ * urutan setengah jadi. Batas 500 menjaga transaksi tetap wajar.
+ */
+const teamReorderSchema = z.object({
+  order: z.array(z.string().min(1)).min(1).max(500),
+})
+
 function validationErrorResponse(error: z.ZodError) {
   return NextResponse.json(
     {
@@ -32,8 +43,12 @@ export async function GET() {
   if (unauthorized) return unauthorized
 
   try {
+    // createdAt jadi pemutus seri: sebelum admin pernah menyeret kartu, semua
+    // sortOrder masih 0 dan urutan tanpa pemutus seri bisa berbeda antara panel
+    // admin dan halaman publik — persis hal yang membuat drag terasa "tidak
+    // tersimpan". Halaman publik memakai pemutus seri yang sama.
     const items = await prisma.teamMember.findMany({
-      orderBy: { sortOrder: "asc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     })
     return NextResponse.json({ data: items })
   } catch (error) {
@@ -104,6 +119,52 @@ export async function PUT(request: NextRequest) {
     console.error("PUT /api/admin/team error:", error)
     return NextResponse.json(
       { error: "Gagal mengupdate anggota tim" },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  const unauthorized = await requireAdmin()
+  if (unauthorized) return unauthorized
+
+  try {
+    const body = await request.json()
+    const validation = teamReorderSchema.safeParse(body)
+    if (!validation.success) {
+      return validationErrorResponse(validation.error)
+    }
+
+    const { order } = validation.data
+
+    if (new Set(order).size !== order.length) {
+      return NextResponse.json(
+        { error: "Urutan memuat ID ganda" },
+        { status: 400 }
+      )
+    }
+
+    // Kalau ada anggota yang sudah dihapus di tab lain, urutan yang dikirim
+    // sudah basi. Tolak seluruhnya daripada menulis sortOrder setengah jadi.
+    const found = await prisma.teamMember.count({ where: { id: { in: order } } })
+    if (found !== order.length) {
+      return NextResponse.json(
+        { error: "Sebagian anggota tim tidak ditemukan, muat ulang halaman" },
+        { status: 409 }
+      )
+    }
+
+    await prisma.$transaction(
+      order.map((id, index) =>
+        prisma.teamMember.update({ where: { id }, data: { sortOrder: index } })
+      )
+    )
+    revalidatePublic("team")
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("PATCH /api/admin/team error:", error)
+    return NextResponse.json(
+      { error: "Gagal menyimpan urutan tim" },
       { status: 500 }
     )
   }

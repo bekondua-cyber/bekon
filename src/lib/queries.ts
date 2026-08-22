@@ -210,7 +210,9 @@ export function getPublishedTestimonials() {
 export function getActiveTeam() {
   return prisma.teamMember.findMany({
     where: { isActive: true },
-    orderBy: { sortOrder: "asc" },
+    // Pemutus seri wajib sama dengan panel admin, kalau tidak urutan hasil drag
+    // bisa tampil berbeda di sini saat sortOrder-nya masih kembar.
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     select: TEAM_FIELDS,
   })
 }
