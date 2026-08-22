@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import { toast } from "sonner"
 import { uploadFile } from "@/lib/upload-client"
+import { SortableImageGrid } from "@/components/admin/SortableImageGrid"
 
 const categories = ["eksterior", "interior", "bangun", "renovasi", "kost-ruko"]
 
@@ -192,10 +193,6 @@ export default function AdminPortfolioEditPage() {
     }
   }
 
-  function removeImage(index: number) {
-    setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== index) }))
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -381,20 +378,11 @@ export default function AdminPortfolioEditPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <h2 className="font-semibold text-gray-900">Gambar Gallery</h2>
 
-          <div className="grid grid-cols-5 gap-3">
-            {form.images.map((url, i) => (
-              <div key={i} className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
-                <Image src={url} alt="" fill className="object-cover" unoptimized />
-                <button
-                  type="button"
-                  onClick={() => removeImage(i)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
+          <SortableImageGrid
+            images={form.images}
+            onChange={(images) => setForm((f) => ({ ...f, images }))}
+            disabled={uploadingImages}
+          />
 
           <div className="relative">
             {uploadingImages ? (
