@@ -4,15 +4,14 @@ import { prisma } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
 import { getClientIp } from "@/lib/request-ip"
 import { generateCompletion } from "@/lib/ai"
-import { resolveGeminiModel } from "@/lib/ai/model-setting"
-import { BEKON_BRAND_CONTEXT } from "@/lib/ai/brand"
+import { resolveGeminiModelFromSettings } from "@/lib/ai/model-setting"
+import { BEKON_BRAND_CONTEXT, BEKON_SERVICE_AREA } from "@/lib/ai/brand"
+import { trustedHistory, turnNumber, resolveReply, FALLBACK_MARKER } from "@/lib/chat-history"
 import { services } from "@/data/services"
 import { siteConfig } from "@/data/site-config"
 import { normalizeWA } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
-
-const FALLBACK_MARKER = "[TIDAK_YAKIN]"
 
 const chatSchema = z.object({
   message: z.string().min(1).max(1000),
@@ -30,41 +29,28 @@ const chatSchema = z.object({
 })
 
 /**
- * Riwayat datang dari browser, jadi seluruh isinya dikendalikan pemanggil —
- * termasuk giliran ber-role "assistant". Penyerang bisa menyusun balasan bot
- * palsu ("Harga bangun rumah Rp2 juta/m²") lalu bertanya "tadi berapa?", dan
- * model akan memperlakukannya sebagai ucapannya sendiri. Itu menembus aturan
- * nomor satu di system prompt: jangan pernah mengarang harga.
- *
- * Karena itu hanya giliran "user" yang diteruskan. Pertanyaan-pertanyaan
- * sebelumnya sudah cukup sebagai konteks untuk bot FAQ yang balasannya dibatasi
- * 4–5 kalimat, dan jalur penyuntikannya hilang sepenuhnya.
- *
- * Kalau nanti konteks balasan bot benar-benar dibutuhkan, perbaikan yang benar
- * adalah menyimpan percakapan di server (tabel ChatConversation sudah ada) dan
- * mengirim `conversationId`, bukan mempercayai riwayat kiriman klien.
+ * Satu-satunya tempat alamat situs dirakit di route ini. Pola `env ||
+ * domain produksi` mengikuti yang sudah dipakai app/robots.ts.
  */
-function trustedHistory(history: { role: "user" | "assistant"; content: string }[]) {
-  return history.filter((h) => h.role === "user")
-}
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://bangunrumahbekon.com"
 
-async function buildSystemPrompt(): Promise<{ systemPrompt: string; waLink: string }> {
-  const [knowledgeEntries, portfolios, testimonials, settings] = await Promise.all([
+async function buildSystemPrompt(turn: number): Promise<{
+  systemPrompt: string
+  waLink: string
+  model: string
+}> {
+  const [knowledgeEntries, settings] = await Promise.all([
     prisma.knowledgeEntry.findMany({
       where: { isPublished: true },
-      orderBy: { sortOrder: "asc" },
-      select: { question: true, answer: true, category: true },
-      take: 30,
-    }),
-    prisma.portfolio.findMany({
-      where: { isPublished: true },
-      select: { title: true, category: true, location: true },
-      take: 20,
-    }),
-    prisma.testimonial.findMany({
-      where: { isPublished: true },
-      select: { clientName: true, content: true, projectType: true },
-      take: 10,
+      // Tiebreaker `createdAt` bukan hiasan: SELURUH entri saat ini bernilai
+      // sortOrder 0 (form admin tidak punya kolom urutan), dan Postgres tidak
+      // menjamin urutan baris yang nilainya seri. Tanpa ini isi prompt bisa
+      // berbeda antar-request, sehingga jawaban ikut berubah-ubah.
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      select: { question: true, answer: true },
+      // Dulu 30 — dan jumlah entri published memang PAS 30, jadi entri
+      // berikutnya akan lenyap dari prompt tanpa peringatan apa pun di admin.
+      take: 100,
     }),
     prisma.setting.findMany(),
   ])
@@ -81,36 +67,48 @@ async function buildSystemPrompt(): Promise<{ systemPrompt: string; waLink: stri
     .map((s) => `- ${s.title}: ${s.short_desc}`)
     .join("\n")
 
-  const portfolioText = portfolios
-    .map((p) => `- ${p.title} (${p.category || "umum"}, ${p.location || "-"})`)
-    .join("\n")
+  /**
+   * Model tidak melihat balasannya sendiri (lihat trustedHistory), jadi tanpa
+   * baris ini ia menyapa ulang dan menempelkan ajakan WhatsApp di SETIAP
+   * giliran. Yang dikirim hanya angka giliran, bukan teks dari klien.
+   */
+  const turnNote =
+    turn > 1
+      ? `\n\nKONTEKS: ini giliran ke-${turn} dalam percakapan yang sedang berjalan. Kamu SUDAH menyapa dan SUDAH memberikan link WhatsApp di giliran sebelumnya — jangan diulang. Langsung jawab pertanyaannya.`
+      : ""
 
-  const testimonialText = testimonials
-    .map((t) => `- ${t.clientName} (${t.projectType || "-"}): "${t.content}"`)
-    .join("\n")
+  const systemPrompt = `Kamu adalah asisten AI resmi BEKON. ${BEKON_BRAND_CONTEXT} Wilayah layanan: ${BEKON_SERVICE_AREA}.
 
-  const systemPrompt = `Kamu adalah asisten AI resmi BEKON. ${BEKON_BRAND_CONTEXT} Jawab pertanyaan calon klien dengan ramah, singkat, dan informatif dalam Bahasa Indonesia.
+CARA MENJAWAB:
+- Bahasa Indonesia yang ramah. Sapa calon klien dengan "Kak" — konsisten, jangan dicampur "Anda".
+- MAKSIMAL 350 karakter (2-3 kalimat). Pertanyaan ya/tidak dijawab langsung, tanpa paragraf pengantar.
+- Jangan mengulang salam, ajakan WhatsApp, atau disclaimer yang sudah kamu sampaikan sebelumnya.
 
 ATURAN PENTING:
-1. JANGAN mengarang harga, estimasi biaya, atau janji waktu pengerjaan spesifik. Untuk pertanyaan harga/RAB, arahkan ke konsultasi WhatsApp.
-2. Jika pertanyaan di luar topik bisnis BEKON, atau kamu tidak yakin dengan jawabannya, balas HANYA dengan teks "${FALLBACK_MARKER}" tanpa tambahan apapun.
-3. Jawaban singkat dan padat (maksimal 4-5 kalimat).
+1. Angka harga HANYA boleh diambil dari DATA TANYA-JAWAB — jangan pernah mengarang tarif sendiri. Tarif per m² di sana adalah estimasi awal "mulai dari"; selalu sampaikan begitu, jangan sebagai harga pasti.
+2. Kalau menghitung gambaran total dari luas bangunan, pakai HANYA tarif yang tertulis untuk jumlah lantai yang sesuai, dan sebut hasilnya sebagai gambaran awal yang masih menyesuaikan desain serta spesifikasi. Kalau ragu dengan hitungannya, jangan menebak — arahkan ke konsultasi WhatsApp.
+3. Untuk yang tarifnya TIDAK tertulis di DATA TANYA-JAWAB — rumah 3 lantai ke atas, renovasi, dan permintaan RAB rinci — jangan sebut angka apa pun. Arahkan ke konsultasi WhatsApp.
+4. Jangan menjanjikan durasi atau tanggal pengerjaan yang spesifik.
+5. JANGAN pernah memutuskan sendiri apakah sebuah proyek bisa atau tidak bisa dikerjakan — berdasarkan lokasi, luas, kapasitas, maupun jadwal — kalau dasarnya tidak tertulis di DATA TANYA-JAWAB. Kalau ragu, arahkan ke WhatsApp. JANGAN menolak calon klien.
+6. Kalau pertanyaannya tidak terjawab oleh DATA TANYA-JAWAB, balas HANYA dengan teks "${FALLBACK_MARKER}" tanpa tambahan apapun. Jangan merangkai jawaban dari entri yang topiknya berbeda.
+7. Kalau pertanyaannya di luar topik bisnis BEKON, balas HANYA dengan teks "${FALLBACK_MARKER}".
 
 LAYANAN BEKON:
 ${servicesText}
 
-DATA TANYA-JAWAB (gunakan sebagai referensi utama):
+DATA TANYA-JAWAB (satu-satunya sumber fakta yang boleh kamu pakai):
 ${knowledgeText || "(belum ada data)"}
 
-CONTOH PORTFOLIO:
-${portfolioText || "(belum ada data)"}
+Halaman portfolio, bagikan kalau klien ingin melihat contoh hasil kerja: ${SITE_URL}/portfolio
+Kontak WhatsApp untuk konsultasi lebih lanjut: ${waLink}${turnNote}`
 
-TESTIMONI KLIEN:
-${testimonialText || "(belum ada data)"}
-
-Kontak WhatsApp untuk konsultasi lebih lanjut: ${waLink}`
-
-  return { systemPrompt, waLink }
+  return {
+    systemPrompt,
+    waLink,
+    // Tabel `setting` sudah ditarik di atas — dulu resolveGeminiModel()
+    // menembaknya sekali lagi, dua round-trip berurutan untuk tiap pesan.
+    model: resolveGeminiModelFromSettings(settingsMap),
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -131,13 +129,17 @@ export async function POST(request: NextRequest) {
     }
 
     const { message, history = [] } = validation.data
-    const { systemPrompt, waLink } = await buildSystemPrompt()
+    const { systemPrompt, waLink, model } = await buildSystemPrompt(turnNumber(history))
     const fallbackReply = `Maaf, untuk pertanyaan ini tim kami akan lebih membantu jika berbicara langsung. Silakan hubungi kami via WhatsApp: ${waLink}`
 
     const reply = await generateCompletion({
-      model: await resolveGeminiModel(),
-      temperature: 0.5,
-      maxTokens: 500,
+      model,
+      // Bot FAQ yang harus setia pada knowledge base tidak butuh kreativitas;
+      // 0.5 membuat jawaban untuk pertanyaan serupa berbeda-beda isinya.
+      temperature: 0.3,
+      // 500 token ≈ 375 kata — jauh di atas target 2-3 kalimat, dan headroom
+      // sebesar itu sendiri yang mengundang jawaban bertele-tele.
+      maxTokens: 220,
       messages: [
         { role: "system", content: systemPrompt },
         ...trustedHistory(history).map((h) => ({ role: h.role, content: h.content })),
@@ -145,8 +147,7 @@ export async function POST(request: NextRequest) {
       ],
     })
 
-    const usedFallback = reply.includes(FALLBACK_MARKER)
-    const finalReply = usedFallback ? fallbackReply : reply.trim()
+    const { reply: finalReply, usedFallback } = resolveReply(reply, fallbackReply)
 
     // Percakapan disimpan supaya token AI yang sudah dibayar menghasilkan data:
     // pertanyaan apa yang sering muncul, dan mana yang belum bisa dijawab
