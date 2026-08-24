@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { execSync } from "child_process"
-import { readFileSync } from "fs"
-import { join } from "path"
+import { readdirSync, readFileSync } from "fs"
+import { join, relative, sep } from "path"
 import { AI_CHAIN_DEADLINE_MS, AI_MIN_SLICE_MS } from "@/lib/ai/fetch-with-timeout"
 
 /**
@@ -123,6 +122,48 @@ describe("anggaran waktu rantai AI", () => {
     expect(jatah).toBeLessThanOrEqual(21_000)
   })
 
+  it("jatah tidak pernah melebihi sisa anggaran, bahkan di bawah lantai minimum", async () => {
+    // Regresi: lantai AI_MIN_SLICE_MS dulu jadi lapisan TERLUAR, sehingga
+    // deadlineMs yang lebih kecil dari lantai itu justru dilampaui. Provider
+    // pertama lolos dari penjaga "anggaran habis" (yang hanya berlaku i > 0),
+    // jadi ia menerima 6 detik penuh walau pemanggil cuma memberi 2 detik.
+    const { generateCompletion } = await import("@/lib/ai")
+
+    complete.gemini.mockResolvedValue("ok")
+    const anggaranMungil = 2_000
+    await generateCompletion({ ...options, deadlineMs: anggaranMungil })
+
+    const jatah = complete.gemini.mock.calls[0][0].timeoutMs as number
+    expect(jatah).toBeLessThanOrEqual(anggaranMungil)
+    expect(jatah).toBeGreaterThan(0)
+  })
+
+  it("waktu nyata benar-benar terbatas — bukan cuma jam yang dipalsukan", async () => {
+    // Tes lain memakai Date.now yang di-spy. Yang ini membiarkan jam asli
+    // berjalan dan provider benar-benar menggantung, supaya batas waktunya
+    // terbukti nyata dan bukan artefak mock.
+    const { generateCompletion } = await import("@/lib/ai")
+
+    const gantung = () =>
+      vi.fn().mockImplementation(
+        (o: { timeoutMs: number }) =>
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("tidak merespons")), o.timeoutMs)
+          )
+      )
+    complete.gemini.mockImplementation(gantung())
+    complete.groq.mockImplementation(gantung())
+    complete.openrouter.mockImplementation(gantung())
+
+    const t0 = Date.now()
+    await expect(generateCompletion({ ...options, deadlineMs: 300 })).rejects.toThrow()
+    const berlalu = Date.now() - t0
+
+    // Longgar sedikit untuk jitter penjadwal, tapi jauh di bawah 3x300ms yang
+    // akan terjadi kalau tiap provider memakai anggaran penuh sendiri-sendiri.
+    expect(berlalu).toBeLessThan(900)
+  }, 10_000)
+
   it("provider tanpa kunci API tidak ikut memotong jatah", async () => {
     delete process.env.GROQ_API_KEY
     delete process.env.OPENROUTER_API_KEY
@@ -159,14 +200,23 @@ describe("maxDuration di rute AI", () => {
   it("tidak ada rute AI lain yang terlewat", () => {
     // Penjaga: kalau nanti ada rute baru yang memanggil generateCompletion,
     // ia harus ikut didaftarkan di AI_ROUTES beserta maxDuration-nya.
-    const hits = execSync(
-      'git grep -l "generateCompletion" -- "src/app/api/**/route.ts"',
-      { cwd: process.cwd(), encoding: "utf8" }
-    )
-      .split("\n")
-      .filter(Boolean)
-      .map((p) => p.trim())
+    //
+    // Menelusuri berkas sendiri, bukan lewat `git grep` — penjaga ini tidak
+    // boleh ikut gagal cuma karena tesnya dijalankan di luar working tree git
+    // (tarball, container build, direktori hasil unduh).
+    function kumpulkanRoute(dir: string, hasil: string[] = []): string[] {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name)
+        if (entry.isDirectory()) kumpulkanRoute(full, hasil)
+        else if (entry.name === "route.ts") hasil.push(full)
+      }
+      return hasil
+    }
 
-    expect(hits.sort()).toEqual([...AI_ROUTES].sort())
+    const pemanggil = kumpulkanRoute(join(process.cwd(), "src", "app", "api"))
+      .filter((f) => readFileSync(f, "utf8").includes("generateCompletion"))
+      .map((f) => relative(process.cwd(), f).split(sep).join("/"))
+
+    expect(pemanggil.sort()).toEqual([...AI_ROUTES].sort())
   })
 })

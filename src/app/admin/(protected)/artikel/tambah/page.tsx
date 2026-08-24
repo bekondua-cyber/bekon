@@ -84,13 +84,14 @@ export default function AdminArtikelTambahPage() {
     setLoading(true)
 
     try {
+      // Tanpa `publishedAt` — server yang menentukannya lewat
+      // lib/article-published-at.ts, sama seperti halaman edit dan tombol
+      // Draft/Published di daftar. Menyalin aturannya ke sini lagi hanya
+      // mengundang kedua salinan itu berbeda suatu saat nanti.
       const res = await fetch("/api/admin/articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          publishedAt: form.isPublished ? new Date().toISOString() : null,
-        }),
+        body: JSON.stringify(form),
         credentials: "include",
       })
 

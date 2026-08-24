@@ -73,7 +73,15 @@ export async function generateCompletion(opts: AiCompletionOptions): Promise<str
       errors.push(`${provider.name}: dilewati, anggaran waktu rantai habis`)
       break
     }
-    const slice = Math.max(AI_MIN_SLICE_MS, Math.floor(remainingMs / remainingProviders))
+    // `min(remainingMs, ...)` WAJIB jadi lapisan terluar. Tanpa itu, lantai
+    // AI_MIN_SLICE_MS bisa memberi jatah LEBIH BESAR daripada sisa anggaran —
+    // provider pertama lolos dari penjaga `i > 0` di atas, jadi pemanggil yang
+    // meminta deadlineMs di bawah 6 detik justru dilampaui, persis kebalikan
+    // dari tujuan seluruh mekanisme ini.
+    const slice = Math.min(
+      remainingMs,
+      Math.max(AI_MIN_SLICE_MS, Math.floor(remainingMs / remainingProviders))
+    )
 
     try {
       return await provider.complete({ ...opts, timeoutMs: slice })
