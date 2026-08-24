@@ -232,6 +232,28 @@ model VideoPromptHistory {
   @@map("video_prompt_history")
 }
 
+/// Hitungan rate limit yang bertahan lintas instance.
+///
+/// Versi memori (src/lib/rate-limit.ts) menyimpan hitungannya di satu Map di
+/// dalam proses. Di serverless tiap instance punya Map sendiri, jadi batas
+/// "5 percobaan login / 15 menit" efektif menjadi 5x jumlah instance yang
+/// sedang hidup, dan hitungannya hilang tiap instance diganti — padahal
+/// pembatas login adalah satu-satunya penahan brute force di seluruh sistem.
+///
+/// Sengaja memakai Postgres yang sudah ada, bukan Redis: klien menolak menambah
+/// layanan luar, dan volume login admin jauh di bawah titik di mana Postgres
+/// jadi pilihan yang salah untuk ini.
+model RateLimitHit {
+  /// Kunci gabungan, mis. "login:114.79.x.x".
+  identifier String   @id
+  count      Int      @default(1)
+  resetAt    DateTime
+
+  /// Untuk menyapu baris yang sudah kedaluwarsa.
+  @@index([resetAt])
+  @@map("rate_limit_hit")
+}
+
 model HeroSlide {
   id          String   @id @default(cuid())
   image       String
