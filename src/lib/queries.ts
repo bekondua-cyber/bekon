@@ -126,6 +126,11 @@ export function getPublishedArticles(options?: {
     // tanggal akan menempel di urutan teratas selamanya.
     orderBy: { publishedAt: { sort: "desc", nulls: "last" } },
     ...(take ? { take } : {}),
+    // Tanpa `select`, kolom `content` — badan HTML LENGKAP setiap artikel
+    // terbit — ikut ditarik dari Neon pada setiap kunjungan ke /informasi/blog,
+    // padahal halaman itu cuma merender judul, excerpt, thumbnail, dan tanggal.
+    // Halaman itu `force-dynamic`, jadi tidak ada cache yang meredamnya.
+    select: ARTICLE_CARD_FIELDS,
   })
 }
 
