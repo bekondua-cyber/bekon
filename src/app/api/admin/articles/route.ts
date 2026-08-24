@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin, isPrismaErrorCode } from "@/lib/api-admin"
 import { revalidatePublic } from "@/lib/revalidate"
 import { cleanupUnusedImages } from "@/lib/media-usage"
+import { resolvePublishedAt } from "@/lib/article-published-at"
 
 export const dynamic = "force-dynamic"
 
@@ -76,7 +77,16 @@ export async function POST(request: NextRequest) {
       return validationErrorResponse(validation.error)
     }
 
-    const item = await prisma.article.create({ data: validation.data })
+    // Artikel yang langsung terbit tanpa tanggal akan tenggelam ke dasar
+    // daftar blog dan kehilangan datePublished — lihat lib/article-published-at.
+    const publishedAt = resolvePublishedAt({
+      isPublished: validation.data.isPublished,
+      incoming: validation.data.publishedAt,
+    })
+
+    const item = await prisma.article.create({
+      data: { ...validation.data, ...(publishedAt ? { publishedAt } : {}) },
+    })
     revalidatePublic("articles")
     return NextResponse.json({ data: item })
   } catch (error) {
@@ -114,9 +124,31 @@ export async function PUT(request: NextRequest) {
       return validationErrorResponse(validation.error)
     }
 
+    // Tombol Draft/Published di halaman daftar hanya mengirim
+    // `{ id, isPublished }`, jadi tanggal yang tersimpan harus dibaca dari
+    // database — tidak bisa diandalkan datang dari pemanggil.
+    const current = await prisma.article.findUnique({
+      where: { id },
+      select: { publishedAt: true },
+    })
+    if (!current) {
+      return NextResponse.json({ error: "Artikel tidak ditemukan" }, { status: 404 })
+    }
+
+    // `publishedAt` dikeluarkan dari data mentah lalu dipasang ulang HANYA
+    // kalau aturannya memutuskan begitu. Tanpa pemisahan ini, `publishedAt:
+    // null` yang dikirim pemanggil tetap lolos dan menghapus tanggal asli.
+    const { publishedAt: dikirim, ...sisanya } = validation.data
+
+    const publishedAt = resolvePublishedAt({
+      isPublished: validation.data.isPublished,
+      incoming: dikirim,
+      existing: current.publishedAt,
+    })
+
     const item = await prisma.article.update({
       where: { id },
-      data: validation.data,
+      data: { ...sisanya, ...(publishedAt ? { publishedAt } : {}) },
     })
     revalidatePublic("articles")
     return NextResponse.json({ data: item })

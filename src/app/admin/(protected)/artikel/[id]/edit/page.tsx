@@ -15,10 +15,14 @@ interface ArticleForm {
   content: string
   thumbnail: string
   isPublished: boolean
-  publishedAt: string | null
   metaTitle: string
   metaDesc: string
 }
+// `publishedAt` sengaja TIDAK ada di sini. Form ini tidak pernah menampilkannya,
+// dan aturannya kini dipegang server (lib/article-published-at.ts) supaya jalur
+// mana pun yang mengubah status terbit ikut terjaga — termasuk tombol
+// Draft/Published di halaman daftar, yang dulu menerbitkan artikel tanpa
+// tanggal sama sekali.
 
 export default function AdminArtikelEditPage() {
   const params = useParams()
@@ -36,7 +40,6 @@ export default function AdminArtikelEditPage() {
     content: "",
     thumbnail: "",
     isPublished: false,
-    publishedAt: null,
     metaTitle: "",
     metaDesc: "",
   })
@@ -56,7 +59,6 @@ export default function AdminArtikelEditPage() {
             content: d.content || "",
             thumbnail: d.thumbnail || "",
             isPublished: d.isPublished || false,
-            publishedAt: d.publishedAt || null,
             metaTitle: d.metaTitle || "",
             metaDesc: d.metaDesc || "",
           })
@@ -108,13 +110,10 @@ export default function AdminArtikelEditPage() {
     setSaving(true)
 
     try {
-      const payload = {
-        id,
-        ...form,
-        publishedAt: form.isPublished
-          ? form.publishedAt || new Date().toISOString()
-          : null,
-      }
+      // Tanpa `publishedAt` — server yang menentukannya. Dulu form ini
+      // mengirim `null` saat unpublish, yang membuang tanggal asli sehingga
+      // artikel yang diterbitkan ulang kehilangan posisinya di daftar blog.
+      const payload = { id, ...form }
       const res = await fetch("/api/admin/articles", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
