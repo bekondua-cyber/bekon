@@ -5,7 +5,7 @@ import { DEFAULT_GEMINI_MODEL } from "../gemini-models"
 export const geminiProvider: AiProvider = {
   name: "gemini",
   envKey: "GEMINI_API_KEY",
-  async complete({ messages, temperature = 0.7, maxTokens = 2048, json, model }: AiCompletionOptions): Promise<string> {
+  async complete({ messages, temperature = 0.7, maxTokens = 2048, json, model, timeoutMs }: AiCompletionOptions): Promise<string> {
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) throw new Error("GEMINI_API_KEY tidak diset")
 
@@ -39,7 +39,8 @@ export const geminiProvider: AiProvider = {
             ...(json ? { responseMimeType: "application/json" } : {}),
           },
         }),
-      }
+      },
+      timeoutMs
     )
 
     if (!res.ok) {

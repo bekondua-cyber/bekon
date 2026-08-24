@@ -4,7 +4,7 @@ import { fetchWithTimeout } from "../fetch-with-timeout"
 export const openrouterProvider: AiProvider = {
   name: "openrouter",
   envKey: "OPENROUTER_API_KEY",
-  async complete({ messages, temperature = 0.7, maxTokens = 2048, json }: AiCompletionOptions): Promise<string> {
+  async complete({ messages, temperature = 0.7, maxTokens = 2048, json, timeoutMs }: AiCompletionOptions): Promise<string> {
     const apiKey = process.env.OPENROUTER_API_KEY
     if (!apiKey) throw new Error("OPENROUTER_API_KEY tidak diset")
 
@@ -27,7 +27,7 @@ export const openrouterProvider: AiProvider = {
         max_tokens: maxTokens,
         ...(json ? { response_format: { type: "json_object" } } : {}),
       }),
-    })
+    }, timeoutMs)
 
     if (!res.ok) {
       const text = await res.text().catch(() => "")

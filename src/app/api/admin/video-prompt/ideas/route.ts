@@ -12,6 +12,10 @@ import { getCategory } from "@/lib/video-categories"
 
 export const dynamic = "force-dynamic"
 
+/** Lihat catatan di src/lib/ai/fetch-with-timeout.ts — harus lebih besar dari
+ *  AI_CHAIN_DEADLINE_MS, kalau tidak rantai fallback dipotong platform. */
+export const maxDuration = 60
+
 const requestSchema = z.object({
   category: z.string().min(1),
   portfolioId: z.string().optional(),

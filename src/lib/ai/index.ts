@@ -1,4 +1,5 @@
 import type { AiCompletionOptions, AiProvider } from "./types"
+import { AI_CHAIN_DEADLINE_MS, AI_MIN_SLICE_MS } from "./fetch-with-timeout"
 import { geminiProvider } from "./providers/gemini"
 import { groqProvider } from "./providers/groq"
 import { openrouterProvider } from "./providers/openrouter"
@@ -38,20 +39,47 @@ function shouldTryNextProvider(error: unknown): boolean {
   return status >= 500
 }
 
+/**
+ * Provider yang benar-benar akan dicoba: yang dikenali DAN punya kunci API.
+ * Dihitung di muka karena pembagian jatah waktu butuh tahu berapa banyak
+ * provider yang tersisa — provider tanpa kunci tidak boleh ikut mengurangi
+ * jatah provider yang benar-benar dipakai.
+ */
+function usableProviders(order: string[]): AiProvider[] {
+  return order
+    .map((name) => ALL_PROVIDERS[name])
+    .filter((p): p is AiProvider => !!p && !!process.env[p.envKey])
+}
+
 export async function generateCompletion(opts: AiCompletionOptions): Promise<string> {
-  const order = getProviderOrder()
+  const providers = usableProviders(getProviderOrder())
   const errors: string[] = []
 
-  for (const name of order) {
-    const provider = ALL_PROVIDERS[name]
-    if (!provider) continue
-    if (!process.env[provider.envKey]) continue
+  /**
+   * Anggaran waktu dibagi ke provider yang BELUM dicoba, bukan dipatok tetap
+   * per provider. Kalau yang pertama gagal cepat, sisanya justru dapat jatah
+   * lebih besar; kalau yang pertama menggantung, ia dipotong tepat pada
+   * jatahnya sehingga cadangan tetap kebagian. Totalnya tidak pernah melewati
+   * deadline — itulah yang membuat rantai ini muat di `maxDuration` Vercel.
+   */
+  const deadline = Date.now() + (opts.deadlineMs ?? AI_CHAIN_DEADLINE_MS)
+
+  for (let i = 0; i < providers.length; i++) {
+    const provider = providers[i]
+
+    const remainingMs = deadline - Date.now()
+    const remainingProviders = providers.length - i
+    if (remainingMs < AI_MIN_SLICE_MS && i > 0) {
+      errors.push(`${provider.name}: dilewati, anggaran waktu rantai habis`)
+      break
+    }
+    const slice = Math.max(AI_MIN_SLICE_MS, Math.floor(remainingMs / remainingProviders))
 
     try {
-      return await provider.complete(opts)
+      return await provider.complete({ ...opts, timeoutMs: slice })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      errors.push(`${name}: ${message}`)
+      errors.push(`${provider.name}: ${message}`)
 
       if (!shouldTryNextProvider(error)) {
         // Seluruh error yang sudah terkumpul ikut dilaporkan — kalau hanya

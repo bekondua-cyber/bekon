@@ -12,6 +12,15 @@ import { auditInternalLinks, countWords, linkableTargets } from "@/lib/ai/articl
 export const dynamic = "force-dynamic"
 
 /**
+ * WAJIB ADA. Tanpa deklarasi ini rute memakai batas bawaan platform, yang jauh
+ * lebih pendek daripada waktu yang dibutuhkan menulis artikel 800-1200 kata —
+ * fungsinya dimatikan di tengah jalan dan admin melihat error 5xx tanpa
+ * penjelasan. 60 adalah maksimum yang boleh diminta di paket Hobby, dan harus
+ * lebih besar dari AI_CHAIN_DEADLINE_MS (50 detik).
+ */
+export const maxDuration = 60
+
+/**
  * Panjang minimum yang dianggap layak terbit.
  *
  * Ke-13 artikel yang sudah ada di produksi rata-rata cuma 71 kata — ditulis

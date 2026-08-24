@@ -13,6 +13,10 @@ import { normalizeWA } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
+/** Lihat catatan di src/lib/ai/fetch-with-timeout.ts — harus lebih besar dari
+ *  AI_CHAIN_DEADLINE_MS, kalau tidak rantai fallback dipotong platform. */
+export const maxDuration = 60
+
 const chatSchema = z.object({
   message: z.string().min(1).max(1000),
   history: z

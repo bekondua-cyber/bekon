@@ -4,7 +4,7 @@ import { fetchWithTimeout } from "../fetch-with-timeout"
 export const groqProvider: AiProvider = {
   name: "groq",
   envKey: "GROQ_API_KEY",
-  async complete({ messages, temperature = 0.7, maxTokens = 2048, json }: AiCompletionOptions): Promise<string> {
+  async complete({ messages, temperature = 0.7, maxTokens = 2048, json, timeoutMs }: AiCompletionOptions): Promise<string> {
     const apiKey = process.env.GROQ_API_KEY
     if (!apiKey) throw new Error("GROQ_API_KEY tidak diset")
 
@@ -21,7 +21,7 @@ export const groqProvider: AiProvider = {
         max_tokens: maxTokens,
         ...(json ? { response_format: { type: "json_object" } } : {}),
       }),
-    })
+    }, timeoutMs)
 
     if (!res.ok) {
       const text = await res.text().catch(() => "")
