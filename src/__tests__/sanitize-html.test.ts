@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { sanitizeArticleHtml } from "@/lib/sanitize-html"
+import { keTeksAman, sanitizeArticleHtml, sanitizerTersedia } from "@/lib/sanitize-html"
 
 /**
  * sanitizeArticleHtml adalah SATU-SATUNYA pertahanan XSS untuk isi artikel, dan
@@ -67,6 +67,66 @@ describe("sanitizeArticleHtml", () => {
       const hasil = sanitizeArticleHtml('<iframe src="https://jahat.com"></iframe><style>body{display:none}</style>')
       expect(hasil).not.toContain("<iframe")
       expect(hasil).not.toContain("<style")
+    })
+  })
+
+  /**
+   * Regresi produksi: isomorphic-dompurify membuat instance jsdom saat MODULNYA
+   * DIMUAT. Ketika itu gagal di server, SELURUH rute /informasi/blog/[slug]
+   * membalas 500 — termasuk slug yang TIDAK ADA, yang seharusnya 404.
+   *
+   * `keTeksAman` adalah jalur cadangannya. Ia diuji langsung karena `require()`
+   * di dalam modul tidak bisa dipalsukan lewat vi.mock (yang hanya mencegat
+   * `import`) — memaksakannya justru akan menghasilkan tes yang diam-diam
+   * menguji sanitizer asli, bukan cadangannya.
+   */
+  describe("jalur cadangan saat sanitizer tidak bisa dimuat", () => {
+    it("isi artikel tetap terbaca sebagai teks biasa", () => {
+      const hasil = keTeksAman("<h2>Judul</h2><p>Isi <strong>penting</strong>.</p>")
+      expect(hasil).toContain("Judul")
+      expect(hasil).toContain("Isi penting.")
+    })
+
+    it("membuang SELURUH markup berbahaya", () => {
+      const hasil = keTeksAman(
+        '<script>alert(1)</script><img src=x onerror="alert(2)"><a href="javascript:alert(3)">x</a>'
+      )
+      expect(hasil).not.toContain("<script")
+      expect(hasil).not.toContain("onerror")
+      expect(hasil).not.toContain("<img")
+      expect(hasil).not.toContain("javascript:")
+      // Satu-satunya tag yang boleh keluar adalah <p> dan <br /> buatan sendiri.
+      expect(hasil).not.toMatch(/<(?!\/?(p|br)[\s/>])[a-z]/i)
+    })
+
+    it("meng-escape karakter yang bisa membentuk tag baru", () => {
+      const hasil = keTeksAman("<p>5 &lt; 10 &amp; 20 > 15</p>")
+      expect(hasil).not.toMatch(/<script|<img/i)
+      expect(hasil).toContain("&lt;")
+      expect(hasil).toContain("&amp;")
+    })
+
+    it("mempertahankan pemisahan paragraf agar tetap enak dibaca", () => {
+      const hasil = keTeksAman("<p>Paragraf satu.</p><p>Paragraf dua.</p>")
+      expect(hasil.match(/<p>/g)?.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it("aman untuk isi kosong", () => {
+      expect(keTeksAman("")).toBe("")
+      expect(sanitizeArticleHtml("")).toBe("")
+    })
+  })
+
+  describe("ketersediaan sanitizer", () => {
+    it("sanitizer penuh aktif di lingkungan ini", () => {
+      // Kalau ini gagal, jsdom tidak bisa dimuat — persis kondisi produksi.
+      expect(sanitizerTersedia()).toBe(true)
+    })
+
+    it("tidak pernah melempar, apa pun masukannya", () => {
+      for (const input of ["", "<p>ok</p>", "<<<>>>", "<p unclosed", "&#x3C;script&#x3E;"]) {
+        expect(() => sanitizeArticleHtml(input)).not.toThrow()
+      }
     })
   })
 
