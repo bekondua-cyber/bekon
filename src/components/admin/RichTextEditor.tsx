@@ -1,12 +1,17 @@
 "use client";
 /* eslint-disable jsx-a11y/alt-text */
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+// BubbleMenu tinggal di subpath /menus sejak TipTap 3, bukan di root.
+import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import LinkExtension from "@tiptap/extension-link";
-import ImageExtension from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Bold, Italic, Heading1, Heading2, List, ListOrdered, Link, Image, ImagePlus, Loader2, Undo, Redo } from "lucide-react";
+import { GambarArtikel, type Perataan, type Ukuran } from "@/lib/tiptap-image";
+import {
+  Bold, Italic, Heading1, Heading2, List, ListOrdered, Link, Image, ImagePlus,
+  Loader2, Undo, Redo, Trash2, AlignLeft, AlignCenter, AlignRight, Minus, Square, Maximize2,
+} from "lucide-react";
 import { useEffect, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { periksaUrlGambar } from "@/lib/image-url";
@@ -32,8 +37,8 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten di
         openOnClick: false,
         HTMLAttributes: { class: "text-bekon-gold underline hover:opacity-80" },
       }),
-      ImageExtension.configure({
-        HTMLAttributes: { class: "max-w-full h-auto rounded-lg my-4" },
+      GambarArtikel.configure({
+        HTMLAttributes: { class: "h-auto my-4 block" },
       }),
       Placeholder.configure({ placeholder }),
     ],
@@ -146,8 +151,74 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten di
     </button>
   );
 
+  const gambarAktif = editor.isActive("image");
+  const atribut = gambarAktif ? editor.getAttributes("image") : {};
+
+  /** Tombol di toolbar mengambang milik gambar. */
+  const TombolGambar = ({
+    onClick, aktif, title, children,
+  }: { onClick: () => void; aktif?: boolean; title: string; children: React.ReactNode }) => (
+    <button
+      type="button"
+      onMouseDown={(e) => e.preventDefault()} // jangan sampai gambar kehilangan seleksi
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      aria-pressed={aktif}
+      className={`p-1.5 rounded transition-colors ${
+        aktif ? "bg-bekon-gold text-white" : "text-gray-600 hover:bg-gray-100"
+      }`}
+    >
+      {children}
+    </button>
+  );
+
+  const aturGambar = (attrs: { align?: Perataan; size?: Ukuran }) =>
+    editor.chain().focus().updateAttributes("image", attrs).run();
+
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
+      {/* Toolbar gambar: muncul tepat di atas gambar yang sedang dipilih.
+          Tanpa ini, menghapus gambar menuntut admin tahu harus menekan Delete,
+          dan tidak ada satu pun petunjuk bahwa gambarnya bisa diseret. */}
+      <BubbleMenu
+        editor={editor}
+        shouldShow={({ editor }: { editor: Editor }) => editor.isActive("image")}
+        options={{ placement: "top", offset: 10 }}
+        className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-white p-1 shadow-lg"
+      >
+        <TombolGambar onClick={() => aturGambar({ align: "left" })} aktif={atribut.align === "left"} title="Rata kiri">
+          <AlignLeft className="w-4 h-4" />
+        </TombolGambar>
+        <TombolGambar onClick={() => aturGambar({ align: "center" })} aktif={atribut.align === "center"} title="Rata tengah">
+          <AlignCenter className="w-4 h-4" />
+        </TombolGambar>
+        <TombolGambar onClick={() => aturGambar({ align: "right" })} aktif={atribut.align === "right"} title="Rata kanan">
+          <AlignRight className="w-4 h-4" />
+        </TombolGambar>
+
+        <span className="w-px h-5 bg-gray-200 mx-1" />
+
+        <TombolGambar onClick={() => aturGambar({ size: "small" })} aktif={atribut.size === "small"} title="Ukuran kecil">
+          <Minus className="w-4 h-4" />
+        </TombolGambar>
+        <TombolGambar onClick={() => aturGambar({ size: "medium" })} aktif={atribut.size === "medium"} title="Ukuran sedang">
+          <Square className="w-4 h-4" />
+        </TombolGambar>
+        <TombolGambar onClick={() => aturGambar({ size: "full" })} aktif={atribut.size === "full"} title="Lebar penuh">
+          <Maximize2 className="w-4 h-4" />
+        </TombolGambar>
+
+        <span className="w-px h-5 bg-gray-200 mx-1" />
+
+        <TombolGambar
+          onClick={() => editor.chain().focus().deleteSelection().run()}
+          title="Hapus gambar"
+        >
+          <Trash2 className="w-4 h-4 text-red-500" />
+        </TombolGambar>
+      </BubbleMenu>
+
       <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50 flex-wrap">
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold">
           <Bold className="w-4 h-4" />

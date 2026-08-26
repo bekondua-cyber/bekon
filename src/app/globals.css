@@ -98,3 +98,71 @@
 .ProseMirror hr {
   @apply my-6 border-gray-200;
 }
+
+/* ---------------------------------------------------------------------------
+   Perataan dan ukuran gambar di dalam artikel.
+
+   Kelas ini ditulis oleh editor (lihat src/lib/tiptap-image.ts) dan HARUS
+   berlaku di dua tempat sekaligus: di dalam editor admin (.ProseMirror) dan di
+   halaman artikel publik (.prose). Kalau hanya salah satu yang diberi style,
+   admin akan mengatur posisi gambar lalu melihat hasil yang berbeda saat
+   artikelnya terbit — persis jenis kebingungan yang ingin dihindari.
+
+   `class` dipakai, bukan `style`, karena hanya `class` yang lolos
+   sanitizeArticleHtml. Lihat catatan panjang di src/lib/tiptap-image.ts.
+--------------------------------------------------------------------------- */
+
+.ProseMirror img,
+.prose img {
+  @apply rounded-lg;
+}
+
+/* --- Ukuran --- */
+.ProseMirror img.img-size-small,
+.prose img.img-size-small {
+  @apply w-full max-w-[280px];
+}
+
+.ProseMirror img.img-size-medium,
+.prose img.img-size-medium {
+  @apply w-full max-w-[520px];
+}
+
+.ProseMirror img.img-size-full,
+.prose img.img-size-full {
+  @apply w-full max-w-full;
+}
+
+/* --- Perataan ---
+   `margin` dipakai (bukan float) supaya teks tidak pernah membungkus gambar.
+   Artikel di situs ini dibaca banyak orang lewat ponsel, dan teks yang
+   membungkus gambar kecil di layar sempit hampir selalu berantakan. */
+.ProseMirror img.img-align-left,
+.prose img.img-align-left {
+  @apply mr-auto ml-0;
+}
+
+.ProseMirror img.img-align-center,
+.prose img.img-align-center {
+  @apply mx-auto;
+}
+
+.ProseMirror img.img-align-right,
+.prose img.img-align-right {
+  @apply ml-auto mr-0;
+}
+
+/* Gambar terpilih di editor diberi cincin supaya jelas mana yang sedang
+   diatur toolbar-nya — tanpa ini admin tidak tahu tombolnya mengenai apa. */
+.ProseMirror img.ProseMirror-selectednode {
+  @apply ring-2 ring-bekon-gold ring-offset-2 outline-none;
+}
+
+/* Isyarat bahwa gambar bisa diseret untuk dipindah. */
+.ProseMirror img {
+  @apply cursor-grab;
+}
+
+.ProseMirror img:active {
+  @apply cursor-grabbing;
+}

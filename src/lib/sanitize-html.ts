@@ -124,7 +124,13 @@ export function sanitizeArticleHtml(html: string): string {
   if (!dp) return keTeksAman(html)
 
   try {
-    return dp.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR })
+    // ALLOW_DATA_ATTR dimatikan: bawaan DOMPurify MELOLOSKAN semua `data-*`
+    // meski tidak ada di ALLOWED_ATTR. Tidak ada satu pun isi artikel yang
+    // memakainya, jadi membiarkannya hanya menambah permukaan yang tidak
+    // terpakai — dan sempat membuat saya salah mengira `data-*` aman dipakai
+    // untuk menyimpan perataan gambar. Kelas CSS yang dipakai; lihat
+    // src/lib/tiptap-image.ts.
+    return dp.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOW_DATA_ATTR: false })
   } catch (error) {
     console.error("Sanitasi HTML gagal saat berjalan:", error)
     return keTeksAman(html)
