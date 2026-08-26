@@ -6,8 +6,11 @@ import StarterKit from "@tiptap/starter-kit";
 import LinkExtension from "@tiptap/extension-link";
 import ImageExtension from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Bold, Italic, Heading1, Heading2, List, ListOrdered, Link, Image, Undo, Redo } from "lucide-react";
-import { useEffect, useCallback } from "react";
+import { Bold, Italic, Heading1, Heading2, List, ListOrdered, Link, Image, ImagePlus, Loader2, Undo, Redo } from "lucide-react";
+import { useEffect, useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
+import { periksaUrlGambar } from "@/lib/image-url";
+import { uploadFile } from "@/lib/upload-client";
 
 interface RichTextEditorProps {
   value: string;
@@ -16,6 +19,9 @@ interface RichTextEditorProps {
 }
 
 export function RichTextEditor({ value, onChange, placeholder = "Tulis konten di sini..." }: RichTextEditorProps) {
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -56,12 +62,73 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten di
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   }, [editor]);
 
-  const addImage = useCallback(() => {
+  /**
+   * Jalur yang SELALU berhasil: berkas diunggah ke Cloudinary — satu-satunya
+   * penyimpan gambar yang diizinkan CSP situs — lalu alamatnya disisipkan.
+   * Gambarnya jadi milik sendiri, tidak bisa hilang kalau situs sumber mati.
+   */
+  const handleUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = ""; // supaya berkas yang sama bisa dipilih lagi
+      if (!file || !editor) return;
+
+      setUploading(true);
+      try {
+        const media = await uploadFile(file);
+        editor.chain().focus().setImage({ src: media.url }).run();
+        toast.success("Gambar berhasil diunggah");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Gagal mengunggah gambar");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [editor]
+  );
+
+  /**
+   * Jalur tempel-alamat. Dulu menyisipkan apa pun tanpa diperiksa, sehingga
+   * alamat HALAMAN artikel dan sisa gambar WordPress yang sudah mati ikut masuk
+   * dan tampil pecah — tanpa satu pun peringatan ke admin.
+   */
+  const addImage = useCallback(async () => {
     if (!editor) return;
-    const url = window.prompt("URL Gambar:");
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+
+    const masukan = window.prompt(
+      'Tempel alamat gambar (harus berakhiran .jpg, .png, atau .webp).\n\nKalau gambarnya ada di komputer, tutup kotak ini lalu pakai tombol "Upload gambar" di sebelah.'
+    );
+    if (masukan === null) return;
+
+    const hasil = periksaUrlGambar(masukan, window.location.host);
+    if (!hasil.ok) {
+      toast.error(hasil.alasan, { duration: 8000 });
+      return;
     }
+
+    // Pemeriksaan bentuk saja tidak cukup: alamat bisa saja rapi tapi berkasnya
+    // sudah terhapus, diblokir hotlink, atau ternyata bukan gambar. Dicoba muat
+    // dulu supaya yang masuk ke artikel hanya yang terbukti tampil.
+    const bisaDimuat = await new Promise<boolean>((resolve) => {
+      const img = new window.Image();
+      const selesai = (v: boolean) => { clearTimeout(timer); resolve(v); };
+      const timer = setTimeout(() => selesai(false), 10000);
+      img.onload = () => selesai(true);
+      img.onerror = () => selesai(false);
+      img.src = hasil.url;
+    });
+
+    if (!bisaDimuat) {
+      toast.error(
+        "Gambar tidak bisa dimuat dari alamat itu — mungkin sudah dihapus, " +
+          "diblokir situs sumbernya, atau alamatnya bukan berkas gambar. " +
+          "Paling aman: unduh gambarnya lalu pakai tombol Upload.",
+        { duration: 10000 }
+      );
+      return;
+    }
+
+    editor.chain().focus().setImage({ src: hasil.url }).run();
   }, [editor]);
 
   if (!editor) return null;
@@ -112,7 +179,26 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten di
         <ToolbarButton onClick={setLink} active={editor.isActive("link")} title="Link">
           <Link className="w-4 h-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={addImage} title="Image">
+        {/* Upload didahulukan: ini jalur yang selalu berhasil, sementara
+            tempel-alamat hampir selalu gagal karena CSP situs. */}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleUpload}
+        />
+        <ToolbarButton
+          onClick={() => { if (!uploading) fileRef.current?.click(); }}
+          title={uploading ? "Sedang mengunggah..." : "Upload gambar dari komputer"}
+        >
+          {uploading ? (
+            <Loader2 className="w-4 h-4 animate-spin text-bekon-gold" aria-hidden="true" />
+          ) : (
+            <ImagePlus className="w-4 h-4" aria-hidden="true" />
+          )}
+        </ToolbarButton>
+        <ToolbarButton onClick={addImage} title="Sisipkan gambar dari alamat (URL)">
           <Image className="w-4 h-4" aria-hidden="true" />
         </ToolbarButton>
 
