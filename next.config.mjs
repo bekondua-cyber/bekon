@@ -80,6 +80,28 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['framer-motion', 'lucide-react'],
     outputFileTracingRoot: __dirname,
+
+    // WAJIB ADA — tanpa ini isi artikel di produksi tampil sebagai teks polos
+    // tanpa satu pun gambar.
+    //
+    // `isomorphic-dompurify` di-inline webpack ke dalam bundel, tapi
+    // `require("jsdom")` dibiarkan EKSTERNAL — artinya jsdom harus benar-benar
+    // ada di node_modules milik fungsi saat berjalan. Penelusuran otomatis
+    // Next mencatatnya dengan benar di lokal (641 berkas di .nft.json), tapi
+    // berkasnya tetap tidak sampai ke Lambda: `require("jsdom")` gagal,
+    // sanitizer jatuh ke jalur cadangan, dan SELURUH markup beserta gambar
+    // dibuang dari setiap artikel.
+    //
+    // Memindahkan jsdom ke `dependencies` saja tidak cukup. Ini jalan resmi
+    // Next untuk memaksa berkasnya ikut dipaketkan, dan tidak bergantung pada
+    // tebakan soal kenapa penelusuran otomatisnya meleset.
+    //
+    // Kuncinya adalah rute yang mengimpor `@/lib/sanitize-html`. Kalau nanti
+    // ada rute lain yang ikut mengimpornya, daftarkan di sini juga.
+    outputFileTracingIncludes: {
+      '/informasi/blog/[slug]': ['./node_modules/jsdom/**/*'],
+      '/api/admin/diagnosa-sanitizer': ['./node_modules/jsdom/**/*'],
+    },
   },
 
   webpack: (config, { dev, isServer }) => {
