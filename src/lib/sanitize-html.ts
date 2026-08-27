@@ -1,32 +1,35 @@
 /**
- * Pembersih HTML isi artikel — dan penjaga agar kegagalannya tidak pernah lagi
- * mematikan seluruh halaman.
+ * Pembersih HTML isi artikel.
  *
- * KENAPA IMPORT-NYA MALAS (lazy), bukan `import` biasa di atas berkas:
+ * KENAPA `sanitize-html`, BUKAN DOMPurify:
  *
- * `isomorphic-dompurify` membuat instance jsdom SAAT MODULNYA DIMUAT — di
- * bundel produksi barisnya benar-benar berbunyi `new (require("jsdom")).JSDOM(...)`
- * di tingkat modul. Kalau pembuatan itu gagal di runtime server, yang tumbang
- * bukan cuma sanitasi, tapi SELURUH modul rute yang mengimpornya.
+ * DOMPurify butuh sebuah DOM. Di server itu berarti jsdom — dan jsdom ada di
+ * `server-external-packages.json` bawaan Next: 51 paket yang SELALU
+ * dieksternalkan dan tidak pernah di-bundle. Akibatnya jsdom beserta 21
+ * dependensinya harus benar-benar ada di node_modules milik Lambda, dan di
+ * Vercel mereka tidak pernah ikut terbawa. `require("jsdom")` gagal, seluruh
+ * markup dan SEMUA gambar hilang dari setiap artikel — tanpa satu pun pesan
+ * error, karena halaman tetap membalas 200 dan teksnya tetap terbaca.
  *
- * Itulah yang terjadi di produksi: setiap `/informasi/blog/[slug]` membalas 500,
- * bahkan slug yang TIDAK ADA — yang seharusnya 404. Gejalanya sudah direproduksi
- * persis di lokal dengan menyembunyikan `node_modules/jsdom`: artikel 500, slug
- * tidak ada 500, daftar blog tetap 200. Halaman daftar selamat justru karena ia
- * satu-satunya halaman blog yang tidak mengimpor berkas ini.
+ * Tiga percobaan memperbaiki pemaketannya gagal: `engines.node`, memindahkan
+ * jsdom ke `dependencies`, dan `outputFileTracingIncludes`. Yang terakhir
+ * berhasil membawa direktori jsdom-nya tapi bukan 21 dependensi yang di-hoist
+ * ke root — mengejarnya berarti mendaftar 50+ paket satu per satu.
  *
- * jsdom 29 menuntut Node `^20.19.0 || ^22.13.0 || >=24.0.0`, sementara proyek
- * ini tidak pernah mendeklarasikan `engines` sama sekali sehingga Vercel memilih
- * versi Node-nya sendiri. `engines.node` di package.json menutup akar itu; berkas
- * ini menutup DAMPAKNYA, supaya kegagalan serupa di masa depan — versi Node
- * berubah, jsdom naik mayor, paketnya tidak ikut ter-deploy — hanya menurunkan
- * kualitas tampilan satu artikel, bukan menjatuhkan seluruh rute.
+ * Dua DOM murni-JavaScript juga sudah dicoba sebagai pengganti jsdom, dan
+ * KEDUANYA BERBAHAYA dengan DOMPurify:
+ *
+ *   linkedom   -> tidak punya document.implementation.createHTMLDocument,
+ *                 DOMPurify menyerah dan MENERUSKAN INPUT MENTAH-MENTAH.
+ *   happy-dom  -> isSupported true, tapi <script> tetap lolos sementara <p>,
+ *                 <h2>, dan gambar yang sah justru dibuang.
+ *
+ * `sanitize-html` tidak butuh DOM sama sekali — ia memakai htmlparser2, JS
+ * murni. Next tidak mengeksternalkannya, jadi webpack meng-inline-nya beserta
+ * seluruh dependensinya. Tidak ada lagi yang bisa hilang saat runtime.
  */
 
-type Pembersih = {
-  sanitize: (html: string, cfg: Record<string, unknown>) => string
-  addHook: (nama: string, fn: (node: { nodeName: string }) => void) => void
-}
+type FungsiSanitasi = (html: string, opsi: unknown) => string
 
 const ALLOWED_TAGS = [
   "p", "br", "strong", "em", "u", "s", "a", "ul", "ol", "li",
@@ -34,43 +37,79 @@ const ALLOWED_TAGS = [
   "code", "pre", "hr", "table", "thead", "tbody", "tr", "th", "td", "span",
 ]
 
-const ALLOWED_ATTR = ["href", "src", "alt", "title", "target", "rel", "class"]
+/**
+ * `style` dan `data-*` sengaja TIDAK diizinkan. Perataan dan ukuran gambar
+ * disimpan sebagai kelas CSS justru karena itu — lihat src/lib/tiptap-image.ts.
+ */
+const OPSI = {
+  allowedTags: ALLOWED_TAGS,
+  allowedAttributes: {
+    "*": ["class", "title"],
+    a: ["href", "target", "rel"],
+    img: ["src", "alt"],
+  },
+  // `javascript:` dan `data:` tidak ada di sini, jadi keduanya ditolak.
+  allowedSchemes: ["https", "mailto", "tel"],
+  allowedSchemesAppliedToAttributes: ["href", "src"],
+  transformTags: {
+    // Tautan tab baru tanpa `rel` membiarkan halaman tujuan memegang
+    // window.opener dan mengarahkan ulang tab BEKON (tabnabbing).
+    a: (tagName: string, attribs: Record<string, string>) => ({
+      tagName,
+      attribs:
+        attribs.target === "_blank"
+          ? { ...attribs, rel: "noopener noreferrer" }
+          : attribs,
+    }),
+  },
+}
 
-/** `undefined` = belum pernah dicoba, `null` = sudah dicoba dan gagal. */
-let pembersih: Pembersih | null | undefined
+/** `undefined` = belum dicoba, `null` = sudah dicoba dan tidak bisa dipakai. */
+let sanitasi: FungsiSanitasi | null | undefined
 
-function ambilPembersih(): Pembersih | null {
-  if (pembersih !== undefined) return pembersih
+/**
+ * Contoh yang WAJIB berubah setelah dibersihkan. Kalau salah satu lolos utuh,
+ * pembersihnya tidak bekerja dan tidak boleh dipercaya.
+ *
+ * Ini bukan kehati-hatian berlebihan: linkedom dan happy-dom sama-sama membuat
+ * DOMPurify diam-diam mengembalikan input apa adanya. Tanpa uji-mandiri ini,
+ * kode akan menganggap keduanya berhasil dan menyajikan HTML mentah ke
+ * pengunjung — XSS tersimpan, tanpa satu pun tanda.
+ */
+const UJI_MANDIRI: [string, string][] = [
+  ["<script>alert(1)</script>", "<script"],
+  ['<img src="x" onerror="alert(1)">', "onerror"],
+  ['<a href="javascript:alert(1)">k</a>', "javascript:"],
+  ['<iframe src="https://x.com"></iframe>', "<iframe"],
+]
+
+function ambilSanitasi(): FungsiSanitasi | null {
+  if (sanitasi !== undefined) return sanitasi
 
   try {
-    // require() disengaja: `import` di tingkat modul akan menjalankan
-    // inisialisasi jsdom saat modul dimuat, persis masalah yang dijelaskan di
-    // atas. Dibungkus try/catch supaya kegagalannya bisa ditangani.
+    // require() disengaja: pemuatan ditunda dan kegagalannya bisa ditangani,
+    // alih-alih menjatuhkan seluruh modul rute yang mengimpor berkas ini.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("isomorphic-dompurify")
-    const dp: Pembersih = mod?.default ?? mod
+    const mod = require("sanitize-html")
+    const fn: FungsiSanitasi = mod?.default ?? mod
+    if (typeof fn !== "function") throw new Error("sanitize-html bukan fungsi")
 
-    // Hook dipasang sekali di sini, bukan tiap panggilan sanitize(): DOMPurify
-    // menyimpan hook secara global dan menumpuknya kalau didaftarkan berulang.
-    dp.addHook("afterSanitizeAttributes", (node) => {
-      if (node.nodeName !== "A") return
-      const el = node as unknown as Element
-      if (el.getAttribute("target") === "_blank") {
-        el.setAttribute("rel", "noopener noreferrer")
+    for (const [contoh, berbahaya] of UJI_MANDIRI) {
+      if (fn(contoh, OPSI).includes(berbahaya)) {
+        throw new Error(`uji-mandiri gagal: "${berbahaya}" masih lolos`)
       }
-    })
+    }
 
-    pembersih = dp
+    sanitasi = fn
   } catch (error) {
     console.error(
-      "Sanitizer HTML gagal dimuat — isi artikel disajikan sebagai teks biasa. " +
-        "Periksa versi Node terhadap engines jsdom:",
+      "Sanitizer HTML tidak bisa dipakai — isi artikel disajikan sebagai teks biasa:",
       error
     )
-    pembersih = null
+    sanitasi = null
   }
 
-  return pembersih
+  return sanitasi
 }
 
 const ESCAPE: Record<string, string> = {
@@ -83,21 +122,18 @@ const ENTITAS: Record<string, string> = {
 }
 
 /**
- * Jalan keluar saat sanitizer tidak tersedia.
+ * Jalan keluar saat pembersih tidak tersedia.
  *
- * SELURUH markup dibuang lalu setiap karakter berbahaya di-escape, jadi hasilnya
- * mustahil membawa skrip — aman dipasang lewat dangerouslySetInnerHTML. Pembaca
- * kehilangan format dan tautan, tapi tetap bisa membaca artikelnya. Itu jauh
- * lebih baik daripada halaman 500.
+ * SELURUH markup dibuang lalu setiap karakter berbahaya di-escape, jadi
+ * hasilnya mustahil membawa skrip. Pembaca kehilangan format dan gambar, tapi
+ * artikelnya tetap terbaca — jauh lebih baik daripada halaman 500, dan jauh
+ * lebih aman daripada menyajikan HTML yang belum dibersihkan.
  */
 export function keTeksAman(html: string): string {
   const teks = html
     .replace(/<\s*br\s*\/?>/gi, "\n")
-    // Penutup blok jadi baris kosong supaya paragrafnya tidak menyatu jadi satu.
     .replace(/<\/\s*(p|h[1-6]|li|div|blockquote|tr)\s*>/gi, "\n\n")
     .replace(/<[^>]*>/g, "")
-    // Entitas didekode DULU, baru di-escape ulang. Tanpa ini "&lt;" berubah
-    // jadi "&amp;lt;" dan pembaca melihat kode mentah, bukan tanda kurang dari.
     .replace(/&(lt|gt|quot|apos|nbsp|amp|#39);/gi, (m) => ENTITAS[m.toLowerCase()] ?? m)
     .replace(/[&<>"']/g, (c) => ESCAPE[c])
     .replace(/[ \t]+\n/g, "\n")
@@ -113,31 +149,24 @@ export function keTeksAman(html: string): string {
 }
 
 /**
- * Membersihkan HTML artikel. TIDAK PERNAH melempar: kalau sanitizer-nya sendiri
- * tidak bisa dimuat atau gagal saat berjalan, isinya diturunkan jadi teks biasa
- * yang sudah di-escape.
+ * Membersihkan HTML artikel. TIDAK PERNAH melempar, dan tidak pernah
+ * mengembalikan HTML yang belum dibersihkan.
  */
 export function sanitizeArticleHtml(html: string): string {
   if (!html) return ""
 
-  const dp = ambilPembersih()
-  if (!dp) return keTeksAman(html)
+  const fn = ambilSanitasi()
+  if (!fn) return keTeksAman(html)
 
   try {
-    // ALLOW_DATA_ATTR dimatikan: bawaan DOMPurify MELOLOSKAN semua `data-*`
-    // meski tidak ada di ALLOWED_ATTR. Tidak ada satu pun isi artikel yang
-    // memakainya, jadi membiarkannya hanya menambah permukaan yang tidak
-    // terpakai — dan sempat membuat saya salah mengira `data-*` aman dipakai
-    // untuk menyimpan perataan gambar. Kelas CSS yang dipakai; lihat
-    // src/lib/tiptap-image.ts.
-    return dp.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOW_DATA_ATTR: false })
+    return fn(html, OPSI)
   } catch (error) {
     console.error("Sanitasi HTML gagal saat berjalan:", error)
     return keTeksAman(html)
   }
 }
 
-/** Apakah sanitizer penuh sedang aktif. Dipakai tes dan diagnosa. */
+/** Apakah pembersih penuh sedang aktif. Dipakai tes dan diagnosa. */
 export function sanitizerTersedia(): boolean {
-  return ambilPembersih() !== null
+  return ambilSanitasi() !== null
 }

@@ -1,86 +1,91 @@
 import { describe, expect, it } from "vitest"
-import { readdirSync, readFileSync, statSync } from "fs"
-import { join, relative, sep } from "path"
+import { readFileSync } from "fs"
+import { join } from "path"
+import { sanitizeArticleHtml, sanitizerTersedia } from "@/lib/sanitize-html"
 
 /**
  * Penjaga untuk bug yang paling lama tidak ketahuan di proyek ini.
  *
- * `isomorphic-dompurify` di-inline webpack ke dalam bundel, tapi
- * `require("jsdom")` dibiarkan EKSTERNAL — jsdom harus benar-benar ada di
- * node_modules milik fungsi saat berjalan. Penelusuran otomatis Next mencatatnya
- * dengan benar secara lokal, tapi berkasnya tidak sampai ke Lambda Vercel.
+ * Isi artikel di produksi selama berhari-hari tampil sebagai teks polos tanpa
+ * satu pun gambar. Penyebabnya: DOMPurify butuh DOM, di server itu berarti
+ * jsdom, dan jsdom ada di `server-external-packages.json` bawaan Next — daftar
+ * paket yang SELALU dieksternalkan dan tidak pernah di-bundle. jsdom beserta 21
+ * dependensinya tidak pernah ikut ke Lambda Vercel.
  *
- * Akibatnya tidak terlihat seperti kerusakan: halaman tetap membalas 200, teks
- * artikel tetap terbaca, dan tidak ada satu pun pesan error. Yang hilang diam-
- * diam adalah SELURUH markup dan SEMUA gambar, karena sanitizer jatuh ke jalur
- * cadangan. Butuh berhari-hari sampai penyebabnya ketemu.
+ * Yang membuatnya berbahaya: kerusakannya tidak terlihat seperti kerusakan.
+ * Halaman tetap 200, teks tetap terbaca, tidak ada pesan error di mana pun.
  *
- * `outputFileTracingIncludes` di next.config.mjs yang menutupnya. Tes ini
- * memastikan daftarnya tidak pernah tertinggal dari kenyataan: setiap rute yang
- * mengimpor sanitize-html HARUS terdaftar di sana.
+ * Berkas ini mengunci pelajarannya supaya tidak terulang.
  */
 
-const APP = join(process.cwd(), "src", "app")
+const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8"))
 
-/** Semua berkas rute (page/route) yang pada akhirnya memakai sanitize-html. */
-function rutePemakaiSanitizer(): string[] {
-  const hasil: string[] = []
-
-  function telusuri(dir: string) {
-    for (const entry of readdirSync(dir)) {
-      const full = join(dir, entry)
-      if (statSync(full).isDirectory()) {
-        telusuri(full)
-      } else if (entry === "page.tsx" || entry === "route.ts") {
-        if (readFileSync(full, "utf8").includes("sanitize-html")) hasil.push(full)
-      }
-    }
-  }
-
-  telusuri(APP)
-  return hasil
-}
-
-/** Ubah path berkas jadi path rute Next: src/app/(public)/a/[b]/page.tsx -> /a/[b] */
-function kePathRute(berkas: string): string {
-  return (
-    "/" +
-      relative(APP, berkas)
-        .split(sep)
-        .slice(0, -1) // buang page.tsx / route.ts
-        .filter((seg) => !(seg.startsWith("(") && seg.endsWith(")"))) // route group
-        .join("/") || "/"
+describe("pembersih HTML tidak boleh bergantung pada paket yang dieksternalkan Next", () => {
+  const eksternalNext: string[] = JSON.parse(
+    readFileSync(
+      join(process.cwd(), "node_modules", "next", "dist", "lib", "server-external-packages.json"),
+      "utf8"
+    )
   )
-}
 
-describe("jsdom ikut dipaketkan untuk setiap rute yang menyanitasi HTML", () => {
-  const config = readFileSync(join(process.cwd(), "next.config.mjs"), "utf8")
-
-  it("outputFileTracingIncludes ada di next.config.mjs", () => {
-    expect(config).toContain("outputFileTracingIncludes")
-    expect(config).toContain("node_modules/jsdom")
+  it("jsdom memang ada di daftar eksternal Next — inilah sumber masalahnya", () => {
+    // Kalau suatu saat Next mengeluarkan jsdom dari daftar ini, catatan panjang
+    // di sanitize-html.ts perlu ditinjau ulang.
+    expect(eksternalNext).toContain("jsdom")
   })
 
-  it("setiap rute pemakai sanitize-html terdaftar", () => {
-    const rute = rutePemakaiSanitizer()
-    expect(rute.length, "tidak ada rute yang memakai sanitize-html — apakah pindah berkas?").toBeGreaterThan(0)
+  it("paket sanitizer yang dipakai TIDAK dieksternalkan, jadi ikut di-bundle", () => {
+    expect(pkg.dependencies["sanitize-html"], "sanitize-html harus jadi dependensi runtime").toBeTruthy()
+    expect(eksternalNext).not.toContain("sanitize-html")
+  })
 
-    for (const berkas of rute) {
-      const path = kePathRute(berkas)
+  it("tidak ada lagi pembersih berbasis DOM di dependensi runtime", () => {
+    // isomorphic-dompurify menarik jsdom. linkedom dan happy-dom sama-sama
+    // membuat DOMPurify diam-diam meneruskan input mentah — keduanya sudah
+    // dicoba dan terbukti berbahaya.
+    for (const terlarang of ["isomorphic-dompurify", "linkedom", "happy-dom", "jsdom"]) {
       expect(
-        config,
-        `Rute ${path} memakai sanitize-html tapi belum terdaftar di outputFileTracingIncludes. ` +
-          `Tanpa itu jsdom tidak ikut ter-deploy dan SEMUA gambar di artikel hilang diam-diam.`
-      ).toContain(`'${path}'`)
+        pkg.dependencies[terlarang],
+        `${terlarang} tidak boleh ada di dependencies — lihat catatan di src/lib/sanitize-html.ts`
+      ).toBeUndefined()
     }
   })
 
-  it("jsdom dideklarasikan sebagai dependensi runtime, bukan devDependency", () => {
-    // jsdom memang dipakai vitest, tapi juga dipakai isomorphic-dompurify saat
-    // MENYAJIKAN halaman artikel. Menaruhnya hanya di devDependencies membuat
-    // build produksi yang bersih kehilangan paketnya.
-    const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8"))
-    expect(pkg.dependencies?.jsdom, "jsdom harus ada di dependencies").toBeTruthy()
-    expect(pkg.devDependencies?.jsdom, "jsdom tidak boleh ganda di devDependencies").toBeUndefined()
+  it("jsdom tetap boleh jadi devDependency untuk lingkungan tes", () => {
+    expect(pkg.devDependencies.jsdom).toBeTruthy()
+  })
+})
+
+/**
+ * Uji-mandiri: pembersih yang "ada" belum tentu benar-benar membersihkan.
+ * linkedom dan happy-dom sama-sama membuat DOMPurify mengembalikan input apa
+ * adanya — kalau kode percaya begitu saja, HTML mentah tersaji ke pengunjung.
+ */
+describe("pembersih benar-benar bekerja, bukan sekadar termuat", () => {
+  it("melaporkan dirinya tersedia di lingkungan ini", () => {
+    expect(sanitizerTersedia()).toBe(true)
+  })
+
+  it.each([
+    ["<script>alert(1)</script>", "<script"],
+    ['<img src="x" onerror="alert(1)">', "onerror"],
+    ['<a href="javascript:alert(1)">k</a>', "javascript:"],
+    ['<iframe src="https://x.com"></iframe>', "<iframe"],
+    ['<p style="color:red">x</p>', "style="],
+    ['<p data-x="1">x</p>', "data-x"],
+  ])("membuang %s", (input, berbahaya) => {
+    expect(sanitizeArticleHtml(input)).not.toContain(berbahaya)
+  })
+
+  it("mempertahankan isi artikel yang sah beserta gambarnya", () => {
+    const hasil = sanitizeArticleHtml(
+      '<h2>Judul</h2><ul><li>poin</li></ul>' +
+        '<img src="https://res.cloudinary.com/x/a.webp" class="img-align-left img-size-medium" alt="foto">'
+    )
+    expect(hasil).toContain("<h2>Judul</h2>")
+    expect(hasil).toContain("<li>poin</li>")
+    expect(hasil).toContain("res.cloudinary.com")
+    expect(hasil).toContain("img-align-left")
+    expect(hasil).toContain("img-size-medium")
   })
 })
